@@ -1,0 +1,23 @@
+{
+  "appId": "com.automater.smarttrolley",
+  "appName": "Automater",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": [
+      "shoprite.co.za",
+      "*.shoprite.co.za",
+      "pnp.co.za",
+      "*.pnp.co.za",
+      "spar.co.za",
+      "*.spar.co.za"
+    ]
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#111827"
+    }
+  }
+}

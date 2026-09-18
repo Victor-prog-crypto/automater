@@ -1,14 +1,16 @@
 """
 Automater Backend - Catalog Image Sync Script
-Parses MASTER_PRODUCTS from app.js, pulls real retailer images using the CSE/fallback engine,
-saves them to public/products/, and updates app.js with real JPG paths.
+Parses MASTER_PRODUCTS from app.js, pulls real retailer images using Vertex AI Nano Banana
+or CSE/fallback engine, saves them to public/products/, and updates app.js with real paths.
 """
 
 import re
 import json
 import logging
 from pathlib import Path
+from typing import Optional
 from backend.ingestion.cse_image_puller import GoogleCSEImagePuller, PUBLIC_PRODUCTS_DIR
+from backend.ingestion.vertex_packshot_engine import VertexPackshotEngine
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("automater.sync_images")
@@ -69,11 +71,56 @@ def update_app_js_image_urls(products):
                 updated_count += 1
 
     APP_JS_PATH.write_text(content, encoding="utf-8")
-    logger.info(f"✓ Updated {updated_count} product image references to real JPGs in app.js")
+    logger.info(f"[OK] Updated {updated_count} product image references to real JPGs in app.js")
     return updated_count
 
 
+def sync_vertex_packshots(overwrite: bool = False, limit: Optional[int] = None, gtin_filter: Optional[str] = None):
+    """
+    Generates photorealistic commercial studio packshots using Vertex AI Nano Banana
+    (gemini-2.5-flash-image) for catalog products.
+    """
+    products = extract_products_from_app_js()
+    if not products:
+        logger.warning("No products found in app.js to sync.")
+        return
+
+    if gtin_filter:
+        products = [p for p in products if p["gtin"] == gtin_filter]
+
+    if limit and limit > 0:
+        products = products[:limit]
+
+    engine = VertexPackshotEngine()
+    success_count = 0
+    total = len(products)
+
+    print("\n" + "=" * 70)
+    print(f"AUTOMATER - VERTEX AI NANO BANANA PACKSHOT GENERATOR")
+    print(f"Model: {engine.model_name} | Target Products: {total}")
+    print("=" * 70 + "\n")
+
+    for idx, p in enumerate(products, 1):
+        gtin = p["gtin"]
+        title = p["title"]
+        print(f"[{idx}/{total}] Packshot generation: {gtin} - {title[:45]}...")
+        result = engine.generate_and_save_product_packshot(p, overwrite=overwrite)
+        if result:
+            success_count += 1
+            print(f"      -> [OK] Packshot ready: {Path(result).name}")
+        else:
+            print(f"      -> [FAIL] Generation failed or rate-limited for {gtin}")
+
+    updated = update_app_js_image_urls(products)
+
+    print("\n" + "=" * 70)
+    print(f"VERTEX PACKSHOT SYNC COMPLETE: {success_count}/{total} packshots ready.")
+    print(f"Updated {updated} product mappings in app.js.")
+    print("=" * 70 + "\n")
+
+
 def sync_images(overwrite=False):
+    """Fallback / CSE multi-tier image sync."""
     products = extract_products_from_app_js()
     if not products:
         logger.warning("No products found in app.js to sync.")

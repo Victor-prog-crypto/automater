@@ -12,7 +12,7 @@ from rich.panel import Panel
 from backend.ingestion.catalog_ingester import CatalogIngester, DEFAULT_CATALOG
 from backend.router.transaction_router import TransactionRouter
 from backend.models import OrderStage
-from backend.ingestion.sync_catalog_images import sync_images
+from backend.ingestion.sync_catalog_images import sync_images, sync_vertex_packshots
 from backend.ingestion.regional_sales_agent import RegionalSalesScraperAgent
 
 console = Console()
@@ -123,7 +123,10 @@ def simulate_nedbank():
 
 def main():
     parser = argparse.ArgumentParser(description="Automater Backend Pipeline & Router CLI")
-    parser.add_argument("command", choices=["seed", "simulate-qr", "simulate-delivery", "simulate-nedbank", "pull-cse-images", "regional-sales"], help="Command to execute")
+    parser.add_argument("command", choices=["seed", "simulate-qr", "simulate-delivery", "simulate-nedbank", "pull-cse-images", "vertex-packshots", "regional-sales"], help="Command to execute")
+    parser.add_argument("--gtin", type=str, default=None, help="Target specific product GTIN barcode")
+    parser.add_argument("--limit", type=int, default=None, help="Limit number of items to process")
+    parser.add_argument("--overwrite", action="store_true", help="Force regenerate existing images")
 
     if len(sys.argv) == 1:
         parser.print_help()
@@ -140,7 +143,9 @@ def main():
     elif args.command == "simulate-nedbank":
         simulate_nedbank()
     elif args.command == "pull-cse-images":
-        sync_images()
+        sync_images(overwrite=args.overwrite)
+    elif args.command == "vertex-packshots":
+        sync_vertex_packshots(overwrite=args.overwrite, limit=args.limit, gtin_filter=args.gtin)
     elif args.command == "regional-sales":
         agent = RegionalSalesScraperAgent()
         agent.run()

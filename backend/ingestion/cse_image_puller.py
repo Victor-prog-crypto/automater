@@ -67,34 +67,36 @@ class GoogleCSEImagePuller:
         clean_query = query.replace('"', '').replace("'", '').strip()
         retailer_domain = RETAILER_DOMAINS.get(retailer_id, "shoprite.co.za")
         
-        # Craft retailer-targeted search query
-        search_query = f"{clean_query} site:{retailer_domain}"
-
-        url = (
-            f"https://customsearch.googleapis.com/customsearch/v1?"
-            f"key={quote_plus(self.api_key)}&"
-            f"cx={quote_plus(self.cx)}&"
-            f"q={quote_plus(search_query)}&"
-            f"searchType=image&"
-            f"safe=active&"
-            f"num=5"
-        )
-
-        try:
-            logger.info(f"[CSE] Querying Google Custom Search: '{search_query}'")
-            resp = self.session.get(url, timeout=10)
-            if resp.status_code == 200:
-                data = resp.json()
-                items = data.get("items", [])
-                if items and isinstance(items, list):
-                    for item in items:
-                        img_link = item.get("link")
-                        if img_link and (img_link.startswith("http://") or img_link.startswith("https://")):
-                            return img_link
-            else:
-                logger.warning(f"[CSE] API returned status {resp.status_code}: {resp.text[:120]}")
-        except Exception as e:
-            logger.warning(f"[CSE] Request failed: {e}")
+        # If the CSE is already configured specifically for Shoprite, plain query works best.
+        # Otherwise fallback to site:domain targeting.
+        queries_to_try = [clean_query, f"{clean_query} site:{retailer_domain}"]
+        
+        for q in queries_to_try:
+            url = (
+                f"https://customsearch.googleapis.com/customsearch/v1?"
+                f"key={quote_plus(self.api_key)}&"
+                f"cx={quote_plus(self.cx)}&"
+                f"q={quote_plus(q)}&"
+                f"searchType=image&"
+                f"safe=active&"
+                f"num=5"
+            )
+            try:
+                logger.info(f"[CSE] Querying Custom Search (cx={self.cx[:6]}...): '{q}'")
+                resp = self.session.get(url, timeout=10)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    items = data.get("items", [])
+                    if items and isinstance(items, list):
+                        for item in items:
+                            img_link = item.get("link")
+                            if img_link and (img_link.startswith("http://") or img_link.startswith("https://")):
+                                return img_link
+                elif resp.status_code == 403:
+                    logger.warning(f"[CSE] 403 Forbidden: Check Custom Search API is enabled in Google Cloud Console for key.")
+                    break
+            except Exception as e:
+                logger.warning(f"[CSE] Request error for '{q}': {e}")
 
         return None
 

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="boxer-orange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+    <filter id="b-shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <!-- Background Badge -->
+  <rect width="360" height="100" rx="18" fill="url(#boxer-orange)"/>
+  
+  <!-- Navy Blue Inner Shield Outline -->
+  <rect x="6" y="6" width="348" height="88" rx="14" fill="none" stroke="#1e3a8a" stroke-width="3"/>
+  
+  <!-- Bold Slanted BOXER Wordmark -->
+  <g filter="url(#b-shadow)">
+    <text x="180" y="56" 
+          fill="#ffffff" 
+          font-family="Impact, Arial Black, -apple-system, sans-serif" 
+          font-weight="900" 
+          font-style="italic" 
+          font-size="52" 
+          letter-spacing="2" 
+          text-anchor="middle">BOXER</text>
+  </g>
+  
+  <!-- Navy Tagline Ribbon -->
+  <rect x="50" y="66" width="260" height="20" rx="10" fill="#1e3a8a"/>
+  <text x="180" y="80" 
+        fill="#ffffff" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+        font-weight="900" 
+        font-size="9.5" 
+        letter-spacing="2.2" 
+        text-anchor="middle">SUPERSTORES &bull; BEST PRICE</text>
+</svg>

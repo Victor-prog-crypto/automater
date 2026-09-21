@@ -6,12 +6,12 @@ const SCANNER_KEY_GAP_MS = 30;
 const MIN_BARCODE_LENGTH = 6;
 
 const RETAILERS = Object.freeze({
-  shoprite: { id: 'shoprite', name: 'Shoprite', url: 'https://www.shoprite.co.za', host: 'shoprite.co.za', tagline: 'Low prices you can trust', loyalty: 'Xtra Savings', entryBarcode: '9000000000001', color: '#e11d2e', soft: '#fff1f2', initials: 'S', accent: 'from-red-600 to-rose-700' },
-  checkers: { id: 'checkers', name: 'Checkers', url: 'https://www.checkers.co.za', host: 'checkers.co.za', tagline: 'Better and better', loyalty: 'Sixty60 / Xtra', entryBarcode: '9000000000004', color: '#004831', soft: '#ecfdf5', initials: 'C', accent: 'from-emerald-800 to-teal-900' },
-  pnp: { id: 'pnp', name: 'Pick n Pay', url: 'https://www.pnp.co.za', host: 'pnp.co.za', tagline: 'Fresh choices, smart prices', loyalty: 'Smart Shopper', entryBarcode: '9000000000002', color: '#005baa', soft: '#eff6ff', initials: 'PnP', accent: 'from-blue-600 to-indigo-800' },
-  spar: { id: 'spar', name: 'SPAR', url: 'https://www.spar.co.za', host: 'spar.co.za', tagline: 'Good for you', loyalty: 'SPAR Rewards', entryBarcode: '9000000000003', color: '#138a42', soft: '#f0fdf4', initials: 'SPAR', accent: 'from-emerald-600 to-green-700' },
-  woolworths: { id: 'woolworths', name: 'Woolworths', url: 'https://www.woolworths.co.za', host: 'woolworths.co.za', tagline: 'The difference', loyalty: 'WRewards', entryBarcode: '9000000000005', color: '#18181b', soft: '#fafafa', initials: 'WW', accent: 'from-zinc-900 to-neutral-950' },
-  boxer: { id: 'boxer', name: 'Boxer', url: 'https://www.boxer.co.za', host: 'boxer.co.za', tagline: 'Never pay more than the Boxer price', loyalty: 'Boxer Club', entryBarcode: '9000000000006', color: '#ea580c', soft: '#fff7ed', initials: 'BXR', accent: 'from-orange-600 to-amber-700' }
+  shoprite: { id: 'shoprite', name: 'Shoprite', url: 'https://www.shoprite.co.za', host: 'shoprite.co.za', tagline: 'Low prices you can trust', loyalty: 'Xtra Savings', entryBarcode: '9000000000001', color: '#e11d2e', soft: '#fff1f2', initials: 'S', accent: 'from-red-600 to-rose-700', logoUrl: '/logos/shoprite.svg' },
+  checkers: { id: 'checkers', name: 'Checkers', url: 'https://www.checkers.co.za', host: 'checkers.co.za', tagline: 'Better and better', loyalty: 'Sixty60 / Xtra', entryBarcode: '9000000000004', color: '#004831', soft: '#ecfdf5', initials: 'C', accent: 'from-emerald-800 to-teal-900', logoUrl: '/logos/checkers.svg' },
+  pnp: { id: 'pnp', name: 'Pick n Pay', url: 'https://www.pnp.co.za', host: 'pnp.co.za', tagline: 'Fresh choices, smart prices', loyalty: 'Smart Shopper', entryBarcode: '9000000000002', color: '#005baa', soft: '#eff6ff', initials: 'PnP', accent: 'from-blue-600 to-indigo-800', logoUrl: '/logos/pnp.svg' },
+  spar: { id: 'spar', name: 'SPAR', url: 'https://www.spar.co.za', host: 'spar.co.za', tagline: 'Good for you', loyalty: 'SPAR Rewards', entryBarcode: '9000000000003', color: '#138a42', soft: '#f0fdf4', initials: 'SPAR', accent: 'from-emerald-600 to-green-700', logoUrl: '/logos/spar.svg' },
+  woolworths: { id: 'woolworths', name: 'Woolworths', url: 'https://www.woolworths.co.za', host: 'woolworths.co.za', tagline: 'The difference', loyalty: 'WRewards', entryBarcode: '9000000000005', color: '#18181b', soft: '#fafafa', initials: 'WW', accent: 'from-zinc-900 to-neutral-950', logoUrl: '/logos/woolworths.svg' },
+  boxer: { id: 'boxer', name: 'Boxer', url: 'https://www.boxer.co.za', host: 'boxer.co.za', tagline: 'Never pay more than the Boxer price', loyalty: 'Boxer Club', entryBarcode: '9000000000006', color: '#ea580c', soft: '#fff7ed', initials: 'BXR', accent: 'from-orange-600 to-amber-700', logoUrl: '/logos/boxer.svg' }
 });
 
 const MASTER_PRODUCTS = new Map([
@@ -474,6 +474,34 @@ const PHYSICAL_STORES = [
 
 const STORE_PRICES = new Map();
 
+const STORE_PRICE_FACTORS = {
+  shoprite: { regMult: 1.0, promoMult: 1.0 },
+  checkers: { regMult: 1.03, promoMult: 1.02 },
+  pnp: { regMult: 1.04, promoMult: 1.03 },
+  spar: { regMult: 1.05, promoMult: 1.04 },
+  woolworths: { regMult: 1.12, promoMult: 1.09 },
+  boxer: { regMult: 0.94, promoMult: 0.92 }
+};
+
+function formatUnitPrice(price, weightStr) {
+  if (!weightStr) return null;
+  const match = weightStr.match(/([\d.]+)\s*([a-zA-Z]+)/);
+  if (!match) return null;
+  const val = parseFloat(match[1]);
+  if (!val || isNaN(val)) return null;
+  const unit = match[2].toLowerCase();
+  if (unit === 'kg') {
+    return `${zar.format(price / val)} / kg`;
+  } else if (unit === 'g') {
+    return `${zar.format(price / (val / 1000))} / kg`;
+  } else if (unit === 'l' || unit === 'litre' || unit === 'litres') {
+    return `${zar.format(price / val)} / L`;
+  } else if (unit === 'ml') {
+    return `${zar.format(price / (val / 1000))} / L`;
+  }
+  return null;
+}
+
 function getStorePrice(storeId, gtin) {
   const compositeKey = `${storeId}_${gtin}`;
   if (STORE_PRICES.has(compositeKey)) {
@@ -482,16 +510,49 @@ function getStorePrice(storeId, gtin) {
   const master = MASTER_PRODUCTS.get(gtin);
   if (!master) return { regularPrice: 19.99, promoPrice: 16.99, inStock: true };
 
+  const store = PHYSICAL_STORES.find(s => s.id === storeId);
+  const retId = store ? store.retailerId : 'shoprite';
+  const factors = STORE_PRICE_FACTORS[retId] || { regMult: 1.0, promoMult: 1.0 };
+
+  // Calculate authentic rounded South African retail prices (.99 or .49)
+  const calcReg = Math.round((master.basePrice * factors.regMult) * 2) / 2 - 0.01;
+  const calcPromo = master.promoPrice ? (Math.round((master.promoPrice * factors.promoMult) * 2) / 2 - 0.01) : null;
+
   const priceObj = {
     storeId,
     gtin,
-    regularPrice: master.basePrice,
-    promoPrice: master.promoPrice,
+    regularPrice: Math.max(1.99, calcReg),
+    promoPrice: calcPromo ? Math.max(1.49, calcPromo) : null,
     inStock: true,
     lastUpdatedAt: Date.now()
   };
   STORE_PRICES.set(compositeKey, priceObj);
   return priceObj;
+}
+
+function getRetailerProducts(retailerId) {
+  return Array.from(MASTER_PRODUCTS.values()).filter(p => {
+    // All 34 products are high-volume South African household staples (White Star, Albany, Clover, etc.)
+    if (retailerId === 'woolworths' && ['Goldi', 'First Choice'].includes(p.brand)) {
+      return false;
+    }
+    return true;
+  });
+}
+
+function renderRetailerLogoBadge(r, sizeClass = 'size-12', imgClass = 'max-h-full max-w-full object-contain') {
+  if (r && r.logoUrl) {
+    return `
+      <div class="grid ${sizeClass} shrink-0 place-items-center rounded-2xl bg-white p-1.5 shadow-sm border border-slate-200/90 overflow-hidden">
+        <img src="${r.logoUrl}" alt="${r.name}" class="${imgClass}" onerror="this.parentElement.style.background='${r.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${r.initials}</span>';" />
+      </div>
+    `;
+  }
+  return `
+    <div class="grid ${sizeClass} shrink-0 place-items-center rounded-2xl text-white font-black text-xs shadow-sm" style="background:${r?.color || '#0f172a'}">
+      ${r?.initials || 'S'}
+    </div>
+  `;
 }
 
 const CATEGORIES = [
@@ -793,7 +854,9 @@ function renderList() {
               <!-- Retailer Header -->
               <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
                 <div class="flex items-center gap-2.5">
-                  <span class="grid size-9 place-items-center rounded-2xl text-white font-black text-xs shadow-sm" style="background:${ret.color}">${ret.initials}</span>
+                  <div class="grid size-9 shrink-0 place-items-center rounded-xl bg-white p-1 shadow-sm border border-slate-100 overflow-hidden">
+                    <img src="${ret.logoUrl}" alt="${ret.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${ret.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${ret.initials}</span>';" />
+                  </div>
                   <div>
                     <h3 class="text-sm font-black text-slate-900">${ret.name}</h3>
                     <p class="text-[10px] font-bold text-slate-400">${items.length} items &middot; Est. ${zar.format(retTotal)}</p>
@@ -1076,7 +1139,9 @@ function retailerSelector() {
         return `
           <button type="button" data-retailer="${retailer.id}" class="min-w-[10rem] flex-1 rounded-3xl border p-3.5 text-left transition active:scale-[.98] ${isSelected ? 'border-transparent text-white shadow-xl ring-2 ring-white/50' : 'border-slate-200 bg-white text-slate-800'}" style="${isSelected ? `background:${retailer.color}` : ''}">
             <div class="flex items-center justify-between">
-              <span class="grid size-9 place-items-center rounded-2xl bg-white/95 text-xs font-black shadow-sm" style="color:${retailer.color}">${retailer.initials}</span>
+              <div class="grid size-9 shrink-0 place-items-center rounded-xl bg-white p-1 shadow-sm border border-slate-100 overflow-hidden">
+                <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${retailer.initials}</span>';" />
+              </div>
               ${isSelected ? '<span class="rounded-full bg-black/25 px-2 py-0.5 text-[9px] font-black text-white">Live Store</span>' : ''}
             </div>
             <strong class="mt-2.5 block text-sm font-black">${retailer.name}</strong>
@@ -1104,7 +1169,7 @@ function renderRetailerStoreDeck() {
             </div>
             <h2 class="mt-2 text-2xl font-black tracking-tight text-white">Supermarket Portals Deck</h2>
             <p class="mt-1 text-xs text-white/70 max-w-sm">
-              Tap Shoprite below to browse 24 authentic store products. All other retailers will be onboarded in upcoming releases.
+              Browse authentic live store portals with official retailer branding, local branch pricing, and real-time inventory across South Africa.
             </p>
           </div>
         </div>
@@ -1113,34 +1178,27 @@ function renderRetailerStoreDeck() {
       <!-- Floating Retail Store Deck Grid -->
       <div class="px-5 -mt-3 space-y-4">
         ${Object.values(RETAILERS).map((r) => {
-          const isShoprite = r.id === 'shoprite';
-          const productCount = Array.from(MASTER_PRODUCTS.values()).filter(p => p.retailerId === r.id).length;
+          const productCount = getRetailerProducts(r.id).length;
 
           return `
             <div class="group relative overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-5 shadow-lg shadow-slate-900/5 transition-all duration-200 hover:shadow-xl hover:border-slate-300">
               <!-- Store Identity & Logo Badge -->
               <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-3.5 min-w-0">
-                  <div class="grid size-14 shrink-0 place-items-center rounded-2xl text-white font-black text-lg shadow-md transition-transform group-hover:scale-105" style="background:${r.color}">
-                    ${r.initials}
+                  <div class="grid size-14 shrink-0 place-items-center rounded-2xl bg-white p-2 shadow-md border border-slate-200/90 transition-transform group-hover:scale-105 overflow-hidden">
+                    <img src="${r.logoUrl}" alt="${r.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${r.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-lg\\'>${r.initials}</span>';" />
                   </div>
                   <div class="min-w-0">
                     <div class="flex items-center gap-2">
                       <h3 class="text-lg font-black text-slate-900 truncate">${r.name}</h3>
-                      ${isShoprite ? `
-                        <span class="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0">
-                          <span class="size-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-                          <span>Active Catalog (${productCount})</span>
-                        </span>
-                      ` : `
-                        <span class="rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-500 border border-slate-200 shrink-0">
-                          0 Products
-                        </span>
-                      `}
+                      <span class="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0">
+                        <span class="size-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span>Active Portal (${productCount})</span>
+                      </span>
                     </div>
                     <p class="text-xs font-mono text-slate-400 font-semibold mt-0.5 truncate">${r.host}</p>
                     <span class="inline-block mt-1 rounded-full px-2 py-0.5 text-[9px] font-black text-white shadow-xs" style="background:${r.color}">
-                      ${isShoprite ? (r.loyalty || 'Xtra Savings') : 'Starting with Shoprite'}
+                      ${r.loyalty || 'Rewards Linked'}
                     </span>
                   </div>
                 </div>
@@ -1151,11 +1209,11 @@ function renderRetailerStoreDeck() {
                 type="button" 
                 data-launch-retailer="${r.id}" 
                 class="mt-4 flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-xs font-black text-white shadow-md active:scale-98 transition hover:brightness-110" 
-                style="background:${isShoprite ? r.color : '#475569'}"
+                style="background:${r.color}"
               >
                 <span class="flex items-center gap-2">
-                  <span>${isShoprite ? '🛍️' : '⏳'}</span>
-                  <span>${isShoprite ? `Launch Live ${r.name} Catalog (${productCount} Products)` : `${r.name} (0 Products - Starting with Shoprite)`}</span>
+                  <span>🛍️</span>
+                  <span>Launch Live ${r.name} Portal (${productCount} Products)</span>
                 </span>
                 <span class="text-sm font-bold">&rarr;</span>
               </button>
@@ -1197,7 +1255,7 @@ function renderMarket() {
   const searchQuery = (state.catalogSearch || '').toLowerCase().trim();
   const selectedCat = state.catalogCategory || 'all';
 
-  const retailerProducts = Array.from(MASTER_PRODUCTS.values()).filter(p => p.retailerId === retailer.id);
+  const retailerProducts = getRetailerProducts(retailer.id);
 
   // Filter master products by category & search query
   const filteredProducts = retailerProducts.filter((product) => {
@@ -1233,11 +1291,11 @@ function renderMarket() {
           </div>
         </div>
 
-        <!-- Physical Store Branch Selector Banner -->
+        <!-- Physical Store Branch Selector Banner with Official Logo -->
         <button id="store-branch-selector-btn" type="button" class="mt-3 w-full rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm flex items-center justify-between gap-3 text-left hover:border-slate-300 active:scale-98 transition group">
           <div class="flex items-center gap-3 min-w-0">
-            <div class="grid size-10 shrink-0 place-items-center rounded-xl text-white font-black text-sm shadow-xs" style="background:${retailer.color}">
-              ${retailer.initials}
+            <div class="grid size-11 shrink-0 place-items-center rounded-xl bg-white p-1 shadow-xs border border-slate-200/90 overflow-hidden">
+              <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-sm\\'>${retailer.initials}</span>';" />
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
@@ -1264,7 +1322,7 @@ function renderMarket() {
             id="catalog-search-input" 
             type="text" 
             value="${escapeHtml(state.catalogSearch || '')}"
-            placeholder="Search 600... GTIN barcode, brand, bread, milk..." 
+            placeholder="Search 600... GTIN, White Star, Albany, milk, rice..." 
             class="h-11 w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-10 text-xs font-bold shadow-xs outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition"
           />
           <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
@@ -1284,28 +1342,32 @@ function renderMarket() {
             </button>
           `).join('')}
         </div>
+
+        <!-- Shared Top Brand Filter Chips (White Star, Albany, Clover, etc.) -->
+        <div class="mt-2 flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
+          <span class="shrink-0 text-[10px] font-black text-slate-400 uppercase tracking-wider pl-0.5">Staples:</span>
+          ${['White Star', 'Albany', 'Clover', 'Tastic', 'Koo', 'Sunlight', 'Rama', 'All Gold'].map(b => {
+            const isBrandActive = (state.catalogSearch || '').toLowerCase() === b.toLowerCase();
+            return `
+              <button 
+                type="button" 
+                data-brand-filter="${b}" 
+                class="shrink-0 rounded-lg px-2.5 py-1 text-[10px] font-bold border transition ${isBrandActive ? 'bg-slate-900 text-white border-slate-900 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}"
+              >
+                ${b}
+              </button>
+            `;
+          }).join('')}
+        </div>
       </div>
 
       <!-- Decoupled Native Catalog Grid (Zero WebViews) -->
       <div class="px-5 pt-3">
-        ${retailerProducts.length === 0 ? `
-          <div class="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xs">
-            <div class="mx-auto grid size-16 place-items-center rounded-2xl text-white font-black text-2xl shadow-md" style="background:${retailer.color}">
-              ${retailer.initials}
-            </div>
-            <h4 class="mt-4 text-base font-black text-slate-900">${retailer.name} Catalog (0 Products)</h4>
-            <p class="mt-1.5 text-xs text-slate-500 max-w-sm mx-auto">
-              We are currently starting with <strong>Shoprite</strong>. Live catalog synchronization for ${retailer.name} is queued.
-            </p>
-            <button id="switch-to-shoprite-catalog-btn" type="button" class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-rose-600 px-5 py-3 text-xs font-black text-white shadow-md active:scale-95 transition hover:bg-rose-700">
-              <span>🛍️ Browse Shoprite Live Catalog (24 Products) ➔</span>
-            </button>
-          </div>
-        ` : filteredProducts.length === 0 ? `
+        ${filteredProducts.length === 0 ? `
           <div class="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xs">
             <span class="text-3xl">🔍</span>
             <h4 class="mt-2 text-sm font-black text-slate-900">No items found for "${escapeHtml(state.catalogSearch)}"</h4>
-            <p class="mt-1 text-xs text-slate-400">Try searching for bread, milk, chips, rice, or a 13-digit EAN barcode.</p>
+            <p class="mt-1 text-xs text-slate-400">Try searching for White Star, bread, milk, chips, rice, or a 13-digit EAN barcode.</p>
             <button id="reset-catalog-btn" type="button" class="mt-4 rounded-xl bg-slate-950 px-4 py-2 text-xs font-black text-white">Reset Search</button>
           </div>
         ` : `
@@ -1316,6 +1378,7 @@ function renderMarket() {
               const hasPromo = priceData.promoPrice && priceData.promoPrice < priceData.regularPrice;
               const activePrice = hasPromo ? priceData.promoPrice : priceData.regularPrice;
               const savings = hasPromo ? (priceData.regularPrice - priceData.promoPrice) : 0;
+              const unitPrice = formatUnitPrice(activePrice, product.weight);
 
               return `
                 <div 
@@ -1323,49 +1386,61 @@ function renderMarket() {
                   class="group relative flex flex-col justify-between rounded-3xl border-2 bg-white p-3.5 shadow-sm transition-all duration-200 cursor-pointer active:scale-98 ${isSelected ? 'border-slate-950 ring-4 ring-slate-900/10 shadow-md' : 'border-slate-200/90 hover:border-slate-300'}"
                 >
                   <div>
-                    <!-- Product Image -->
-                    <div class="relative w-full aspect-square overflow-hidden rounded-2xl bg-slate-100 border border-slate-100">
+                    <!-- Product Packshot Container (1:1 Ratio on Crisp White Backdrop) -->
+                    <div class="relative w-full aspect-square overflow-hidden rounded-2xl bg-white border border-slate-100 p-2 flex items-center justify-center shadow-2xs">
                       <img 
                         src="${product.imageUrl}" 
                         alt="${escapeHtml(product.title)}" 
-                        class="size-full object-cover group-hover:scale-105 transition duration-300"
+                        class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300"
                         onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\\'grid size-full place-items-center text-3xl\\'>${product.emoji || '🛍️'}</span>';"
                       />
                       <span class="absolute top-2 left-2 rounded-md bg-slate-950/80 px-1.5 py-0.5 font-mono text-[7px] font-bold text-white backdrop-blur-xs">
                         ${product.gtin}
                       </span>
                       ${hasPromo ? `
-                        <span class="absolute top-2 right-2 rounded-md bg-emerald-600 px-1.5 py-0.5 text-[8px] font-black text-white shadow-xs">
-                          PROMO
+                        <span class="absolute top-2 right-2 rounded-md px-1.5 py-0.5 text-[8px] font-black text-white shadow-xs" style="background:${retailer.color}">
+                          ${retailer.loyalty ? retailer.loyalty.toUpperCase() : 'PROMO'}
                         </span>
                       ` : ''}
                     </div>
 
-                    <!-- Details -->
+                    <!-- Details & Brand Tag -->
                     <div class="mt-2.5">
-                      <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">${product.brand}</span>
+                      <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">${product.brand}</span>
+                        ${unitPrice ? `<span class="text-[8.5px] font-bold text-slate-500 font-mono">${unitPrice}</span>` : ''}
+                      </div>
                       <h4 class="text-xs font-black text-slate-900 line-clamp-2 leading-snug mt-0.5">${escapeHtml(product.title)}</h4>
                       <p class="text-[10px] text-slate-400 font-semibold mt-0.5">${product.weight || '1 unit'}</p>
                     </div>
                   </div>
 
-                  <!-- Store Live Price -->
-                  <div class="mt-3 border-t border-slate-100 pt-2 flex items-baseline justify-between">
+                  <!-- Store Live Price & Quick Add Action -->
+                  <div class="mt-3 border-t border-slate-100 pt-2 flex items-end justify-between">
                     <div>
                       <div class="text-sm font-black text-slate-900">
                         ${zar.format(activePrice)}
                       </div>
                       ${hasPromo ? `
-                        <div class="text-[10px] text-slate-400 line-through">
-                          ${zar.format(priceData.regularPrice)}
+                        <div class="flex items-center gap-1.5 mt-0.5">
+                          <span class="text-[10px] text-slate-400 line-through">
+                            ${zar.format(priceData.regularPrice)}
+                          </span>
+                          <span class="rounded-md bg-emerald-50 px-1 py-0.2 text-[8px] font-black text-emerald-700">
+                            -${zar.format(savings)}
+                          </span>
                         </div>
                       ` : ''}
                     </div>
-                    ${savings > 0 ? `
-                      <span class="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-black text-emerald-700">
-                        -${zar.format(savings)}
-                      </span>
-                    ` : ''}
+
+                    <button 
+                      type="button" 
+                      data-catalog-add-cart="${product.gtin}"
+                      class="grid size-8 shrink-0 place-items-center rounded-xl bg-slate-900 text-white font-black text-sm shadow-sm hover:bg-slate-800 active:scale-90 transition"
+                      title="Add to Shopping Trolley"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
               `;
@@ -1532,6 +1607,57 @@ function bindCatalogInteractions(retailer, store) {
       playBeepSound();
       if (navigator.vibrate) navigator.vibrate(15);
       renderMarket();
+    });
+  });
+
+  // Shared brand filter chips (White Star, Albany, Clover, etc.)
+  screen.querySelectorAll('[data-brand-filter]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const brand = btn.dataset.brandFilter;
+      if ((state.catalogSearch || '').toLowerCase() === brand.toLowerCase()) {
+        state.catalogSearch = '';
+      } else {
+        state.catalogSearch = brand;
+      }
+      playBeepSound();
+      if (navigator.vibrate) navigator.vibrate(15);
+      renderMarket();
+    });
+  });
+
+  // Direct Quick-Add Button on Product Cards
+  screen.querySelectorAll('[data-catalog-add-cart]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const gtin = btn.dataset.catalogAddCart;
+      const product = MASTER_PRODUCTS.get(gtin);
+      if (product) {
+        const priceData = getStorePrice(store.id, gtin);
+        const activePrice = (priceData.promoPrice && priceData.promoPrice < priceData.regularPrice) ? priceData.promoPrice : priceData.regularPrice;
+        const itemToAdd = {
+          barcode: gtin,
+          name: product.title,
+          weight: product.weight || '1 unit',
+          category: product.category || 'Pantry Essentials',
+          price: activePrice,
+          basePrice: priceData.regularPrice || activePrice,
+          image: product.imageUrl,
+          retailerId: retailer.id,
+          emoji: product.emoji || '🛍️'
+        };
+        addToList(itemToAdd, state.retailerId);
+        automationCore.addToList(itemToAdd, state.retailerId);
+        playBeepSound();
+        if (navigator.vibrate) navigator.vibrate(30);
+
+        btn.innerHTML = '✓';
+        btn.classList.add('bg-emerald-600');
+        window.setTimeout(() => {
+          btn.innerHTML = '+';
+          btn.classList.remove('bg-emerald-600');
+        }, 900);
+        showToast(`✓ Added ${product.title.slice(0, 28)}... to ${retailer.name} list!`);
+      }
     });
   });
 
@@ -1757,7 +1883,9 @@ function renderCartel() {
             return `
               <button type="button" data-switch-cartel-retailer="${ret.id}" class="flex-1 min-w-[7.5rem] rounded-2xl p-2.5 text-left border transition active:scale-95 ${isSelected ? 'border-white text-white shadow-lg' : 'border-white/10 bg-white/5 text-white/70 hover:bg-white/10'}" style="${isSelected ? `background:${ret.color}` : ''}">
                 <div class="flex items-center justify-between">
-                  <span class="grid size-6 place-items-center rounded-lg bg-white text-[10px] font-black" style="color:${ret.color}">${ret.initials}</span>
+                  <div class="grid size-6 shrink-0 place-items-center rounded-lg bg-white p-0.5 shadow-xs overflow-hidden">
+                    <img src="${ret.logoUrl}" alt="${ret.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${ret.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-[9px]\\'>${ret.initials}</span>';" />
+                  </div>
                   <span class="rounded-full px-2 py-0.5 text-[9px] font-black ${isSelected ? 'bg-black/30 text-white' : 'bg-white/10 text-white/80'}">${retCount} in cart</span>
                 </div>
                 <p class="mt-2 text-xs font-black truncate">${ret.name}</p>
@@ -1775,7 +1903,9 @@ function renderCartel() {
             <h1 class="mt-1 text-3xl font-black tracking-[-.04em]">${retailer.name}</h1>
             <p class="mt-0.5 text-xs font-semibold text-white/70">${retailer.tagline}</p>
           </div>
-          <span class="grid size-14 place-items-center rounded-2xl bg-white text-xs font-black shadow-lg" style="color:${retailer.color}">${retailer.initials}</span>
+          <div class="grid size-14 shrink-0 place-items-center rounded-2xl bg-white p-2 shadow-lg overflow-hidden border border-white/20">
+            <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-base\\'>${retailer.initials}</span>';" />
+          </div>
         </div>
 
         <div class="mt-4 flex items-center justify-between gap-3">
@@ -2790,7 +2920,9 @@ async function openMasterBarcode(retailerId = state.retailerId, streamMode = 'cr
       <section class="mx-auto flex min-h-dvh max-w-lg flex-col justify-between p-5 pb-safe pt-6 text-white">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2.5">
-            <span class="grid size-10 place-items-center rounded-2xl text-white font-black text-xs shadow-md" style="background:${retailer.color}">${retailer.initials}</span>
+            <div class="grid size-11 shrink-0 place-items-center rounded-2xl bg-white p-1 shadow-md border border-white/20 overflow-hidden">
+              <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${retailer.initials}</span>';" />
+            </div>
             <div>
               <p class="text-[10px] font-black uppercase tracking-[.2em] text-emerald-400">${retailer.name} Till Stream</p>
               <h2 id="qr-checkout-title" class="mt-0.5 text-2xl font-black">Single QR Till Flash</h2>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="shoprite-red" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e61929"/>
+      <stop offset="100%" stop-color="#c10d1c"/>
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <!-- Background Badge -->
+  <rect width="360" height="100" rx="18" fill="url(#shoprite-red)"/>
+  
+  <!-- Outer Gold/Yellow Accent Ring Accent -->
+  <rect x="6" y="6" width="348" height="88" rx="14" fill="none" stroke="#ffdd00" stroke-width="2.5" stroke-opacity="0.85"/>
+  
+  <!-- Authentic SHOPRITE Bold Wordmark -->
+  <g filter="url(#shadow)">
+    <text x="180" y="58" 
+          fill="#ffffff" 
+          font-family="Arial Black, -apple-system, BlinkMacSystemFont, 'Segoe UI', Impact, sans-serif" 
+          font-weight="900" 
+          font-size="44" 
+          letter-spacing="1.5" 
+          text-anchor="middle">SHOPRITE</text>
+  </g>
+  
+  <!-- Tagline Banner -->
+  <rect x="45" y="68" width="270" height="18" rx="9" fill="#ffdd00"/>
+  <text x="180" y="81" 
+        fill="#b80917" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-weight="900" 
+        font-size="9.5" 
+        letter-spacing="1.8" 
+        text-anchor="middle">LOWER PRICES YOU CAN TRUST</text>
+</svg>

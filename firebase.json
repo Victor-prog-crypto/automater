@@ -13,6 +13,7 @@
     }
   ],
   "hosting": {
+    "site": "automater-f03a9",
     "public": "dist",
     "ignore": [
       "firebase.json",

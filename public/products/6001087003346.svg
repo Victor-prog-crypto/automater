@@ -1,31 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
   <defs>
     <linearGradient id="grad_6001087003346" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#e65100" />
-      <stop offset="100%" stop-color="#ef6c00" />
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
     </linearGradient>
     <filter id="shadow_6001087003346" x="-10%" y="-10%" width="120%" height="120%">
       <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000000" flood-opacity="0.18" />
     </filter>
   </defs>
 
+  <!-- Studio Background -->
   <rect width="400" height="400" fill="#f8fafc" rx="32" />
   <circle cx="200" cy="200" r="160" fill="#ffffff" opacity="0.9" />
 
+  <!-- Packaging Container / Box -->
   <g filter="url(#shadow_6001087003346)">
     <rect x="80" y="50" width="240" height="300" rx="24" fill="url(#grad_6001087003346)" />
+    
+    <!-- Top Brand Ribbon -->
     <path d="M80 74 C80 60.7 90.7 50 104 50 L296 50 C309.3 50 320 60.7 320 74 L320 110 L80 110 Z" fill="rgba(0,0,0,0.2)" />
-    <text x="200" y="90" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="900" letter-spacing="1.5">HANDY ANDY</text>
+    <text x="200" y="90" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="900" letter-spacing="2">HANDY ANDY</text>
 
+    <!-- Center Product Emoji / Icon Illustration -->
     <circle cx="200" cy="180" r="52" fill="rgba(255,255,255,0.92)" />
     <text x="200" y="200" text-anchor="middle" font-size="56">✨</text>
 
-    <text x="200" y="258" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="900" letter-spacing="0.5">Handy Andy Multi-Purpose Cleaner Ammonia 750ml</text>
+    <!-- Product Title & Tagline -->
+    <text x="200" y="258" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="900" letter-spacing="0.5">HANDY ANDY MULTI-PURPOSE CLE</text>
     <rect x="100" y="274" width="200" height="22" rx="11" fill="rgba(255,255,255,0.22)" />
-    <text x="200" y="289" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="800" letter-spacing="1">AMMONIA CLEANER</text>
+    <text x="200" y="289" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="800" letter-spacing="1">SHOPRITE VERIFIED</text>
 
+    <!-- Bottom Weight Badge & Barcode Indicator -->
     <path d="M80 310 L320 310 L320 326 C320 339.3 309.3 350 296 350 L104 350 C90.7 350 80 339.3 80 326 Z" fill="rgba(0,0,0,0.35)" />
-    <text x="135" y="335" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="800">750ml</text>
-    <text x="255" y="335" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-family="monospace" font-size="10" font-weight="700">EAN 03346</text>
+    <text x="135" y="335" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="800">750 ml</text>
+    <text x="255" y="335" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-family="monospace" font-size="10" font-weight="700">003346</text>
   </g>
 </svg>

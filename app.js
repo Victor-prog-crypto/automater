@@ -18,327 +18,394 @@ const MASTER_PRODUCTS = new Map([
   ['6001007001001', {
     gtin: '6001007001001',
     retailerId: 'shoprite',
-    title: 'Albany Superior Thick Slices White Bread 700g',
-    brand: 'Albany',
+    title: "Albany Superior Thick Slices White Bread 700g",
+    brand: "Albany",
     imageUrl: '/products/6001007001001.jpg',
-    category: 'Bakery & Fresh Produce',
-    weight: '700 g',
+    category: "Bakery & Fresh Produce",
+    weight: "700 g",
     basePrice: 19.99,
     promoPrice: 16.99,
     emoji: '🍞',
-    searchKeywords: ['albany', 'bread', 'white', 'sliced', 'superior', 'bakery', 'grains', 'toast']
+    isHouseBrand: false,
+    searchKeywords: ["albany", "bread", "white", "sliced", "superior", "bakery", "toast"]
   }],
   ['6001007001018', {
     gtin: '6001007001018',
     retailerId: 'shoprite',
-    title: 'Albany Superior Sliced Brown Bread 700g',
-    brand: 'Albany',
+    title: "Albany Superior Sliced Brown Bread 700g",
+    brand: "Albany",
     imageUrl: '/products/6001007001018.jpg',
-    category: 'Bakery & Fresh Produce',
-    weight: '700 g',
+    category: "Bakery & Fresh Produce",
+    weight: "700 g",
     basePrice: 18.49,
     promoPrice: 15.99,
     emoji: '🍞',
-    searchKeywords: ['albany', 'bread', 'brown', 'sliced', 'superior', 'bakery', 'grains', 'toast']
+    isHouseBrand: false,
+    searchKeywords: ["albany", "bread", "brown", "sliced", "superior", "bakery", "toast"]
   }],
-  ['6001299000270', {
-    gtin: '6001299000270',
+  ['6001007002070', {
+    gtin: '6001007002070',
     retailerId: 'shoprite',
-    title: 'Clover Full Cream Fresh Milk 2L',
-    brand: 'Clover',
-    imageUrl: '/products/6001299000270.jpg',
-    category: 'Dairy, Eggs & Fridge',
-    weight: '2 L',
-    basePrice: 39.99,
-    promoPrice: 33.99,
-    emoji: '🥛',
-    searchKeywords: ['clover', 'milk', 'fresh', 'full cream', 'dairy', '2l', 'bottle']
-  }],
-  ['6001299000287', {
-    gtin: '6001299000287',
-    retailerId: 'shoprite',
-    title: 'Clover 2% Low Fat Fresh Milk 2L',
-    brand: 'Clover',
-    imageUrl: '/products/6001299000287.jpg',
-    category: 'Dairy, Eggs & Fridge',
-    weight: '2 L',
-    basePrice: 39.99,
-    promoPrice: 33.99,
-    emoji: '🥛',
-    searchKeywords: ['clover', 'milk', 'low fat', 'fresh', 'dairy', '2l', 'bottle']
-  }],
-  ['6001007002343', {
-    gtin: '6001007002343',
-    retailerId: 'shoprite',
-    title: 'White Star Super Maize Meal 2.5kg',
-    brand: 'White Star',
-    imageUrl: '/products/6001007002343.jpg',
-    category: 'Pantry Staples & Grains',
-    weight: '2.5 kg',
-    basePrice: 37.99,
-    promoPrice: 31.99,
-    emoji: '🌽',
-    searchKeywords: ['white star', 'maize', 'meal', 'pap', 'super maize', 'grains', '2.5kg']
-  }],
-  ['6001007000127', {
-    gtin: '6001007000127',
-    retailerId: 'shoprite',
-    title: 'Tastic Long Grain Parboiled Rice 2kg',
-    brand: 'Tastic',
-    imageUrl: '/products/6001007000127.jpg',
-    category: 'Pantry Staples & Grains',
-    weight: '2 kg',
-    basePrice: 44.99,
-    promoPrice: 37.99,
-    emoji: '🍚',
-    searchKeywords: ['tastic', 'rice', 'long grain', 'parboiled', 'pantry', 'grains', '2kg']
-  }],
-  ['6001007000899', {
-    gtin: '6001007000899',
-    retailerId: 'shoprite',
-    title: 'Koo Baked Beans in Tomato Sauce 410g',
-    brand: 'Koo',
-    imageUrl: '/products/6001007000899.jpg',
-    category: 'Pantry Staples & Grains',
-    weight: '410 g',
-    basePrice: 18.49,
-    promoPrice: 14.99,
-    emoji: '🥫',
-    searchKeywords: ['koo', 'baked beans', 'beans', 'tomato sauce', 'tin', 'canned', 'pantry']
-  }],
-  ['6001053000027', {
-    gtin: '6001053000027',
-    retailerId: 'shoprite',
-    title: 'Lucky Star Pilchards in Tomato Sauce 400g',
-    brand: 'Lucky Star',
-    imageUrl: '/products/6001053000027.jpg',
-    category: 'Pantry Staples & Grains',
-    weight: '400 g',
-    basePrice: 28.99,
-    promoPrice: 23.99,
-    emoji: '🐟',
-    searchKeywords: ['lucky star', 'pilchards', 'fish', 'tomato sauce', 'tin', 'canned', 'pantry']
-  }],
-  ['6001068594504', {
-    gtin: '6001068594504',
-    retailerId: 'shoprite',
-    title: 'Simba Smoked Beef Flavoured Potato Chips 120g',
-    brand: 'Simba',
-    imageUrl: '/products/6001068594504.jpg',
-    category: 'Drinks, Coffee & Snacks',
-    weight: '120 g',
-    basePrice: 22.49,
-    promoPrice: 18.99,
-    emoji: '🥔',
-    searchKeywords: ['simba', 'chips', 'crisps', 'smoked beef', 'snacks', 'potato', 'treats']
-  }],
-  ['6001068001002', {
-    gtin: '6001068001002',
-    retailerId: 'shoprite',
-    title: 'Nescafé Ricoffy Instant Coffee 750g Tin',
-    brand: 'Ricoffy',
-    imageUrl: '/products/6001068001002.jpg',
-    category: 'Drinks, Coffee & Snacks',
-    weight: '750 g',
-    basePrice: 69.99,
-    promoPrice: 57.99,
-    emoji: '☕',
-    searchKeywords: ['nescafe', 'ricoffy', 'coffee', 'instant', 'hot beverages', 'tin', 'warm']
-  }],
-  ['6001087002134', {
-    gtin: '6001087002134',
-    retailerId: 'shoprite',
-    title: 'Sunlight Regular Dishwashing Liquid 750ml',
-    brand: 'Sunlight',
-    imageUrl: '/products/6001087002134.jpg',
-    category: 'Household & Personal Care',
-    weight: '750 ml',
-    basePrice: 36.99,
-    promoPrice: 28.99,
-    emoji: '🧴',
-    searchKeywords: ['sunlight', 'dishwashing', 'liquid', 'clean', 'household', 'green', 'dishes']
-  }],
-  ['6001087006781', {
-    gtin: '6001087006781',
-    retailerId: 'shoprite',
-    title: 'Omo Auto Concentrated Washing Powder 2kg',
-    brand: 'Omo',
-    imageUrl: '/products/6001087006781.jpg',
-    category: 'Household & Personal Care',
-    weight: '2 kg',
-    basePrice: 92.99,
-    promoPrice: 76.99,
-    emoji: '🧺',
-    searchKeywords: ['omo', 'washing powder', 'auto', 'laundry', 'clean', 'household', 'detergent']
-  }],
-  ['6001087004565', {
-    gtin: '6001087004565',
-    retailerId: 'shoprite',
-    title: 'Dettol Hygiene Soap Original 175g',
-    brand: 'Dettol',
-    imageUrl: '/products/6001087004565.jpg',
-    category: 'Household & Personal Care',
-    weight: '175 g',
-    basePrice: 18.99,
+    title: "Mister Bread White Sliced Bread 700g",
+    brand: "Mister Bread",
+    imageUrl: '/products/6001007002070.svg',
+    category: "Bakery & Fresh Produce",
+    weight: "700 g",
+    basePrice: 16.49,
     promoPrice: 13.99,
-    emoji: '🧼',
-    searchKeywords: ['dettol', 'soap', 'hygiene', 'original', 'bath', 'personal care', 'wash']
+    emoji: '🍞',
+    isHouseBrand: true,
+    searchKeywords: ["mister bread", "bread", "white", "sliced", "shoprite", "bakery", "budget"]
   }],
-  ['6001007005436', {
-    gtin: '6001007005436',
+  ['6001007002087', {
+    gtin: '6001007002087',
     retailerId: 'shoprite',
-    title: 'All Gold Tomato Sauce 700ml Bottle',
-    brand: 'All Gold',
-    imageUrl: '/products/6001007005436.jpg',
-    category: 'Pantry Staples & Grains',
-    weight: '700 ml',
-    basePrice: 41.99,
-    promoPrice: 34.99,
-    emoji: '🍅',
-    searchKeywords: ['all gold', 'tomato', 'sauce', 'ketchup', 'pantry', 'bottle']
-  }],
-  ['6001087009874', {
-    gtin: '6001087009874',
-    retailerId: 'shoprite',
-    title: 'Rama Original 70% Fat Spread 500g Tub',
-    brand: 'Rama',
-    imageUrl: '/products/6001087009874.jpg',
-    category: 'Dairy, Eggs & Fridge',
-    weight: '500 g',
-    basePrice: 26.99,
-    promoPrice: 21.99,
-    emoji: '🧈',
-    searchKeywords: ['rama', 'margarine', 'butter', 'spread', 'dairy', 'fat spread']
-  }],
-  ['6001007008871', {
-    gtin: '6001007008871',
-    retailerId: 'shoprite',
-    title: 'Bakers Blue Label Marie Biscuits 200g',
-    brand: 'Bakers',
-    imageUrl: '/products/6001007008871.jpg',
-    category: 'Drinks, Coffee & Snacks',
-    weight: '200 g',
-    basePrice: 19.99,
-    promoPrice: 15.99,
-    emoji: '🍪',
-    searchKeywords: ['bakers', 'marie', 'biscuits', 'blue label', 'tea biscuits', 'snacks']
-  }],
-  ['5449000000996', {
-    gtin: '5449000000996',
-    retailerId: 'shoprite',
-    title: 'Coca-Cola Original Taste Less Sugar 2L Bottle',
-    brand: 'Coca-Cola',
-    imageUrl: '/products/5449000000996.svg',
-    category: 'Drinks, Coffee & Snacks',
-    weight: '2 L',
-    basePrice: 29.99,
-    promoPrice: 24.99,
-    emoji: '🥤',
-    searchKeywords: ['coca cola', 'coke', 'soft drink', 'soda', 'beverages', '2l']
-  }],
-  ['6001007004323', {
-    gtin: '6001007004323',
-    retailerId: 'shoprite',
-    title: 'Black Cat Crunchy Peanut Butter 400g Jar',
-    brand: 'Black Cat',
-    imageUrl: '/products/6001007004323.jpg',
-    category: 'Pantry Staples & Grains',
-    weight: '400 g',
-    basePrice: 45.99,
-    promoPrice: 38.99,
-    emoji: '🥜',
-    searchKeywords: ['black cat', 'peanut butter', 'crunchy', 'spread', 'pantry']
-  }],
-  ['6001007003210', {
-    gtin: '6001007003210',
-    retailerId: 'shoprite',
-    title: 'Golden Cloud Cake Wheat Flour 2.5kg Bag',
-    brand: 'Golden Cloud',
-    imageUrl: '/products/6001007003210.jpg',
-    category: 'Pantry Staples & Grains',
-    weight: '2.5 kg',
-    basePrice: 42.99,
-    promoPrice: 36.99,
-    emoji: '🌾',
-    searchKeywords: ['golden cloud', 'flour', 'cake flour', 'wheat', 'baking', 'pantry']
-  }],
-  ['6001056000109', {
-    gtin: '6001056000109',
-    retailerId: 'shoprite',
-    title: 'Five Roses Ceylon Blend Tagged Teabags 102s',
-    brand: 'Five Roses',
-    imageUrl: '/products/6001056000109.jpg',
-    category: 'Drinks, Coffee & Snacks',
-    weight: '102 bags',
-    basePrice: 59.99,
-    promoPrice: 49.99,
-    emoji: '🫖',
-    searchKeywords: ['five roses', 'tea', 'ceylon', 'teabags', 'hot beverages', 'warm']
+    title: "Mister Bread Brown Sliced Bread 700g",
+    brand: "Mister Bread",
+    imageUrl: '/products/6001007002087.svg',
+    category: "Bakery & Fresh Produce",
+    weight: "700 g",
+    basePrice: 15.49,
+    promoPrice: 12.99,
+    emoji: '🍞',
+    isHouseBrand: true,
+    searchKeywords: ["mister bread", "bread", "brown", "sliced", "shoprite", "bakery", "budget"]
   }],
   ['6009510805536', {
     gtin: '6009510805536',
     retailerId: 'shoprite',
-    title: 'Class 1 Crisp Red Gala Sweet Apples 1.5kg Bag',
-    brand: 'Fresh Produce',
+    title: "Class 1 Crisp Red Gala Sweet Apples 1.5kg Bag",
+    brand: "Fresh Produce",
     imageUrl: '/products/6009510805536.jpg',
-    category: 'Bakery & Fresh Produce',
-    weight: '1.5 kg',
-    basePrice: 33.50,
+    category: "Bakery & Fresh Produce",
+    weight: "1.5 kg",
+    basePrice: 33.5,
     promoPrice: 27.99,
     emoji: '🍎',
-    searchKeywords: ['apples', 'gala', 'red', 'fruit', 'fresh produce', 'sweet', 'crisp']
+    isHouseBrand: false,
+    searchKeywords: ["apples", "gala", "red", "fruit", "fresh produce", "sweet", "crisp"]
   }],
   ['6001571002022', {
     gtin: '6001571002022',
     retailerId: 'shoprite',
-    title: 'Ripe & Ready Creamy Hass Avocados 4pk',
-    brand: 'Fresh Produce',
+    title: "Ripe & Ready Creamy Hass Avocados 4pk",
+    brand: "Fresh Produce",
     imageUrl: '/products/6001571002022.jpg',
-    category: 'Bakery & Fresh Produce',
-    weight: '4 pk',
+    category: "Bakery & Fresh Produce",
+    weight: "4 pk",
     basePrice: 49.99,
     promoPrice: 39.99,
     emoji: '🥑',
-    searchKeywords: ['avocado', 'avo', 'hass', 'fresh produce', 'fruit', 'ripe']
+    isHouseBrand: false,
+    searchKeywords: ["avocado", "avo", "hass", "fresh produce", "fruit", "ripe"]
+  }],
+  ['6001007002124', {
+    gtin: '6001007002124',
+    retailerId: 'shoprite',
+    title: "Shoprite Farm Fresh Washed Potatoes 2kg Bag",
+    brand: "Shoprite Fresh",
+    imageUrl: '/products/6001007002124.svg',
+    category: "Bakery & Fresh Produce",
+    weight: "2 kg",
+    basePrice: 29.99,
+    promoPrice: 24.99,
+    emoji: '🥔',
+    isHouseBrand: true,
+    searchKeywords: ["potatoes", "washed", "farm fresh", "vegetables", "produce", "shoprite"]
+  }],
+  ['6001007002131', {
+    gtin: '6001007002131',
+    retailerId: 'shoprite',
+    title: "Shoprite Fresh Class 1 Brown Onions 2kg Bag",
+    brand: "Shoprite Fresh",
+    imageUrl: '/products/6001007002131.svg',
+    category: "Bakery & Fresh Produce",
+    weight: "2 kg",
+    basePrice: 27.99,
+    promoPrice: 21.99,
+    emoji: '🧅',
+    isHouseBrand: true,
+    searchKeywords: ["onions", "brown onions", "vegetables", "produce", "shoprite", "cooking"]
+  }],
+  ['6001299000270', {
+    gtin: '6001299000270',
+    retailerId: 'shoprite',
+    title: "Clover Full Cream Fresh Milk 2L",
+    brand: "Clover",
+    imageUrl: '/products/6001299000270.jpg',
+    category: "Dairy, Eggs & Fridge",
+    weight: "2 L",
+    basePrice: 39.99,
+    promoPrice: 33.99,
+    emoji: '🥛',
+    isHouseBrand: false,
+    searchKeywords: ["clover", "milk", "fresh", "full cream", "dairy", "2l"]
+  }],
+  ['6001299000287', {
+    gtin: '6001299000287',
+    retailerId: 'shoprite',
+    title: "Clover 2% Low Fat Fresh Milk 2L",
+    brand: "Clover",
+    imageUrl: '/products/6001299000287.jpg',
+    category: "Dairy, Eggs & Fridge",
+    weight: "2 L",
+    basePrice: 39.99,
+    promoPrice: 33.99,
+    emoji: '🥛',
+    isHouseBrand: false,
+    searchKeywords: ["clover", "milk", "low fat", "fresh", "dairy", "2l"]
+  }],
+  ['6001007002001', {
+    gtin: '6001007002001',
+    retailerId: 'shoprite',
+    title: "Ritebrand Long Life Full Cream Milk 6 x 1L",
+    brand: "Ritebrand",
+    imageUrl: '/products/6001007002001.svg',
+    category: "Dairy, Eggs & Fridge",
+    weight: "6 x 1 L",
+    basePrice: 99.99,
+    promoPrice: 84.99,
+    emoji: '🥛',
+    isHouseBrand: true,
+    searchKeywords: ["ritebrand", "uht", "long life", "milk", "full cream", "dairy", "shoprite", "case"]
+  }],
+  ['6001007002063', {
+    gtin: '6001007002063',
+    retailerId: 'shoprite',
+    title: "Ritebrand Large Fresh Eggs 18 Pack",
+    brand: "Ritebrand",
+    imageUrl: '/products/6001007002063.svg',
+    category: "Dairy, Eggs & Fridge",
+    weight: "18 pack",
+    basePrice: 54.99,
+    promoPrice: 46.99,
+    emoji: '🥚',
+    isHouseBrand: true,
+    searchKeywords: ["ritebrand", "eggs", "large", "fresh eggs", "breakfast", "shoprite", "dairy"]
+  }],
+  ['6001087009874', {
+    gtin: '6001087009874',
+    retailerId: 'shoprite',
+    title: "Rama Original 70% Fat Spread 500g Tub",
+    brand: "Rama",
+    imageUrl: '/products/6001087009874.jpg',
+    category: "Dairy, Eggs & Fridge",
+    weight: "500 g",
+    basePrice: 26.99,
+    promoPrice: 21.99,
+    emoji: '🧈',
+    isHouseBrand: false,
+    searchKeywords: ["rama", "margarine", "butter", "spread", "dairy", "fat spread"]
+  }],
+  ['6009510806120', {
+    gtin: '6009510806120',
+    retailerId: 'shoprite',
+    title: "First Choice Long Life Full Cream UHT Milk 1L",
+    brand: "First Choice",
+    imageUrl: '/products/6009510806120.jpg',
+    category: "Dairy, Eggs & Fridge",
+    weight: "1 L",
+    basePrice: 23.99,
+    promoPrice: 18.99,
+    emoji: '🥛',
+    isHouseBrand: false,
+    searchKeywords: ["first choice", "uht", "long life", "milk", "full cream", "dairy", "1l"]
+  }],
+  ['6001007002343', {
+    gtin: '6001007002343',
+    retailerId: 'shoprite',
+    title: "White Star Super Maize Meal 2.5kg",
+    brand: "White Star",
+    imageUrl: '/products/6001007002343.jpg',
+    category: "Pantry Staples & Grains",
+    weight: "2.5 kg",
+    basePrice: 37.99,
+    promoPrice: 31.99,
+    emoji: '🌽',
+    isHouseBrand: false,
+    searchKeywords: ["white star", "maize", "meal", "pap", "super maize", "grains", "2.5kg"]
+  }],
+  ['6001007000127', {
+    gtin: '6001007000127',
+    retailerId: 'shoprite',
+    title: "Tastic Long Grain Parboiled Rice 2kg",
+    brand: "Tastic",
+    imageUrl: '/products/6001007000127.jpg',
+    category: "Pantry Staples & Grains",
+    weight: "2 kg",
+    basePrice: 44.99,
+    promoPrice: 37.99,
+    emoji: '🍚',
+    isHouseBrand: false,
+    searchKeywords: ["tastic", "rice", "long grain", "parboiled", "pantry", "grains", "2kg"]
+  }],
+  ['6001007002018', {
+    gtin: '6001007002018',
+    retailerId: 'shoprite',
+    title: "Ritebrand Pure Sunflower Cooking Oil 2L",
+    brand: "Ritebrand",
+    imageUrl: '/products/6001007002018.svg',
+    category: "Pantry Staples & Grains",
+    weight: "2 L",
+    basePrice: 64.99,
+    promoPrice: 56.99,
+    emoji: '🛢️',
+    isHouseBrand: true,
+    searchKeywords: ["ritebrand", "oil", "sunflower oil", "cooking oil", "pantry", "shoprite", "2l"]
+  }],
+  ['6001007002025', {
+    gtin: '6001007002025',
+    retailerId: 'shoprite',
+    title: "Ritebrand Parboiled Rice 2kg",
+    brand: "Ritebrand",
+    imageUrl: '/products/6001007002025.svg',
+    category: "Pantry Staples & Grains",
+    weight: "2 kg",
+    basePrice: 36.99,
+    promoPrice: 29.99,
+    emoji: '🍚',
+    isHouseBrand: true,
+    searchKeywords: ["ritebrand", "rice", "parboiled", "pantry", "shoprite", "grains", "2kg"]
+  }],
+  ['6001007002032', {
+    gtin: '6001007002032',
+    retailerId: 'shoprite',
+    title: "Ritebrand White Sugar 2.5kg",
+    brand: "Ritebrand",
+    imageUrl: '/products/6001007002032.svg',
+    category: "Pantry Staples & Grains",
+    weight: "2.5 kg",
+    basePrice: 49.99,
+    promoPrice: 43.99,
+    emoji: '🍬',
+    isHouseBrand: true,
+    searchKeywords: ["ritebrand", "sugar", "white sugar", "baking", "sweetener", "shoprite"]
+  }],
+  ['6001007000899', {
+    gtin: '6001007000899',
+    retailerId: 'shoprite',
+    title: "Koo Baked Beans in Tomato Sauce 410g",
+    brand: "Koo",
+    imageUrl: '/products/6001007000899.jpg',
+    category: "Pantry Staples & Grains",
+    weight: "410 g",
+    basePrice: 18.49,
+    promoPrice: 14.99,
+    emoji: '🥫',
+    isHouseBrand: false,
+    searchKeywords: ["koo", "baked beans", "beans", "tomato sauce", "tin", "canned", "pantry"]
+  }],
+  ['6001007002056', {
+    gtin: '6001007002056',
+    retailerId: 'shoprite',
+    title: "Ritebrand Baked Beans in Tomato Sauce 410g",
+    brand: "Ritebrand",
+    imageUrl: '/products/6001007002056.svg',
+    category: "Pantry Staples & Grains",
+    weight: "410 g",
+    basePrice: 12.99,
+    promoPrice: 10.99,
+    emoji: '🥫',
+    isHouseBrand: true,
+    searchKeywords: ["ritebrand", "baked beans", "beans", "canned", "pantry", "shoprite", "budget"]
+  }],
+  ['6001007002094', {
+    gtin: '6001007002094',
+    retailerId: 'shoprite',
+    title: "Pot O' Gold Choice Grade Whole Kernel Sweetcorn 410g",
+    brand: "Pot O' Gold",
+    imageUrl: '/products/6001007002094.svg',
+    category: "Pantry Staples & Grains",
+    weight: "410 g",
+    basePrice: 18.99,
+    promoPrice: 14.99,
+    emoji: '🌽',
+    isHouseBrand: true,
+    searchKeywords: ["pot o gold", "sweetcorn", "corn", "canned", "vegetables", "shoprite"]
+  }],
+  ['6001053000027', {
+    gtin: '6001053000027',
+    retailerId: 'shoprite',
+    title: "Lucky Star Pilchards in Tomato Sauce 400g",
+    brand: "Lucky Star",
+    imageUrl: '/products/6001053000027.jpg',
+    category: "Pantry Staples & Grains",
+    weight: "400 g",
+    basePrice: 28.99,
+    promoPrice: 23.99,
+    emoji: '🐟',
+    isHouseBrand: false,
+    searchKeywords: ["lucky star", "pilchards", "fish", "tomato sauce", "tin", "canned", "pantry"]
+  }],
+  ['6001053001208', {
+    gtin: '6001053001208',
+    retailerId: 'shoprite',
+    title: "Lucky Star Shredded Tuna in Oil 170g",
+    brand: "Lucky Star",
+    imageUrl: '/products/6001053001208.jpg',
+    category: "Pantry Staples & Grains",
+    weight: "170 g",
+    basePrice: 29.99,
+    promoPrice: 24.99,
+    emoji: '🐟',
+    isHouseBrand: false,
+    searchKeywords: ["lucky star", "tuna", "shredded", "fish", "canned", "pantry"]
+  }],
+  ['6001007005436', {
+    gtin: '6001007005436',
+    retailerId: 'shoprite',
+    title: "All Gold Tomato Sauce 700ml Bottle",
+    brand: "All Gold",
+    imageUrl: '/products/6001007005436.jpg',
+    category: "Pantry Staples & Grains",
+    weight: "700 ml",
+    basePrice: 41.99,
+    promoPrice: 34.99,
+    emoji: '🍅',
+    isHouseBrand: false,
+    searchKeywords: ["all gold", "tomato", "sauce", "ketchup", "pantry", "bottle"]
+  }],
+  ['6001007004323', {
+    gtin: '6001007004323',
+    retailerId: 'shoprite',
+    title: "Black Cat Crunchy Peanut Butter 400g Jar",
+    brand: "Black Cat",
+    imageUrl: '/products/6001007004323.jpg',
+    category: "Pantry Staples & Grains",
+    weight: "400 g",
+    basePrice: 45.99,
+    promoPrice: 38.99,
+    emoji: '🥜',
+    isHouseBrand: false,
+    searchKeywords: ["black cat", "peanut butter", "crunchy", "spread", "pantry"]
+  }],
+  ['6001007003210', {
+    gtin: '6001007003210',
+    retailerId: 'shoprite',
+    title: "Golden Cloud Cake Wheat Flour 2.5kg Bag",
+    brand: "Golden Cloud",
+    imageUrl: '/products/6001007003210.jpg',
+    category: "Pantry Staples & Grains",
+    weight: "2.5 kg",
+    basePrice: 42.99,
+    promoPrice: 36.99,
+    emoji: '🌾',
+    isHouseBrand: false,
+    searchKeywords: ["golden cloud", "flour", "cake flour", "wheat", "baking", "pantry"]
   }],
   ['6001008000140', {
     gtin: '6001008000140',
     retailerId: 'shoprite',
-    title: 'Goldi Frozen Mixed Chicken Portions 2kg Bag',
-    brand: 'Goldi',
+    title: "Goldi Frozen Mixed Chicken Portions 2kg Bag",
+    brand: "Goldi",
     imageUrl: '/products/6001008000140.jpg',
-    category: 'Pantry Staples & Grains',
-    weight: '2 kg',
+    category: "Pantry Staples & Grains",
+    weight: "2 kg",
     basePrice: 99.99,
     promoPrice: 84.99,
     emoji: '🍗',
-    searchKeywords: ['goldi', 'chicken', 'frozen', 'poultry', 'meat', 'portions', '2kg']
-  }],
-  ['6001087007788', {
-    gtin: '6001087007788',
-    retailerId: 'shoprite',
-    title: 'Colgate Triple Action Fluoride Toothpaste 100ml',
-    brand: 'Colgate',
-    imageUrl: '/products/6001087007788.jpg',
-    category: 'Household & Personal Care',
-    weight: '100 ml',
-    basePrice: 22.99,
-    promoPrice: 17.99,
-    emoji: '🪥',
-    searchKeywords: ['colgate', 'toothpaste', 'triple action', 'dental', 'personal care', 'hygiene']
-  }],
-  ['6001007001407', {
-    gtin: '6001007001407',
-    retailerId: 'shoprite',
-    title: 'Bakers Choice Assorted Biscuits 200g',
-    brand: 'Bakers',
-    imageUrl: '/products/6001007001407.jpg',
-    category: 'Drinks, Coffee & Snacks',
-    weight: '200 g',
-    basePrice: 36.99,
-    promoPrice: 29.99,
-    emoji: '🍪',
-    searchKeywords: ['bakers', 'choice assorted', 'biscuits', 'cookies', 'snacks', 'treats']
+    isHouseBrand: false,
+    searchKeywords: ["goldi", "chicken", "frozen", "poultry", "meat", "portions", "2kg"]
   }],
   ['6001007000301', {
     gtin: '6001007000301',
@@ -346,116 +413,307 @@ const MASTER_PRODUCTS = new Map([
     title: "Fatti's & Moni's Macaroni Pasta 500g",
     brand: "Fatti's & Moni's",
     imageUrl: '/products/6001007000301.jpg',
-    category: 'Pantry Staples & Grains',
-    weight: '500 g',
+    category: "Pantry Staples & Grains",
+    weight: "500 g",
     basePrice: 21.99,
     promoPrice: 16.99,
     emoji: '🍝',
-    searchKeywords: ['fattis', 'monis', 'macaroni', 'pasta', 'pantry', 'dinner']
-  }],
-  ['6001053001208', {
-    gtin: '6001053001208',
-    retailerId: 'shoprite',
-    title: 'Lucky Star Shredded Tuna in Oil 170g',
-    brand: 'Lucky Star',
-    imageUrl: '/products/6001053001208.jpg',
-    category: 'Pantry Staples & Grains',
-    weight: '170 g',
-    basePrice: 29.99,
-    promoPrice: 24.99,
-    emoji: '🐟',
-    searchKeywords: ['lucky star', 'tuna', 'shredded', 'fish', 'canned', 'pantry']
-  }],
-  ['6001087005111', {
-    gtin: '6001087005111',
-    retailerId: 'shoprite',
-    title: 'Domestos Thick Bleach Original 750ml',
-    brand: 'Domestos',
-    imageUrl: '/products/6001087005111.jpg',
-    category: 'Household & Personal Care',
-    weight: '750 ml',
-    basePrice: 39.99,
-    promoPrice: 32.99,
-    emoji: '🧴',
-    searchKeywords: ['domestos', 'bleach', 'thick', 'cleaning', 'household', 'disinfectant']
-  }],
-  ['6001087003346', {
-    gtin: '6001087003346',
-    retailerId: 'shoprite',
-    title: 'Handy Andy Multi-Purpose Cleaner Ammonia 750ml',
-    brand: 'Handy Andy',
-    imageUrl: '/products/6001087003346.jpg',
-    category: 'Household & Personal Care',
-    weight: '750 ml',
-    basePrice: 37.99,
-    promoPrice: 29.99,
-    emoji: '✨',
-    searchKeywords: ['handy andy', 'cleaner', 'ammonia', 'surface', 'household', 'shine']
-  }],
-  ['6001087008129', {
-    gtin: '6001087008129',
-    retailerId: 'shoprite',
-    title: 'Shield MotionSense Antiperspirant Roll-On 50ml',
-    brand: 'Shield',
-    imageUrl: '/products/6001087008129.jpg',
-    category: 'Household & Personal Care',
-    weight: '50 ml',
-    basePrice: 32.99,
-    promoPrice: 26.99,
-    emoji: '⚡',
-    searchKeywords: ['shield', 'roll on', 'deodorant', 'motionsense', 'personal care', 'fresh']
+    isHouseBrand: false,
+    searchKeywords: ["fattis", "monis", "macaroni", "pasta", "pantry", "dinner"]
   }],
   ['6001007006211', {
     gtin: '6001007006211',
     retailerId: 'shoprite',
-    title: 'Jungle Oats The Energy Champion 1kg Box',
-    brand: 'Jungle Oats',
+    title: "Jungle Oats The Energy Champion 1kg Box",
+    brand: "Jungle Oats",
     imageUrl: '/products/6001007006211.jpg',
-    category: 'Pantry Staples & Grains',
-    weight: '1 kg',
+    category: "Pantry Staples & Grains",
+    weight: "1 kg",
     basePrice: 45.99,
     promoPrice: 37.99,
     emoji: '🥣',
-    searchKeywords: ['jungle oats', 'oats', 'porridge', 'breakfast', 'energy', 'grains']
-  }],
-  ['6001299001444', {
-    gtin: '6001299001444',
-    retailerId: 'shoprite',
-    title: 'Clover Tropika Orange Flavoured Dairy Fruit Mix 2L',
-    brand: 'Tropika',
-    imageUrl: '/products/6001299001444.jpg',
-    category: 'Drinks, Coffee & Snacks',
-    weight: '2 L',
-    basePrice: 38.99,
-    promoPrice: 31.99,
-    emoji: '🍹',
-    searchKeywords: ['tropika', 'clover', 'orange', 'fruit mix', 'dairy juice', 'beverages', '2l']
+    isHouseBrand: false,
+    searchKeywords: ["jungle oats", "oats", "porridge", "breakfast", "energy", "grains"]
   }],
   ['6001007007553', {
     gtin: '6001007007553',
     retailerId: 'shoprite',
-    title: 'Crosse & Blackwell Tangy Mayonnaise 750g Bottle',
-    brand: 'Crosse & Blackwell',
+    title: "Crosse & Blackwell Tangy Mayonnaise 750g Bottle",
+    brand: "Crosse & Blackwell",
     imageUrl: '/products/6001007007553.jpg',
-    category: 'Pantry Staples & Grains',
-    weight: '750 g',
+    category: "Pantry Staples & Grains",
+    weight: "750 g",
     basePrice: 46.99,
     promoPrice: 39.99,
     emoji: '🥗',
-    searchKeywords: ['crosse blackwell', 'mayo', 'mayonnaise', 'tangy', 'condiment', 'pantry']
+    isHouseBrand: false,
+    searchKeywords: ["crosse blackwell", "mayo", "mayonnaise", "tangy", "condiment", "pantry"]
   }],
-  ['6009510806120', {
-    gtin: '6009510806120',
+  ['6001068594504', {
+    gtin: '6001068594504',
     retailerId: 'shoprite',
-    title: 'First Choice Long Life Full Cream UHT Milk 1L',
-    brand: 'First Choice',
-    imageUrl: '/products/6009510806120.jpg',
-    category: 'Dairy, Eggs & Fridge',
-    weight: '1 L',
-    basePrice: 23.99,
+    title: "Simba Smoked Beef Flavoured Potato Chips 120g",
+    brand: "Simba",
+    imageUrl: '/products/6001068594504.jpg',
+    category: "Drinks, Coffee & Snacks",
+    weight: "120 g",
+    basePrice: 22.49,
     promoPrice: 18.99,
-    emoji: '🥛',
-    searchKeywords: ['first choice', 'uht', 'long life', 'milk', 'full cream', 'dairy', '1l']
+    emoji: '🥔',
+    isHouseBrand: false,
+    searchKeywords: ["simba", "chips", "crisps", "smoked beef", "snacks", "potato", "treats"]
+  }],
+  ['6001068001002', {
+    gtin: '6001068001002',
+    retailerId: 'shoprite',
+    title: "Nescaf\u00e9 Ricoffy Instant Coffee 750g Tin",
+    brand: "Ricoffy",
+    imageUrl: '/products/6001068001002.jpg',
+    category: "Drinks, Coffee & Snacks",
+    weight: "750 g",
+    basePrice: 69.99,
+    promoPrice: 57.99,
+    emoji: '☕',
+    isHouseBrand: false,
+    searchKeywords: ["nescafe", "ricoffy", "coffee", "instant", "hot beverages", "tin", "warm"]
+  }],
+  ['6001007008871', {
+    gtin: '6001007008871',
+    retailerId: 'shoprite',
+    title: "Bakers Blue Label Marie Biscuits 200g",
+    brand: "Bakers",
+    imageUrl: '/products/6001007008871.jpg',
+    category: "Drinks, Coffee & Snacks",
+    weight: "200 g",
+    basePrice: 19.99,
+    promoPrice: 15.99,
+    emoji: '🍪',
+    isHouseBrand: false,
+    searchKeywords: ["bakers", "marie", "biscuits", "blue label", "tea biscuits", "snacks"]
+  }],
+  ['5449000000996', {
+    gtin: '5449000000996',
+    retailerId: 'shoprite',
+    title: "Coca-Cola Original Taste Less Sugar 2L Bottle",
+    brand: "Coca-Cola",
+    imageUrl: '/products/5449000000996.jpg',
+    category: "Drinks, Coffee & Snacks",
+    weight: "2 L",
+    basePrice: 29.99,
+    promoPrice: 24.99,
+    emoji: '🥤',
+    isHouseBrand: false,
+    searchKeywords: ["coca cola", "coke", "soft drink", "soda", "beverages", "2l"]
+  }],
+  ['6001056000109', {
+    gtin: '6001056000109',
+    retailerId: 'shoprite',
+    title: "Five Roses Ceylon Blend Tagged Teabags 102s",
+    brand: "Five Roses",
+    imageUrl: '/products/6001056000109.jpg',
+    category: "Drinks, Coffee & Snacks",
+    weight: "102 bags",
+    basePrice: 59.99,
+    promoPrice: 49.99,
+    emoji: '🫖',
+    isHouseBrand: false,
+    searchKeywords: ["five roses", "tea", "ceylon", "teabags", "hot beverages", "warm"]
+  }],
+  ['6001007001407', {
+    gtin: '6001007001407',
+    retailerId: 'shoprite',
+    title: "Bakers Choice Assorted Biscuits 200g",
+    brand: "Bakers",
+    imageUrl: '/products/6001007001407.jpg',
+    category: "Drinks, Coffee & Snacks",
+    weight: "200 g",
+    basePrice: 36.99,
+    promoPrice: 29.99,
+    emoji: '🍪',
+    isHouseBrand: false,
+    searchKeywords: ["bakers", "choice assorted", "biscuits", "cookies", "snacks", "treats"]
+  }],
+  ['6001299001444', {
+    gtin: '6001299001444',
+    retailerId: 'shoprite',
+    title: "Clover Tropika Orange Flavoured Dairy Fruit Mix 2L",
+    brand: "Tropika",
+    imageUrl: '/products/6001299001444.jpg',
+    category: "Drinks, Coffee & Snacks",
+    weight: "2 L",
+    basePrice: 38.99,
+    promoPrice: 31.99,
+    emoji: '🍹',
+    isHouseBrand: false,
+    searchKeywords: ["tropika", "clover", "orange", "fruit mix", "dairy juice", "beverages", "2l"]
+  }],
+  ['6001007002100', {
+    gtin: '6001007002100',
+    retailerId: 'shoprite',
+    title: "Ritebrand Rooibos Tagless Teabags 80s",
+    brand: "Ritebrand",
+    imageUrl: '/products/6001007002100.svg',
+    category: "Drinks, Coffee & Snacks",
+    weight: "80 bags",
+    basePrice: 29.99,
+    promoPrice: 23.99,
+    emoji: '🫖',
+    isHouseBrand: true,
+    searchKeywords: ["ritebrand", "rooibos", "tea", "tagless", "shoprite", "beverages"]
+  }],
+  ['6001007002117', {
+    gtin: '6001007002117',
+    retailerId: 'shoprite',
+    title: "Ritebrand 100% Apple Fruit Juice Blend 1L",
+    brand: "Ritebrand",
+    imageUrl: '/products/6001007002117.svg',
+    category: "Drinks, Coffee & Snacks",
+    weight: "1 L",
+    basePrice: 19.99,
+    promoPrice: 15.99,
+    emoji: '🧃',
+    isHouseBrand: true,
+    searchKeywords: ["ritebrand", "juice", "apple juice", "fruit juice", "shoprite", "drinks"]
+  }],
+  ['6001087002134', {
+    gtin: '6001087002134',
+    retailerId: 'shoprite',
+    title: "Sunlight Regular Dishwashing Liquid 750ml",
+    brand: "Sunlight",
+    imageUrl: '/products/6001087002134.jpg',
+    category: "Household & Personal Care",
+    weight: "750 ml",
+    basePrice: 36.99,
+    promoPrice: 28.99,
+    emoji: '🧴',
+    isHouseBrand: false,
+    searchKeywords: ["sunlight", "dishwashing", "liquid", "clean", "household", "green", "dishes"]
+  }],
+  ['6001087006781', {
+    gtin: '6001087006781',
+    retailerId: 'shoprite',
+    title: "Omo Auto Concentrated Washing Powder 2kg",
+    brand: "Omo",
+    imageUrl: '/products/6001087006781.jpg',
+    category: "Household & Personal Care",
+    weight: "2 kg",
+    basePrice: 92.99,
+    promoPrice: 76.99,
+    emoji: '🧺',
+    isHouseBrand: false,
+    searchKeywords: ["omo", "washing powder", "auto", "laundry", "clean", "household", "detergent"]
+  }],
+  ['6001087004565', {
+    gtin: '6001087004565',
+    retailerId: 'shoprite',
+    title: "Dettol Hygiene Soap Original 175g",
+    brand: "Dettol",
+    imageUrl: '/products/6001087004565.jpg',
+    category: "Household & Personal Care",
+    weight: "175 g",
+    basePrice: 18.99,
+    promoPrice: 13.99,
+    emoji: '🧼',
+    isHouseBrand: false,
+    searchKeywords: ["dettol", "soap", "hygiene", "original", "bath", "personal care", "wash"]
+  }],
+  ['6001087007788', {
+    gtin: '6001087007788',
+    retailerId: 'shoprite',
+    title: "Colgate Triple Action Fluoride Toothpaste 100ml",
+    brand: "Colgate",
+    imageUrl: '/products/6001087007788.jpg',
+    category: "Household & Personal Care",
+    weight: "100 ml",
+    basePrice: 22.99,
+    promoPrice: 17.99,
+    emoji: '🪥',
+    isHouseBrand: false,
+    searchKeywords: ["colgate", "toothpaste", "triple action", "dental", "personal care", "hygiene"]
+  }],
+  ['6001087005111', {
+    gtin: '6001087005111',
+    retailerId: 'shoprite',
+    title: "Domestos Thick Bleach Original 750ml",
+    brand: "Domestos",
+    imageUrl: '/products/6001087005111.jpg',
+    category: "Household & Personal Care",
+    weight: "750 ml",
+    basePrice: 39.99,
+    promoPrice: 32.99,
+    emoji: '🧴',
+    isHouseBrand: false,
+    searchKeywords: ["domestos", "bleach", "thick", "cleaning", "household", "disinfectant"]
+  }],
+  ['6001087003346', {
+    gtin: '6001087003346',
+    retailerId: 'shoprite',
+    title: "Handy Andy Multi-Purpose Cleaner Ammonia 750ml",
+    brand: "Handy Andy",
+    imageUrl: '/products/6001087003346.jpg',
+    category: "Household & Personal Care",
+    weight: "750 ml",
+    basePrice: 37.99,
+    promoPrice: 29.99,
+    emoji: '✨',
+    isHouseBrand: false,
+    searchKeywords: ["handy andy", "cleaner", "ammonia", "surface", "household", "shine"]
+  }],
+  ['6001087008129', {
+    gtin: '6001087008129',
+    retailerId: 'shoprite',
+    title: "Shield MotionSense Antiperspirant Roll-On 50ml",
+    brand: "Shield",
+    imageUrl: '/products/6001087008129.jpg',
+    category: "Household & Personal Care",
+    weight: "50 ml",
+    basePrice: 32.99,
+    promoPrice: 26.99,
+    emoji: '⚡',
+    isHouseBrand: false,
+    searchKeywords: ["shield", "roll on", "deodorant", "motionsense", "personal care", "fresh"]
+  }],
+  ['6001007002049', {
+    gtin: '6001007002049',
+    retailerId: 'shoprite',
+    title: "Ritebrand Thick Bleach Regular 750ml",
+    brand: "Ritebrand",
+    imageUrl: '/products/6001007002049.svg',
+    category: "Household & Personal Care",
+    weight: "750 ml",
+    basePrice: 24.99,
+    promoPrice: 18.99,
+    emoji: '🧴',
+    isHouseBrand: true,
+    searchKeywords: ["ritebrand", "bleach", "thick bleach", "cleaning", "household", "shoprite"]
+  }],
+  ['6001007002148', {
+    gtin: '6001007002148',
+    retailerId: 'shoprite',
+    title: "Ritebrand Toilet Paper 2-Ply 9 Rolls",
+    brand: "Ritebrand",
+    imageUrl: '/products/6001007002148.svg',
+    category: "Household & Personal Care",
+    weight: "9 rolls",
+    basePrice: 59.99,
+    promoPrice: 49.99,
+    emoji: '🧻',
+    isHouseBrand: true,
+    searchKeywords: ["ritebrand", "toilet paper", "2 ply", "bathroom", "household", "shoprite"]
+  }],
+  ['6001007002155', {
+    gtin: '6001007002155',
+    retailerId: 'shoprite',
+    title: "Ritebrand Washing Powder All-in-One 2kg",
+    brand: "Ritebrand",
+    imageUrl: '/products/6001007002155.svg',
+    category: "Household & Personal Care",
+    weight: "2 kg",
+    basePrice: 49.99,
+    promoPrice: 39.99,
+    emoji: '🧺',
+    isHouseBrand: true,
+    searchKeywords: ["ritebrand", "washing powder", "laundry", "clean", "household", "shoprite"]
   }]
 ]);
 
@@ -532,7 +790,10 @@ function getStorePrice(storeId, gtin) {
 
 function getRetailerProducts(retailerId) {
   return Array.from(MASTER_PRODUCTS.values()).filter(p => {
-    // All 34 products are high-volume South African household staples (White Star, Albany, Clover, etc.)
+    // Ritebrand, Mister Bread, Pot O' Gold are Shoprite exclusive house brands
+    if (retailerId !== 'shoprite' && p.isHouseBrand) {
+      return false;
+    }
     if (retailerId === 'woolworths' && ['Goldi', 'First Choice'].includes(p.brand)) {
       return false;
     }
@@ -576,6 +837,9 @@ const state = {
   selectedCatalogBarcode: '6001007001001',
   catalogSearch: '',
   catalogCategory: 'all',
+  catalogViewMode: 'grid',
+  houseBrandOnly: false,
+  catalogSort: 'default',
   cart: [],
   shoppingList: [],
   expandedListItemCompares: new Set(),
@@ -1076,8 +1340,8 @@ function renderList() {
 
                         <!-- Actions -->
                         <div class="flex items-center gap-1 shrink-0">
-                          <button type="button" data-move-single-cartel="${item.id}" class="flex items-center gap-1 rounded-xl bg-slate-950 px-2.5 py-1.5 text-[10px] font-black text-white hover:bg-emerald-600 active:scale-95 transition" title="Put in Cartel">
-                            <span>+ Cartel</span>
+                          <button type="button" data-move-single-cartel="${item.id}" class="flex items-center gap-1 rounded-xl bg-slate-950 px-2.5 py-1.5 text-[10px] font-black text-white hover:bg-emerald-600 active:scale-95 transition" title="Put in Trolley">
+                            <span>+ Trolley</span>
                           </button>
                           <button type="button" data-delete-list="${item.id}" class="grid size-7 place-items-center rounded-xl text-slate-300 hover:bg-red-50 hover:text-red-500 transition" title="Remove">
                             &times;
@@ -1157,7 +1421,7 @@ function renderList() {
             </div>
             <button id="move-all-cartel" type="button" class="flex items-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3 text-xs font-black text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 active:scale-95 transition">
               <span>🛒</span>
-              <span>Put All in Cartel</span>
+              <span>Put All in Trolley</span>
             </button>
           </div>
 
@@ -1437,6 +1701,110 @@ const SA_STAPLE_BARGAINS = [
   { gtin: '6001087002134', name: 'Sunlight Liquid 750ml', store: 'Boxer', price: 28.99, tag: 'Top Cleaning' }
 ];
 
+
+function renderProductCard(product, retailer, store, selectedBarcode) {
+  const priceData = getStorePrice(store.id, product.gtin);
+  const isSelected = product.gtin === selectedBarcode;
+  const hasPromo = priceData.promoPrice && priceData.promoPrice < priceData.regularPrice;
+  const activePrice = hasPromo ? priceData.promoPrice : priceData.regularPrice;
+  const savings = hasPromo ? (priceData.regularPrice - priceData.promoPrice) : 0;
+  const unitPrice = formatUnitPrice(activePrice, product.weight);
+
+  // Cross-store comparison badge
+  const itemStorePrices = getItemStorePrices(product.gtin, activePrice);
+  const lowestStore = itemStorePrices[0];
+  const isLowestInSA = Math.abs(activePrice - lowestStore.activePrice) < 0.05;
+  const savingsVsLowest = Math.max(0, activePrice - lowestStore.activePrice);
+
+  return `
+    <div 
+      data-select-catalog-product="${product.gtin}"
+      class="group relative flex flex-col justify-between rounded-3xl border-2 bg-white p-3.5 shadow-sm transition-all duration-200 cursor-pointer active:scale-98 ${isSelected ? 'border-slate-950 ring-4 ring-slate-900/10 shadow-md' : 'border-slate-200/90 hover:border-slate-300'}"
+    >
+      <div>
+        <!-- Product Packshot Container (1:1 Ratio on Crisp White Backdrop) -->
+        <div class="relative w-full aspect-square overflow-hidden rounded-2xl bg-white border border-slate-100 p-2 flex items-center justify-center shadow-2xs">
+          <img 
+            src="${product.imageUrl}" 
+            alt="${escapeHtml(product.title)}" 
+            class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300"
+            onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'grid size-full place-items-center text-3xl\'>${product.emoji || '🛍️'}</span>';"
+          />
+          <div class="absolute top-2 left-2 flex flex-col gap-1 items-start">
+            <span class="rounded-md bg-slate-950/80 px-1.5 py-0.5 font-mono text-[7px] font-bold text-white backdrop-blur-xs">
+              ${product.gtin}
+            </span>
+            ${product.isHouseBrand ? `
+              <span class="rounded-md bg-red-600 px-1.5 py-0.5 text-[7px] font-black uppercase text-white shadow-xs">
+                House Brand
+              </span>
+            ` : ''}
+          </div>
+          ${hasPromo ? `
+            <span class="absolute top-2 right-2 rounded-md px-1.5 py-0.5 text-[8px] font-black text-white shadow-xs" style="background:${retailer.color}">
+              ${retailer.loyalty ? retailer.loyalty.toUpperCase() : 'PROMO'}
+            </span>
+          ` : ''}
+        </div>
+
+        <!-- Details & Brand Tag & Category -->
+        <div class="mt-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">${product.brand}</span>
+            <span class="rounded bg-slate-100 px-1.5 py-0.2 text-[8px] font-bold text-slate-600">${product.category.split(' ')[0]}</span>
+          </div>
+          <h4 class="text-xs font-black text-slate-900 line-clamp-2 leading-snug mt-0.5">${escapeHtml(product.title)}</h4>
+          <div class="flex items-center justify-between mt-0.5">
+            <p class="text-[10px] text-slate-400 font-semibold">${product.weight || '1 unit'}</p>
+            ${unitPrice ? `<span class="text-[8.5px] font-bold text-slate-500 font-mono">${unitPrice}</span>` : ''}
+          </div>
+        </div>
+
+        <!-- Cross-Store Price Indicator -->
+        <div class="mt-2">
+          ${isLowestInSA ? `
+            <span class="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[8px] font-black text-emerald-700 border border-emerald-200">
+              🟢 Lowest in SA
+            </span>
+          ` : `
+            <span class="rounded-md bg-amber-50 px-1.5 py-0.5 text-[8px] font-black text-amber-700 border border-amber-200">
+              Save ${zar.format(savingsVsLowest)} at ${lowestStore.retailer.name}
+            </span>
+          `}
+        </div>
+      </div>
+
+      <!-- Store Live Price & Quick Add Action -->
+      <div class="mt-3 border-t border-slate-100 pt-2 flex items-end justify-between">
+        <div>
+          <div class="text-sm font-black text-slate-900">
+            ${zar.format(activePrice)}
+          </div>
+          ${hasPromo ? `
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="text-[10px] text-slate-400 line-through">
+                ${zar.format(priceData.regularPrice)}
+              </span>
+              <span class="rounded-md bg-emerald-50 px-1 py-0.2 text-[8px] font-black text-emerald-700">
+                -${zar.format(savings)}
+              </span>
+            </div>
+          ` : ''}
+        </div>
+
+        <button 
+          type="button" 
+          data-catalog-add-cart="${product.gtin}"
+          class="grid size-8 shrink-0 place-items-center rounded-xl bg-slate-900 text-white font-black text-sm shadow-sm hover:bg-slate-800 active:scale-90 transition"
+          title="Add to Shopping Trolley"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function renderMarket() {
   const retailer = getRetailer();
   
@@ -1450,10 +1818,11 @@ function renderMarket() {
 
   const retailerProducts = getRetailerProducts(retailer.id);
 
-  // Filter master products by category & search query
-  const filteredProducts = retailerProducts.filter((product) => {
+  // Filter master products by category & search query & house brand
+  let filteredProducts = retailerProducts.filter((product) => {
     const matchesCategory = selectedCat === 'all' || product.category === selectedCat;
     if (!matchesCategory) return false;
+    if (state.houseBrandOnly && !product.isHouseBrand) return false;
     if (!searchQuery) return true;
 
     const inKeywords = product.searchKeywords && product.searchKeywords.some(k => k.toLowerCase().includes(searchQuery));
@@ -1462,6 +1831,25 @@ function renderMarket() {
     const inGtin = product.gtin.includes(searchQuery);
     return inKeywords || inTitle || inBrand || inGtin;
   });
+
+  // Apply category sort
+  if (state.catalogSort === 'price-asc') {
+    filteredProducts.sort((a, b) => {
+      const pA = getStorePrice(store.id, a.gtin);
+      const pB = getStorePrice(store.id, b.gtin);
+      return (pA.promoPrice || pA.regularPrice) - (pB.promoPrice || pB.regularPrice);
+    });
+  } else if (state.catalogSort === 'savings-desc') {
+    filteredProducts.sort((a, b) => {
+      const pA = getStorePrice(store.id, a.gtin);
+      const pB = getStorePrice(store.id, b.gtin);
+      const savA = (pA.promoPrice && pA.promoPrice < pA.regularPrice) ? (pA.regularPrice - pA.promoPrice) : 0;
+      const savB = (pB.promoPrice && pB.promoPrice < pB.regularPrice) ? (pB.regularPrice - pB.promoPrice) : 0;
+      return savB - savA;
+    });
+  } else if (state.catalogSort === 'name-asc') {
+    filteredProducts.sort((a, b) => a.title.localeCompare(b.title));
+  }
 
   const selectedBarcode = state.selectedCatalogBarcode || (filteredProducts[0] ? filteredProducts[0].gtin : '6001007001001');
   state.selectedCatalogBarcode = selectedBarcode;
@@ -1660,9 +2048,57 @@ function renderMarket() {
             `;
           }).join('')}
         </div>
+
+        <!-- Category Management & View Mode Toolbar -->
+        <div class="mt-3 flex items-center justify-between gap-1.5 pt-2 border-t border-slate-100">
+          <div class="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
+            ${retailer.id === 'shoprite' ? `
+              <button 
+                type="button" 
+                data-toggle-house-brand
+                class="shrink-0 flex items-center gap-1 rounded-xl px-2.5 py-1 text-[10px] font-black transition active:scale-95 ${state.houseBrandOnly ? 'bg-red-600 text-white shadow-xs' : 'bg-red-50 text-red-700 border border-red-200/80 hover:bg-red-100'}"
+                title="Filter to Shoprite Ritebrand & House Brands"
+              >
+                <span>🔴</span>
+                <span>Ritebrand (${retailerProducts.filter(p => p.isHouseBrand).length})</span>
+              </button>
+            ` : ''}
+
+            <!-- View Mode Switcher: Grid vs Aisle Mode -->
+            <button 
+              type="button" 
+              data-toggle-view-mode
+              class="shrink-0 flex items-center gap-1 rounded-xl px-2.5 py-1 text-[10px] font-bold border border-slate-200 bg-white text-slate-700 hover:border-slate-300 transition active:scale-95"
+              title="Switch between Flat Grid and Department Aisle View"
+            >
+              <span>${state.catalogViewMode === 'aisles' ? '🏬 Aisle Mode' : '▦ Grid Mode'}</span>
+            </button>
+
+            <!-- Sort Cycling Pill -->
+            <button 
+              type="button" 
+              data-cycle-sort
+              class="shrink-0 flex items-center gap-1 rounded-xl px-2.5 py-1 text-[10px] font-bold border border-slate-200 bg-white text-slate-700 hover:border-slate-300 transition active:scale-95"
+            >
+              <span>⇅</span>
+              <span>Sort: ${state.catalogSort === 'price-asc' ? 'Low Price' : (state.catalogSort === 'savings-desc' ? 'Top Savings' : (state.catalogSort === 'name-asc' ? 'A-Z' : 'Default'))}</span>
+            </button>
+          </div>
+
+          <!-- Open Category Manager Modal Button -->
+          <button 
+            type="button" 
+            id="open-category-manager-btn"
+            class="shrink-0 flex items-center gap-1 rounded-xl bg-slate-900 px-2.5 py-1 text-[10px] font-black text-white hover:bg-slate-800 active:scale-95 transition shadow-xs"
+            title="Open Category Manager"
+          >
+            <span>🏷️</span>
+            <span>Departments</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Decoupled Native Catalog Grid (Zero WebViews) -->
+      <!-- Decoupled Native Catalog Grid / Aisle Sections -->
       <div class="px-5 pt-3">
         ${filteredProducts.length === 0 ? `
           <div class="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xs">
@@ -1671,100 +2107,35 @@ function renderMarket() {
             <p class="mt-1 text-xs text-slate-400">Try searching for White Star, bread, milk, chips, rice, or a 13-digit EAN barcode.</p>
             <button id="reset-catalog-btn" type="button" class="mt-4 rounded-xl bg-slate-950 px-4 py-2 text-xs font-black text-white">Reset Search</button>
           </div>
-        ` : `
-          <div class="grid grid-cols-2 gap-3">
-            ${filteredProducts.map(product => {
-              const priceData = getStorePrice(store.id, product.gtin);
-              const isSelected = product.gtin === selectedBarcode;
-              const hasPromo = priceData.promoPrice && priceData.promoPrice < priceData.regularPrice;
-              const activePrice = hasPromo ? priceData.promoPrice : priceData.regularPrice;
-              const savings = hasPromo ? (priceData.regularPrice - priceData.promoPrice) : 0;
-              const unitPrice = formatUnitPrice(activePrice, product.weight);
-
-              // Cross-store comparison badge
-              const itemStorePrices = getItemStorePrices(product.gtin, activePrice);
-              const lowestStore = itemStorePrices[0];
-              const isLowestInSA = Math.abs(activePrice - lowestStore.activePrice) < 0.05;
-              const savingsVsLowest = Math.max(0, activePrice - lowestStore.activePrice);
-
+        ` : (state.catalogViewMode === 'aisles' && selectedCat === 'all' && !searchQuery) ? `
+          <div class="space-y-5">
+            ${CATEGORIES.map(cat => {
+              const deptProducts = filteredProducts.filter(p => p.category === cat.id);
+              if (!deptProducts.length) return '';
               return `
-                <div 
-                  data-select-catalog-product="${product.gtin}"
-                  class="group relative flex flex-col justify-between rounded-3xl border-2 bg-white p-3.5 shadow-sm transition-all duration-200 cursor-pointer active:scale-98 ${isSelected ? 'border-slate-950 ring-4 ring-slate-900/10 shadow-md' : 'border-slate-200/90 hover:border-slate-300'}"
-                >
-                  <div>
-                    <!-- Product Packshot Container (1:1 Ratio on Crisp White Backdrop) -->
-                    <div class="relative w-full aspect-square overflow-hidden rounded-2xl bg-white border border-slate-100 p-2 flex items-center justify-center shadow-2xs">
-                      <img 
-                        src="${product.imageUrl}" 
-                        alt="${escapeHtml(product.title)}" 
-                        class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300"
-                        onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\\'grid size-full place-items-center text-3xl\\'>${product.emoji || '🛍️'}</span>';"
-                      />
-                      <span class="absolute top-2 left-2 rounded-md bg-slate-950/80 px-1.5 py-0.5 font-mono text-[7px] font-bold text-white backdrop-blur-xs">
-                        ${product.gtin}
-                      </span>
-                      ${hasPromo ? `
-                        <span class="absolute top-2 right-2 rounded-md px-1.5 py-0.5 text-[8px] font-black text-white shadow-xs" style="background:${retailer.color}">
-                          ${retailer.loyalty ? retailer.loyalty.toUpperCase() : 'PROMO'}
-                        </span>
-                      ` : ''}
-                    </div>
-
-                    <!-- Details & Brand Tag -->
-                    <div class="mt-2.5">
-                      <div class="flex items-center justify-between">
-                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">${product.brand}</span>
-                        ${unitPrice ? `<span class="text-[8.5px] font-bold text-slate-500 font-mono">${unitPrice}</span>` : ''}
+                <div class="rounded-3xl bg-slate-50/80 p-3.5 border border-slate-200/80 shadow-2xs">
+                  <div class="flex items-center justify-between pb-2.5 border-b border-slate-200">
+                    <div class="flex items-center gap-2">
+                      <span class="grid size-8 place-items-center rounded-xl bg-white text-base shadow-2xs">${cat.emoji}</span>
+                      <div>
+                        <h3 class="text-xs font-black text-slate-900">${cat.id}</h3>
+                        <p class="text-[9.5px] text-slate-400 font-bold">${deptProducts.length} items in this department</p>
                       </div>
-                      <h4 class="text-xs font-black text-slate-900 line-clamp-2 leading-snug mt-0.5">${escapeHtml(product.title)}</h4>
-                      <p class="text-[10px] text-slate-400 font-semibold mt-0.5">${product.weight || '1 unit'}</p>
                     </div>
-
-                    <!-- Cross-Store Price Indicator -->
-                    <div class="mt-2">
-                      ${isLowestInSA ? `
-                        <span class="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[8px] font-black text-emerald-700 border border-emerald-200">
-                          🟢 Lowest in SA
-                        </span>
-                      ` : `
-                        <span class="rounded-md bg-amber-50 px-1.5 py-0.5 text-[8px] font-black text-amber-700 border border-amber-200">
-                          Save ${zar.format(savingsVsLowest)} at ${lowestStore.retailer.name}
-                        </span>
-                      `}
-                    </div>
-                  </div>
-
-                  <!-- Store Live Price & Quick Add Action -->
-                  <div class="mt-3 border-t border-slate-100 pt-2 flex items-end justify-between">
-                    <div>
-                      <div class="text-sm font-black text-slate-900">
-                        ${zar.format(activePrice)}
-                      </div>
-                      ${hasPromo ? `
-                        <div class="flex items-center gap-1.5 mt-0.5">
-                          <span class="text-[10px] text-slate-400 line-through">
-                            ${zar.format(priceData.regularPrice)}
-                          </span>
-                          <span class="rounded-md bg-emerald-50 px-1 py-0.2 text-[8px] font-black text-emerald-700">
-                            -${zar.format(savings)}
-                          </span>
-                        </div>
-                      ` : ''}
-                    </div>
-
-                    <button 
-                      type="button" 
-                      data-catalog-add-cart="${product.gtin}"
-                      class="grid size-8 shrink-0 place-items-center rounded-xl bg-slate-900 text-white font-black text-sm shadow-sm hover:bg-slate-800 active:scale-90 transition"
-                      title="Add to Shopping Trolley"
-                    >
-                      +
+                    <button type="button" data-catalog-cat="${cat.id}" class="rounded-lg bg-white px-2.5 py-1 text-[9.5px] font-black text-slate-800 border border-slate-200 hover:border-slate-400 active:scale-95 transition">
+                      Filter Aisle ▾
                     </button>
+                  </div>
+                  <div class="mt-3 grid grid-cols-2 gap-3">
+                    ${deptProducts.map(product => renderProductCard(product, retailer, store, selectedBarcode)).join('')}
                   </div>
                 </div>
               `;
             }).join('')}
+          </div>
+        ` : `
+          <div class="grid grid-cols-2 gap-3">
+            ${filteredProducts.map(product => renderProductCard(product, retailer, store, selectedBarcode)).join('')}
           </div>
         `}
       </div>
@@ -1935,6 +2306,40 @@ function bindCatalogInteractions(retailer, store) {
     renderMarket();
   });
 
+
+  // View mode toggle (Grid vs Aisles)
+  screen.querySelector('[data-toggle-view-mode]')?.addEventListener('click', () => {
+    state.catalogViewMode = state.catalogViewMode === 'aisles' ? 'grid' : 'aisles';
+    playBeepSound();
+    if (navigator.vibrate) navigator.vibrate(15);
+    renderMarket();
+  });
+
+  // House brand filter toggle (Ritebrand)
+  screen.querySelector('[data-toggle-house-brand]')?.addEventListener('click', () => {
+    state.houseBrandOnly = !state.houseBrandOnly;
+    playBeepSound();
+    if (navigator.vibrate) navigator.vibrate(20);
+    renderMarket();
+  });
+
+  // Cycle sort options
+  screen.querySelector('[data-cycle-sort]')?.addEventListener('click', () => {
+    const sorts = ['default', 'price-asc', 'savings-desc', 'name-asc'];
+    const nextIdx = (sorts.indexOf(state.catalogSort) + 1) % sorts.length;
+    state.catalogSort = sorts[nextIdx];
+    playBeepSound();
+    if (navigator.vibrate) navigator.vibrate(15);
+    renderMarket();
+  });
+
+  // Open Category Manager Modal
+  screen.querySelector('#open-category-manager-btn')?.addEventListener('click', () => {
+    openCategoryManagerModal(retailer, store);
+    playBeepSound();
+    if (navigator.vibrate) navigator.vibrate(20);
+  });
+
   // Category filter chips
   screen.querySelectorAll('[data-catalog-cat]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -2086,6 +2491,85 @@ function bindDockActionButtons(retailer, store) {
     showToast(`✓ Added ${itemToAdd.name} to ${retailer.name} Trolley for till checkout`);
   });
 }
+
+
+function openCategoryManagerModal(retailer, store) {
+  const retailerProducts = getRetailerProducts(retailer.id);
+
+  modalRoot.innerHTML = `
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md animate-in fade-in">
+      <div class="relative max-h-[85vh] w-full max-w-lg overflow-hidden rounded-[2.5rem] bg-white p-6 shadow-2xl animate-in slide-in-from-bottom-5">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="text-base font-black text-slate-900">${retailer.name} Department Manager</h3>
+            <p class="text-xs text-slate-400">Manage and browse ${retailerProducts.length} items categorized by store aisle</p>
+          </div>
+          <button id="close-cat-modal-btn" type="button" class="grid size-8 place-items-center rounded-xl bg-slate-100 text-xs font-bold text-slate-500 hover:bg-slate-200">✕</button>
+        </div>
+
+        <div class="mt-4 space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
+          <button type="button" data-pick-dept="all" class="w-full flex items-center justify-between rounded-2xl border-2 p-3 text-left transition active:scale-98 ${state.catalogCategory === 'all' && !state.houseBrandOnly ? 'border-slate-950 bg-slate-50 ring-2 ring-slate-900/10' : 'border-slate-100 bg-white hover:border-slate-200'}">
+            <div class="flex items-center gap-3">
+              <span class="grid size-11 place-items-center rounded-2xl bg-slate-950 text-white text-xl shadow-xs">🛍️</span>
+              <div>
+                <h4 class="text-xs font-black text-slate-900">All Supermarket Departments</h4>
+                <p class="text-[10px] text-slate-400">Complete catalog of ${retailerProducts.length} grocery items</p>
+              </div>
+            </div>
+            <span class="rounded-full bg-slate-200 px-2.5 py-0.5 text-[9px] font-black text-slate-700">${retailerProducts.length} items</span>
+          </button>
+
+          ${CATEGORIES.map(cat => {
+            const items = retailerProducts.filter(p => p.category === cat.id);
+            const hbCount = items.filter(p => p.isHouseBrand).length;
+            const minPrice = items.length ? Math.min(...items.map(p => {
+              const pd = getStorePrice(store.id, p.gtin);
+              return pd.promoPrice || pd.regularPrice;
+            })) : 0;
+            const isSelected = state.catalogCategory === cat.id && !state.houseBrandOnly;
+
+            return `
+              <button type="button" data-pick-dept="${cat.id}" class="w-full flex items-center justify-between rounded-2xl border-2 p-3 text-left transition active:scale-98 ${isSelected ? 'border-slate-950 bg-slate-50 ring-2 ring-slate-900/10' : 'border-slate-100 bg-white hover:border-slate-200'}">
+                <div class="flex items-center gap-3">
+                  <span class="grid size-11 place-items-center rounded-2xl bg-slate-100 text-xl shadow-2xs">${cat.emoji}</span>
+                  <div>
+                    <h4 class="text-xs font-black text-slate-900">${cat.id}</h4>
+                    <p class="text-[10px] text-slate-400 font-bold">
+                      ${items.length} items &bull; From ${zar.format(minPrice)}
+                      ${hbCount ? `<span class="text-red-600 font-bold">&bull; ${hbCount} Ritebrand</span>` : ''}
+                    </p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[8.5px] font-black text-emerald-800">
+                    Browse Aisle
+                  </span>
+                  ${isSelected ? '<span class="block text-[8px] font-black text-slate-900 mt-1">● ACTIVE</span>' : ''}
+                </div>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  modalRoot.querySelector('#close-cat-modal-btn')?.addEventListener('click', () => {
+    modalRoot.innerHTML = '';
+  });
+
+  modalRoot.querySelectorAll('[data-pick-dept]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.catalogCategory = btn.dataset.pickDept;
+      state.houseBrandOnly = false;
+      modalRoot.innerHTML = '';
+      playBeepSound();
+      if (navigator.vibrate) navigator.vibrate(20);
+      renderMarket();
+    });
+  });
+}
+
 
 function openStoreBranchModal(currentRetailer) {
   modalRoot.innerHTML = `

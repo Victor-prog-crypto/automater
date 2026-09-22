@@ -14,8 +14,30 @@ from backend.router.transaction_router import TransactionRouter
 from backend.models import OrderStage
 from backend.ingestion.sync_catalog_images import sync_images, sync_vertex_packshots
 from backend.ingestion.regional_sales_agent import RegionalSalesScraperAgent
+from backend.ingestion.shoprite_catalog_manager import ShopriteCatalogManager
 
-console = Console()
+console = Console(force_terminal=True, legacy_windows=False)
+
+
+def pull_shoprite_catalog():
+    print("=" * 70)
+    print("AUTOMATER SHOPRITE CATEGORY PULLER & MANAGER")
+    print("Pulling and categorizing 50 verified Shoprite products across 5 core departments...")
+    print("=" * 70)
+    manager = ShopriteCatalogManager()
+    manager.export_catalog_json()
+    manager.sync_to_app_js()
+    grouped = manager.get_products_by_category()
+
+    print("\nShoprite Category Breakdown:")
+    for dept in manager.departments:
+        dept_id = dept["id"]
+        items = grouped.get(dept_id, [])
+        hb_count = sum(1 for it in items if it.get("isHouseBrand"))
+        print(f" * {dept['label']:<20} | Items: {len(items):<3} | House Brands (Ritebrand): {hb_count} items")
+
+    print(f"\n[OK] Successfully synced {len(manager.products)} products into app.js and public/data/shoprite_catalog.json!\n")
+
 
 
 def seed_catalog():
@@ -123,7 +145,7 @@ def simulate_nedbank():
 
 def main():
     parser = argparse.ArgumentParser(description="Automater Backend Pipeline & Router CLI")
-    parser.add_argument("command", choices=["seed", "simulate-qr", "simulate-delivery", "simulate-nedbank", "pull-cse-images", "vertex-packshots", "regional-sales"], help="Command to execute")
+    parser.add_argument("command", choices=["seed", "pull-shoprite", "simulate-qr", "simulate-delivery", "simulate-nedbank", "pull-cse-images", "vertex-packshots", "regional-sales"], help="Command to execute")
     parser.add_argument("--gtin", type=str, default=None, help="Target specific product GTIN barcode")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of items to process")
     parser.add_argument("--overwrite", action="store_true", help="Force regenerate existing images")
@@ -136,6 +158,8 @@ def main():
 
     if args.command == "seed":
         seed_catalog()
+    elif args.command == "pull-shoprite":
+        pull_shoprite_catalog()
     elif args.command == "simulate-qr":
         simulate_qr()
     elif args.command == "simulate-delivery":

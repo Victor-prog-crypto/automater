@@ -1776,6 +1776,98 @@ function renderMarket() {
   bindCatalogInteractions(retailer, store);
 }
 
+
+function renderCatalogActionDock(retailer, selectedProduct, selectedBarcode, store) {
+  if (!selectedProduct) {
+    return `
+      <div id="catalog-action-dock" class="fixed inset-x-0 bottom-[5.25rem] z-30 mx-auto max-w-3xl border-t border-slate-200/90 bg-white/95 px-4 py-3 shadow-[0_-16px_40px_-24px_rgba(15,23,42,.45)] backdrop-blur-xl transition-all duration-300">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 text-xs font-bold text-slate-400 min-w-0 flex-1">
+            <span class="grid size-9 shrink-0 place-items-center rounded-2xl bg-slate-100 text-base shadow-sm">🛒</span>
+            <div class="min-w-0">
+              <span class="truncate block font-bold text-slate-600">Select any grocery item above</span>
+              <span class="text-[10px] text-slate-400 font-normal">Tap item to view store pricing and add to cart</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 opacity-40">
+            <button disabled class="flex items-center gap-1 rounded-2xl bg-slate-100 px-3.5 py-2.5 text-xs font-bold text-slate-400 cursor-not-allowed">
+              <span>+</span><span>List</span>
+            </button>
+            <button disabled class="flex items-center gap-1 rounded-2xl bg-slate-100 px-3.5 py-2.5 text-xs font-bold text-slate-400 cursor-not-allowed">
+              <span>+</span><span>Trolley</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  const currentStore = store || PHYSICAL_STORES.find(s => s.retailerId === retailer.id) || PHYSICAL_STORES[0];
+  const priceData = getStorePrice(currentStore.id, selectedProduct.gtin);
+  const activePrice = (priceData.promoPrice && priceData.promoPrice < priceData.regularPrice) ? priceData.promoPrice : priceData.regularPrice;
+  const regularPrice = priceData.regularPrice || selectedProduct.basePrice;
+  const savings = Math.max(0, regularPrice - activePrice);
+  const discountPercent = regularPrice > activePrice 
+    ? Math.round((1 - activePrice / regularPrice) * 100)
+    : 0;
+
+  return `
+    <div id="catalog-action-dock" class="fixed inset-x-0 bottom-[5.25rem] z-30 mx-auto max-w-3xl border-t-2 bg-white/95 px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-3" style="border-color:${retailer.color}; box-shadow: 0 -12px 35px -10px ${retailer.color}45;">
+      <div class="flex items-center justify-between gap-3">
+        <!-- Real-Time Catalog Product Details Preview -->
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <div class="relative size-12 shrink-0 overflow-hidden rounded-2xl bg-slate-100 border border-slate-200 shadow-md">
+            ${selectedProduct.imageUrl ? `
+              <img src="${selectedProduct.imageUrl}" alt="${escapeHtml(selectedProduct.title)}" class="size-full object-cover rounded-2xl" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\\'grid size-full place-items-center text-2xl\\'>${selectedProduct.emoji || '🛍️'}</span>';" />
+            ` : `<span class="grid size-full place-items-center text-2xl">${selectedProduct.emoji || '🛍️'}</span>`}
+            <span class="absolute bottom-0 inset-x-0 bg-black/60 py-0.5 text-center text-[7px] font-mono text-white font-bold backdrop-blur-xs">EAN-13</span>
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="rounded-full px-2 py-0.5 text-[8px] font-black text-white shadow-xs flex items-center gap-1" style="background:${retailer.color}">
+                <span class="size-1.5 rounded-full bg-white animate-ping"></span>
+                <span>${retailer.name}</span>
+              </span>
+              <span class="rounded-md bg-slate-950 px-1.5 py-0.5 font-mono text-[8px] font-bold text-white shadow-xs">
+                ${selectedProduct.gtin}
+              </span>
+              ${discountPercent > 0 ? `
+                <span class="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[8px] font-black text-emerald-800">
+                  -${discountPercent}%
+                </span>
+              ` : ''}
+            </div>
+
+            <p class="truncate text-xs font-black text-slate-900 mt-1 leading-snug">${escapeHtml(selectedProduct.title)}</p>
+
+            <div class="flex items-center gap-2 mt-0.5">
+              <strong class="text-xs font-black text-slate-900">${zar.format(activePrice)}</strong>
+              ${regularPrice > activePrice ? `
+                <span class="text-[10px] text-slate-400 line-through">${zar.format(regularPrice)}</span>
+              ` : ''}
+              ${savings > 0 ? `
+                <span class="text-[9px] font-black text-emerald-600">Save ${zar.format(savings)}</span>
+              ` : ''}
+              <span class="text-[9px] text-slate-400 font-semibold">&bull; ${selectedProduct.weight || '1 unit'}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- The Two Active Buttons: + List and + Trolley -->
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="dock-add-list-btn" type="button" class="flex items-center gap-1.5 rounded-2xl bg-slate-950 px-3.5 py-2.5 text-xs font-black text-white hover:bg-violet-700 active:scale-95 transition shadow-sm" title="Add to Grocery List">
+            <span>+</span><span>List</span>
+          </button>
+          <button id="dock-add-cartel-btn" type="button" class="flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-xs font-black text-white shadow-lg active:scale-95 transition hover:brightness-110" style="background:${retailer.color}" title="Add to Digital Trolley">
+            <span>+</span><span>Trolley</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function bindCatalogInteractions(retailer, store) {
   // Dual mode toggle (At Home vs In-Store)
   screen.querySelectorAll('[data-toggle-mode]').forEach((btn) => {
@@ -1933,6 +2025,68 @@ function bindCatalogInteractions(retailer, store) {
   bindDockActionButtons(retailer, store);
 }
 
+function bindDockActionButtons(retailer, store) {
+  const selectedBarcode = state.selectedCatalogBarcode;
+  const masterProduct = MASTER_PRODUCTS.get(selectedBarcode);
+  const selectedProduct = masterProduct || (selectedBarcode ? PRODUCTS.get(selectedBarcode) : null);
+
+  if (!selectedProduct) return;
+
+  const currentStore = store || PHYSICAL_STORES.find(s => s.retailerId === retailer.id) || PHYSICAL_STORES[0];
+  const priceData = getStorePrice(currentStore.id, selectedBarcode);
+  const activePrice = (priceData.promoPrice && priceData.promoPrice < priceData.regularPrice) ? priceData.promoPrice : priceData.regularPrice;
+
+  const itemToAdd = {
+    barcode: selectedBarcode,
+    name: selectedProduct.title || selectedProduct.name,
+    weight: selectedProduct.weight || '1 unit',
+    category: selectedProduct.category || 'Pantry Staples & Grains',
+    price: activePrice,
+    basePrice: priceData.regularPrice || selectedProduct.basePrice || activePrice,
+    image: selectedProduct.imageUrl || selectedProduct.image,
+    retailerId: retailer.id,
+    emoji: selectedProduct.emoji || '🛍️'
+  };
+
+  // Add to List from Dock
+  screen.querySelector('#dock-add-list-btn')?.addEventListener('click', () => {
+    addToList(itemToAdd, state.retailerId);
+    automationCore.addToList(itemToAdd, state.retailerId);
+    playBeepSound();
+    if (navigator.vibrate) navigator.vibrate(30);
+
+    const btn = screen.querySelector('#dock-add-list-btn');
+    if (btn) {
+      btn.innerHTML = '<span>✓</span><span>Listed</span>';
+      btn.classList.add('bg-emerald-600');
+      window.setTimeout(() => {
+        btn.innerHTML = '<span>+</span><span>List</span>';
+        btn.classList.remove('bg-emerald-600');
+      }, 900);
+    }
+    showToast(`✓ Added ${itemToAdd.name} to ${retailer.name} Checklist`);
+  });
+
+  // Add to Trolley from Dock
+  screen.querySelector('#dock-add-cartel-btn')?.addEventListener('click', () => {
+    addToCart(itemToAdd, state.retailerId);
+    automationCore.addToCartel(itemToAdd, state.retailerId);
+    playBeepSound();
+    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+
+    const btn = screen.querySelector('#dock-add-cartel-btn');
+    if (btn) {
+      btn.innerHTML = '<span>✓</span><span>In Trolley</span>';
+      btn.classList.add('bg-emerald-600');
+      window.setTimeout(() => {
+        btn.innerHTML = '<span>+</span><span>Trolley</span>';
+        btn.classList.remove('bg-emerald-600');
+      }, 900);
+    }
+    showToast(`✓ Added ${itemToAdd.name} to ${retailer.name} Trolley for till checkout`);
+  });
+}
+
 function openStoreBranchModal(currentRetailer) {
   modalRoot.innerHTML = `
     <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md animate-in fade-in">
@@ -2038,68 +2192,6 @@ function openStoreBranchModal(currentRetailer) {
     } else {
       showToast('Geolocation not supported on this browser.');
     }
-  });
-}
-
-function bindDockActionButtons(retailer, store) {
-  const selectedBarcode = state.selectedCatalogBarcode;
-  const masterProduct = MASTER_PRODUCTS.get(selectedBarcode);
-  const selectedProduct = masterProduct || (selectedBarcode ? PRODUCTS.get(selectedBarcode) : null);
-
-  if (!selectedProduct) return;
-
-  const currentStore = store || PHYSICAL_STORES.find(s => s.retailerId === retailer.id) || PHYSICAL_STORES[0];
-  const priceData = getStorePrice(currentStore.id, selectedBarcode);
-  const activePrice = (priceData.promoPrice && priceData.promoPrice < priceData.regularPrice) ? priceData.promoPrice : priceData.regularPrice;
-
-  const itemToAdd = {
-    barcode: selectedBarcode,
-    name: selectedProduct.title || selectedProduct.name,
-    weight: selectedProduct.weight || '1 unit',
-    category: selectedProduct.category || 'Pantry Essentials',
-    price: activePrice,
-    basePrice: priceData.regularPrice || selectedProduct.basePrice || activePrice,
-    image: selectedProduct.imageUrl || selectedProduct.image,
-    retailerId: retailer.id,
-    emoji: selectedProduct.emoji || '🛍️'
-  };
-
-  // Add to List from Dock
-  screen.querySelector('#dock-add-list-btn')?.addEventListener('click', () => {
-    addToList(itemToAdd, state.retailerId);
-    automationCore.addToList(itemToAdd, state.retailerId);
-    playBeepSound();
-    if (navigator.vibrate) navigator.vibrate(30);
-
-    const btn = screen.querySelector('#dock-add-list-btn');
-    if (btn) {
-      btn.innerHTML = '<span>✓</span><span>Listed</span>';
-      btn.classList.add('bg-emerald-600');
-      window.setTimeout(() => {
-        btn.innerHTML = '<span>+</span><span>List</span>';
-        btn.classList.remove('bg-emerald-600');
-      }, 900);
-    }
-    showToast(`✓ Added ${itemToAdd.name} to ${retailer.name} Checklist`);
-  });
-
-  // Add to Cartel from Dock
-  screen.querySelector('#dock-add-cartel-btn')?.addEventListener('click', () => {
-    addToCart(itemToAdd, state.retailerId);
-    automationCore.addToCartel(itemToAdd, state.retailerId);
-    playBeepSound();
-    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-
-    const btn = screen.querySelector('#dock-add-cartel-btn');
-    if (btn) {
-      btn.innerHTML = '<span>✓</span><span>In Cartel</span>';
-      btn.classList.add('bg-emerald-600');
-      window.setTimeout(() => {
-        btn.innerHTML = '<span>+</span><span>Cartel</span>';
-        btn.classList.remove('bg-emerald-600');
-      }, 900);
-    }
-    showToast(`✓ Added ${itemToAdd.name} to ${retailer.name} Cartel for QR till scan`);
   });
 }
 

@@ -21,7 +21,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Albany Superior Thick Slices White Bread 700g',
     brand: 'Albany',
     imageUrl: '/products/6001007001001.jpg',
-    category: 'Bakery & Grains',
+    category: 'Bakery & Fresh Produce',
     weight: '700 g',
     basePrice: 19.99,
     promoPrice: 16.99,
@@ -34,7 +34,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Albany Superior Sliced Brown Bread 700g',
     brand: 'Albany',
     imageUrl: '/products/6001007001018.jpg',
-    category: 'Bakery & Grains',
+    category: 'Bakery & Fresh Produce',
     weight: '700 g',
     basePrice: 18.49,
     promoPrice: 15.99,
@@ -47,7 +47,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Clover Full Cream Fresh Milk 2L',
     brand: 'Clover',
     imageUrl: '/products/6001299000270.jpg',
-    category: 'Dairy & Eggs',
+    category: 'Dairy, Eggs & Fridge',
     weight: '2 L',
     basePrice: 39.99,
     promoPrice: 33.99,
@@ -60,7 +60,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Clover 2% Low Fat Fresh Milk 2L',
     brand: 'Clover',
     imageUrl: '/products/6001299000287.jpg',
-    category: 'Dairy & Eggs',
+    category: 'Dairy, Eggs & Fridge',
     weight: '2 L',
     basePrice: 39.99,
     promoPrice: 33.99,
@@ -73,7 +73,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'White Star Super Maize Meal 2.5kg',
     brand: 'White Star',
     imageUrl: '/products/6001007002343.jpg',
-    category: 'Bakery & Grains',
+    category: 'Pantry Staples & Grains',
     weight: '2.5 kg',
     basePrice: 37.99,
     promoPrice: 31.99,
@@ -86,7 +86,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Tastic Long Grain Parboiled Rice 2kg',
     brand: 'Tastic',
     imageUrl: '/products/6001007000127.jpg',
-    category: 'Bakery & Grains',
+    category: 'Pantry Staples & Grains',
     weight: '2 kg',
     basePrice: 44.99,
     promoPrice: 37.99,
@@ -99,7 +99,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Koo Baked Beans in Tomato Sauce 410g',
     brand: 'Koo',
     imageUrl: '/products/6001007000899.jpg',
-    category: 'Pantry Essentials',
+    category: 'Pantry Staples & Grains',
     weight: '410 g',
     basePrice: 18.49,
     promoPrice: 14.99,
@@ -112,7 +112,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Lucky Star Pilchards in Tomato Sauce 400g',
     brand: 'Lucky Star',
     imageUrl: '/products/6001053000027.jpg',
-    category: 'Pantry Essentials',
+    category: 'Pantry Staples & Grains',
     weight: '400 g',
     basePrice: 28.99,
     promoPrice: 23.99,
@@ -125,7 +125,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Simba Smoked Beef Flavoured Potato Chips 120g',
     brand: 'Simba',
     imageUrl: '/products/6001068594504.jpg',
-    category: 'Snacks & Drinks',
+    category: 'Drinks, Coffee & Snacks',
     weight: '120 g',
     basePrice: 22.49,
     promoPrice: 18.99,
@@ -138,7 +138,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Nescafé Ricoffy Instant Coffee 750g Tin',
     brand: 'Ricoffy',
     imageUrl: '/products/6001068001002.jpg',
-    category: 'Hot Beverages',
+    category: 'Drinks, Coffee & Snacks',
     weight: '750 g',
     basePrice: 69.99,
     promoPrice: 57.99,
@@ -151,7 +151,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Sunlight Regular Dishwashing Liquid 750ml',
     brand: 'Sunlight',
     imageUrl: '/products/6001087002134.jpg',
-    category: 'Household & Cleaning',
+    category: 'Household & Personal Care',
     weight: '750 ml',
     basePrice: 36.99,
     promoPrice: 28.99,
@@ -164,7 +164,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Omo Auto Concentrated Washing Powder 2kg',
     brand: 'Omo',
     imageUrl: '/products/6001087006781.jpg',
-    category: 'Household & Cleaning',
+    category: 'Household & Personal Care',
     weight: '2 kg',
     basePrice: 92.99,
     promoPrice: 76.99,
@@ -177,7 +177,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Dettol Hygiene Soap Original 175g',
     brand: 'Dettol',
     imageUrl: '/products/6001087004565.jpg',
-    category: 'Personal Care',
+    category: 'Household & Personal Care',
     weight: '175 g',
     basePrice: 18.99,
     promoPrice: 13.99,
@@ -190,7 +190,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'All Gold Tomato Sauce 700ml Bottle',
     brand: 'All Gold',
     imageUrl: '/products/6001007005436.jpg',
-    category: 'Pantry Essentials',
+    category: 'Pantry Staples & Grains',
     weight: '700 ml',
     basePrice: 41.99,
     promoPrice: 34.99,
@@ -203,7 +203,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Rama Original 70% Fat Spread 500g Tub',
     brand: 'Rama',
     imageUrl: '/products/6001087009874.jpg',
-    category: 'Dairy & Eggs',
+    category: 'Dairy, Eggs & Fridge',
     weight: '500 g',
     basePrice: 26.99,
     promoPrice: 21.99,
@@ -216,7 +216,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Bakers Blue Label Marie Biscuits 200g',
     brand: 'Bakers',
     imageUrl: '/products/6001007008871.jpg',
-    category: 'Snacks & Drinks',
+    category: 'Drinks, Coffee & Snacks',
     weight: '200 g',
     basePrice: 19.99,
     promoPrice: 15.99,
@@ -228,8 +228,8 @@ const MASTER_PRODUCTS = new Map([
     retailerId: 'shoprite',
     title: 'Coca-Cola Original Taste Less Sugar 2L Bottle',
     brand: 'Coca-Cola',
-    imageUrl: '/products/5449000000996.jpg',
-    category: 'Snacks & Drinks',
+    imageUrl: '/products/5449000000996.svg',
+    category: 'Drinks, Coffee & Snacks',
     weight: '2 L',
     basePrice: 29.99,
     promoPrice: 24.99,
@@ -242,7 +242,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Black Cat Crunchy Peanut Butter 400g Jar',
     brand: 'Black Cat',
     imageUrl: '/products/6001007004323.jpg',
-    category: 'Pantry Essentials',
+    category: 'Pantry Staples & Grains',
     weight: '400 g',
     basePrice: 45.99,
     promoPrice: 38.99,
@@ -255,7 +255,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Golden Cloud Cake Wheat Flour 2.5kg Bag',
     brand: 'Golden Cloud',
     imageUrl: '/products/6001007003210.jpg',
-    category: 'Bakery & Grains',
+    category: 'Pantry Staples & Grains',
     weight: '2.5 kg',
     basePrice: 42.99,
     promoPrice: 36.99,
@@ -268,7 +268,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Five Roses Ceylon Blend Tagged Teabags 102s',
     brand: 'Five Roses',
     imageUrl: '/products/6001056000109.jpg',
-    category: 'Hot Beverages',
+    category: 'Drinks, Coffee & Snacks',
     weight: '102 bags',
     basePrice: 59.99,
     promoPrice: 49.99,
@@ -281,7 +281,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Class 1 Crisp Red Gala Sweet Apples 1.5kg Bag',
     brand: 'Fresh Produce',
     imageUrl: '/products/6009510805536.jpg',
-    category: 'Vegetables & Fruit',
+    category: 'Bakery & Fresh Produce',
     weight: '1.5 kg',
     basePrice: 33.50,
     promoPrice: 27.99,
@@ -294,7 +294,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Ripe & Ready Creamy Hass Avocados 4pk',
     brand: 'Fresh Produce',
     imageUrl: '/products/6001571002022.jpg',
-    category: 'Vegetables & Fruit',
+    category: 'Bakery & Fresh Produce',
     weight: '4 pk',
     basePrice: 49.99,
     promoPrice: 39.99,
@@ -307,7 +307,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Goldi Frozen Mixed Chicken Portions 2kg Bag',
     brand: 'Goldi',
     imageUrl: '/products/6001008000140.jpg',
-    category: 'Pantry Essentials',
+    category: 'Pantry Staples & Grains',
     weight: '2 kg',
     basePrice: 99.99,
     promoPrice: 84.99,
@@ -320,7 +320,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Colgate Triple Action Fluoride Toothpaste 100ml',
     brand: 'Colgate',
     imageUrl: '/products/6001087007788.jpg',
-    category: 'Personal Care',
+    category: 'Household & Personal Care',
     weight: '100 ml',
     basePrice: 22.99,
     promoPrice: 17.99,
@@ -333,7 +333,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Bakers Choice Assorted Biscuits 200g',
     brand: 'Bakers',
     imageUrl: '/products/6001007001407.jpg',
-    category: 'Snacks & Drinks',
+    category: 'Drinks, Coffee & Snacks',
     weight: '200 g',
     basePrice: 36.99,
     promoPrice: 29.99,
@@ -346,7 +346,7 @@ const MASTER_PRODUCTS = new Map([
     title: "Fatti's & Moni's Macaroni Pasta 500g",
     brand: "Fatti's & Moni's",
     imageUrl: '/products/6001007000301.jpg',
-    category: 'Pantry Essentials',
+    category: 'Pantry Staples & Grains',
     weight: '500 g',
     basePrice: 21.99,
     promoPrice: 16.99,
@@ -359,7 +359,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Lucky Star Shredded Tuna in Oil 170g',
     brand: 'Lucky Star',
     imageUrl: '/products/6001053001208.jpg',
-    category: 'Pantry Essentials',
+    category: 'Pantry Staples & Grains',
     weight: '170 g',
     basePrice: 29.99,
     promoPrice: 24.99,
@@ -372,7 +372,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Domestos Thick Bleach Original 750ml',
     brand: 'Domestos',
     imageUrl: '/products/6001087005111.jpg',
-    category: 'Household & Cleaning',
+    category: 'Household & Personal Care',
     weight: '750 ml',
     basePrice: 39.99,
     promoPrice: 32.99,
@@ -385,7 +385,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Handy Andy Multi-Purpose Cleaner Ammonia 750ml',
     brand: 'Handy Andy',
     imageUrl: '/products/6001087003346.jpg',
-    category: 'Household & Cleaning',
+    category: 'Household & Personal Care',
     weight: '750 ml',
     basePrice: 37.99,
     promoPrice: 29.99,
@@ -398,7 +398,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Shield MotionSense Antiperspirant Roll-On 50ml',
     brand: 'Shield',
     imageUrl: '/products/6001087008129.jpg',
-    category: 'Personal Care',
+    category: 'Household & Personal Care',
     weight: '50 ml',
     basePrice: 32.99,
     promoPrice: 26.99,
@@ -411,7 +411,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Jungle Oats The Energy Champion 1kg Box',
     brand: 'Jungle Oats',
     imageUrl: '/products/6001007006211.jpg',
-    category: 'Bakery & Grains',
+    category: 'Pantry Staples & Grains',
     weight: '1 kg',
     basePrice: 45.99,
     promoPrice: 37.99,
@@ -424,7 +424,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Clover Tropika Orange Flavoured Dairy Fruit Mix 2L',
     brand: 'Tropika',
     imageUrl: '/products/6001299001444.jpg',
-    category: 'Snacks & Drinks',
+    category: 'Drinks, Coffee & Snacks',
     weight: '2 L',
     basePrice: 38.99,
     promoPrice: 31.99,
@@ -437,7 +437,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'Crosse & Blackwell Tangy Mayonnaise 750g Bottle',
     brand: 'Crosse & Blackwell',
     imageUrl: '/products/6001007007553.jpg',
-    category: 'Pantry Essentials',
+    category: 'Pantry Staples & Grains',
     weight: '750 g',
     basePrice: 46.99,
     promoPrice: 39.99,
@@ -450,7 +450,7 @@ const MASTER_PRODUCTS = new Map([
     title: 'First Choice Long Life Full Cream UHT Milk 1L',
     brand: 'First Choice',
     imageUrl: '/products/6009510806120.jpg',
-    category: 'Dairy & Eggs',
+    category: 'Dairy, Eggs & Fridge',
     weight: '1 L',
     basePrice: 23.99,
     promoPrice: 18.99,
@@ -556,14 +556,11 @@ function renderRetailerLogoBadge(r, sizeClass = 'size-12', imgClass = 'max-h-ful
 }
 
 const CATEGORIES = [
-  'Bakery & Grains',
-  'Dairy & Eggs',
-  'Snacks & Drinks',
-  'Pantry Essentials',
-  'Hot Beverages',
-  'Vegetables & Fruit',
-  'Household & Cleaning',
-  'Personal Care'
+  { id: 'Bakery & Fresh Produce', label: 'Bakery & Fresh', emoji: '🥖' },
+  { id: 'Dairy, Eggs & Fridge', label: 'Dairy & Fridge', emoji: '🥛' },
+  { id: 'Pantry Staples & Grains', label: 'Pantry Staples', emoji: '🥫' },
+  { id: 'Drinks, Coffee & Snacks', label: 'Drinks & Snacks', emoji: '🥤' },
+  { id: 'Household & Personal Care', label: 'Household & Care', emoji: '🧼' }
 ];
 
 const COUPONS = [
@@ -575,14 +572,13 @@ const state = {
   route: getRouteFromHash(),
   retailerId: 'shoprite',
   currentStoreId: 'shoprite_dbn_0142',
-  marketViewMode: 'deck',
   listFilterRetailer: 'all',
   selectedCatalogBarcode: '6001007001001',
   catalogSearch: '',
   catalogCategory: 'all',
-  browserViewMode: 'catalogue',
   cart: [],
   shoppingList: [],
+  expandedListItemCompares: new Set(),
   coupons: new Set(),
   completedSavings: 0,
   loyaltyPoints: 680,
@@ -668,7 +664,7 @@ function getCouponSavings(retailerId = state.retailerId) {
   const merch = getMerchandiseTotal(retailerId);
   if (state.coupons.has('basket10') && merch >= 100) total += 10;
   if (state.coupons.has('fresh5')) {
-    total += getRetailerCart(retailerId).filter((item) => item.category === 'Vegetables & Fruit').reduce((sum, item) => sum + item.price * item.quantity * 0.05, 0);
+    total += getRetailerCart(retailerId).filter((item) => item.category === 'Bakery & Fresh Produce' || item.category === 'Vegetables & Fruit').reduce((sum, item) => sum + item.price * item.quantity * 0.05, 0);
   }
   return Math.min(total, merch);
 }
@@ -758,6 +754,101 @@ function render() {
   updateCartBadge();
 }
 
+// ==========================================
+// CROSS-RETAILER GROCERY LIST COMPARISON ENGINE
+// ==========================================
+
+function calculateListTotalsByRetailer(items) {
+  const listItems = items || state.shoppingList;
+  if (!listItems || !listItems.length) {
+    return { storeTotals: [], cheapest: null, mostExpensive: null, maxSavings: 0, splitTotal: 0, splitSavings: 0 };
+  }
+
+  const results = [];
+  let splitTotal = 0;
+
+  Object.values(RETAILERS).forEach((ret) => {
+    const store = PHYSICAL_STORES.find((s) => s.retailerId === ret.id) || PHYSICAL_STORES[0];
+    let total = 0;
+    listItems.forEach((item) => {
+      const gtin = item.barcode;
+      if (gtin && MASTER_PRODUCTS.has(gtin)) {
+        const priceObj = getStorePrice(store.id, gtin);
+        const activePrice = (priceObj.promoPrice && priceObj.promoPrice < priceObj.regularPrice) ? priceObj.promoPrice : priceObj.regularPrice;
+        total += activePrice;
+      } else {
+        const factor = (STORE_PRICE_FACTORS[ret.id]?.regMult) || 1.0;
+        total += (item.price || 19.99) * factor;
+      }
+    });
+    results.push({
+      retailerId: ret.id,
+      retailer: ret,
+      store,
+      total: Math.round(total * 100) / 100
+    });
+  });
+
+  // Calculate split basket: lowest price per item across all stores
+  listItems.forEach((item) => {
+    let minItemPrice = Infinity;
+    Object.values(RETAILERS).forEach((ret) => {
+      const store = PHYSICAL_STORES.find((s) => s.retailerId === ret.id) || PHYSICAL_STORES[0];
+      let p = item.price || 19.99;
+      if (item.barcode && MASTER_PRODUCTS.has(item.barcode)) {
+        const priceObj = getStorePrice(store.id, item.barcode);
+        p = (priceObj.promoPrice && priceObj.promoPrice < priceObj.regularPrice) ? priceObj.promoPrice : priceObj.regularPrice;
+      } else {
+        p = (item.price || 19.99) * ((STORE_PRICE_FACTORS[ret.id]?.regMult) || 1.0);
+      }
+      if (p < minItemPrice) minItemPrice = p;
+    });
+    splitTotal += minItemPrice;
+  });
+  splitTotal = Math.round(splitTotal * 100) / 100;
+
+  results.sort((a, b) => a.total - b.total);
+  const cheapest = results[0];
+  const mostExpensive = results[results.length - 1];
+  const maxSavings = Math.max(0, Math.round((mostExpensive.total - cheapest.total) * 100) / 100);
+  const splitSavings = Math.max(0, Math.round((cheapest.total - splitTotal) * 100) / 100);
+
+  return { storeTotals: results, cheapest, mostExpensive, maxSavings, splitTotal, splitSavings };
+}
+
+function getItemStorePrices(barcode, basePrice = 19.99) {
+  const storePrices = [];
+  Object.values(RETAILERS).forEach((ret) => {
+    const store = PHYSICAL_STORES.find((s) => s.retailerId === ret.id) || PHYSICAL_STORES[0];
+    let activePrice = basePrice;
+    let regularPrice = basePrice;
+    let hasPromo = false;
+
+    if (barcode && MASTER_PRODUCTS.has(barcode)) {
+      const priceObj = getStorePrice(store.id, barcode);
+      regularPrice = priceObj.regularPrice;
+      hasPromo = Boolean(priceObj.promoPrice && priceObj.promoPrice < priceObj.regularPrice);
+      activePrice = hasPromo ? priceObj.promoPrice : priceObj.regularPrice;
+    } else {
+      const factor = (STORE_PRICE_FACTORS[ret.id]?.regMult) || 1.0;
+      activePrice = Math.round((basePrice * factor) * 2) / 2 - 0.01;
+      regularPrice = activePrice;
+    }
+
+    storePrices.push({
+      retailerId: ret.id,
+      retailer: ret,
+      store,
+      activePrice,
+      regularPrice,
+      hasPromo
+    });
+  });
+
+  storePrices.sort((a, b) => a.activePrice - b.activePrice);
+  return storePrices;
+}
+
 function renderList() {
   const filter = state.listFilterRetailer || 'all';
   const filteredList = filter === 'all' 
@@ -771,17 +862,22 @@ function renderList() {
   const countsByRetailer = {
     all: state.shoppingList.length,
     shoprite: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'shoprite').length,
+    checkers: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'checkers').length,
     pnp: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'pnp').length,
-    spar: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'spar').length
+    spar: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'spar').length,
+    woolworths: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'woolworths').length,
+    boxer: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'boxer').length
   };
 
   const quickSuggestions = [
-    { name: 'Albany Superior White Bread', emoji: '🍞', barcode: '6001007001001', price: 16.99, weight: '700 g', image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&auto=format&fit=crop&q=80' },
-    { name: 'Clover Full Cream Fresh Milk', emoji: '🥛', barcode: '6001299000270', price: 33.99, weight: '2 L', image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&auto=format&fit=crop&q=80' },
-    { name: 'Simba Smoked Beef Chips', emoji: '🥔', barcode: '6001068594502', price: 18.99, weight: '120 g', image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400&auto=format&fit=crop&q=80' },
-    { name: 'Tastic Long Grain Rice', emoji: '🍚', barcode: '6001007000127', price: 37.99, weight: '2 kg', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&auto=format&fit=crop&q=80' },
-    { name: 'Koo Baked Beans', emoji: '🥫', barcode: '6001007000899', price: 14.99, weight: '410 g', image: 'https://images.unsplash.com/photo-1588644525273-f37b60d78512?w=400&auto=format&fit=crop&q=80' }
+    { name: 'Albany Superior White Bread', emoji: '🍞', barcode: '6001007001001', price: 16.99, weight: '700 g', image: '/products/6001007001001.jpg' },
+    { name: 'Clover Full Cream Fresh Milk', emoji: '🥛', barcode: '6001299000270', price: 33.99, weight: '2 L', image: '/products/6001299000270.jpg' },
+    { name: 'White Star Super Maize Meal', emoji: '🌽', barcode: '6001007002343', price: 31.99, weight: '2.5 kg', image: '/products/6001007002343.jpg' },
+    { name: 'Tastic Long Grain Rice', emoji: '🍚', barcode: '6001007000127', price: 37.99, weight: '2 kg', image: '/products/6001007000127.jpg' },
+    { name: 'Koo Baked Beans', emoji: '🥫', barcode: '6001007000899', price: 14.99, weight: '410 g', image: '/products/6001007000899.jpg' }
   ];
+
+  const listComparison = calculateListTotalsByRetailer(state.shoppingList);
 
   // Group items by retailer
   const retailersToRender = filter === 'all' 
@@ -799,7 +895,85 @@ function renderList() {
           ${completedCount}/${totalItems} Checked
         </span>
       </div>
-      <p class="mt-2 text-xs text-slate-500">Your grocery list is categorized by retail store. Mirror picked items into the digital cartel for instant till checkout.</p>
+      <p class="mt-2 text-xs text-slate-500">Plan items across all 6 South African retail giants and compare basket prices in real time.</p>
+
+      ${state.shoppingList.length > 0 ? `
+        <!-- Cross-Retailer Multi-Store Comparison Barometer (The Bash Experience) -->
+        <div class="mt-5 overflow-hidden rounded-3xl bg-slate-950 p-4 text-white shadow-xl border border-slate-800">
+          <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="rounded-md bg-emerald-500/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-400">⚖️ Store Comparison Barometer</span>
+                <span class="rounded-md bg-white/10 px-2 py-0.5 text-[9px] font-bold text-white/70">6 SA Retailers</span>
+              </div>
+              <h3 class="mt-1 text-base font-black tracking-tight">Basket Price Comparison</h3>
+              <p class="text-[11px] text-white/70">Total estimated checkout cost for all ${state.shoppingList.length} items</p>
+            </div>
+            ${listComparison.maxSavings > 0 ? `
+              <div class="text-right">
+                <span class="rounded-xl bg-emerald-500/20 px-2.5 py-1 text-xs font-black text-emerald-400 border border-emerald-500/30">
+                  Save up to ${zar.format(listComparison.maxSavings)}
+                </span>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Store Ranking Cards Horizontal Rail -->
+          <div class="mt-3 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none]">
+            ${listComparison.storeTotals.map((st, rank) => {
+              const isCheapest = rank === 0;
+              const diff = Math.max(0, Math.round((st.total - listComparison.cheapest.total) * 100) / 100);
+              const medals = ['🥇', '🥈', '🥉', '4th', '5th', '6th'];
+
+              return `
+                <div class="flex-1 min-w-[8.5rem] shrink-0 rounded-2xl p-3 border transition ${isCheapest ? 'bg-gradient-to-b from-emerald-950/80 to-slate-900 border-emerald-500/60 shadow-lg ring-1 ring-emerald-500/30' : 'bg-white/5 border-white/10'}">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-xs">${medals[rank]}</span>
+                      <span class="text-xs font-black truncate">${st.retailer.name}</span>
+                    </div>
+                    <div class="size-5 shrink-0 rounded-md bg-white p-0.5 overflow-hidden">
+                      <img src="${st.retailer.logoUrl}" alt="${st.retailer.name}" class="size-full object-contain" onerror="this.parentElement.style.background='${st.retailer.color}';this.parentElement.innerHTML='<span class=\\'text-[8px] font-black text-white\\'>${st.retailer.initials}</span>';" />
+                    </div>
+                  </div>
+
+                  <div class="mt-2.5">
+                    <div class="text-base font-black ${isCheapest ? 'text-emerald-400' : 'text-white'}">
+                      ${zar.format(st.total)}
+                    </div>
+                    <div class="text-[9.5px] font-semibold ${isCheapest ? 'text-emerald-400/90 font-bold' : 'text-white/50'} mt-0.5">
+                      ${isCheapest ? 'Lowest Total 🎯' : `+${zar.format(diff)}`}
+                    </div>
+                  </div>
+
+                  <button 
+                    type="button" 
+                    data-switch-list-store="${st.retailerId}" 
+                    class="mt-2.5 w-full rounded-xl py-1.5 text-[10px] font-black transition active:scale-95 ${isCheapest ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400 shadow-sm' : 'bg-white/10 text-white/80 hover:bg-white/20'}"
+                  >
+                    ${isCheapest ? 'Switch Entire List' : 'Move to Store'}
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          ${listComparison.splitSavings > 0 ? `
+            <!-- Smart Split Basket Hint -->
+            <div class="mt-2.5 rounded-2xl bg-white/5 border border-white/10 p-2.5 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span>💡</span>
+                <span class="text-[11px] text-white/80 font-medium">
+                  Split Trolley Savings: Pay only <strong class="text-emerald-400 font-black">${zar.format(listComparison.splitTotal)}</strong> by buying items at their cheapest store!
+                </span>
+              </div>
+              <span class="shrink-0 rounded-lg bg-emerald-500/20 px-2 py-0.5 text-[9px] font-black text-emerald-300">
+                +Save ${zar.format(listComparison.splitSavings)}
+              </span>
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
 
       <!-- Retailer Filter Tabs -->
       <div class="mt-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
@@ -809,7 +983,7 @@ function renderList() {
         ${Object.values(RETAILERS).map((ret) => `
           <button type="button" data-list-filter="${ret.id}" class="shrink-0 flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-black transition active:scale-95 ${filter === ret.id ? 'text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}" style="${filter === ret.id ? `background:${ret.color}` : ''}">
             <span class="size-2 rounded-full" style="background:${ret.color}"></span>
-            <span>${ret.name} (${countsByRetailer[ret.id]})</span>
+            <span>${ret.name} (${countsByRetailer[ret.id] || 0})</span>
           </button>
         `).join('')}
       </div>
@@ -817,7 +991,7 @@ function renderList() {
       <!-- Add New Custom Item Form with Store Selector -->
       <form id="add-list-form" class="mt-5 flex flex-col gap-2 rounded-3xl bg-white p-3.5 shadow-sm border border-slate-200">
         <div class="flex gap-2">
-          <input id="new-list-item-input" type="text" required placeholder="Add item (e.g. Bread, Eggs, Coffee)..." class="h-11 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-bold outline-none focus:border-violet-500">
+          <input id="new-list-item-input" type="text" required placeholder="Add item (e.g. Bread, Eggs, Coffee, Rice)..." class="h-11 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-bold outline-none focus:border-violet-500">
           <select id="new-list-retailer-select" class="h-11 rounded-xl border border-slate-200 bg-slate-50 px-2.5 text-xs font-bold outline-none">
             ${Object.values(RETAILERS).map(r => `<option value="${r.id}" ${state.retailerId === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}
           </select>
@@ -833,7 +1007,7 @@ function renderList() {
         <div class="mt-2 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
           ${quickSuggestions.map((sug, idx) => `
             <button type="button" data-quick-add="${idx}" class="shrink-0 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 pr-3 text-xs font-bold text-slate-700 shadow-sm hover:border-violet-400 active:scale-95 transition">
-              <img src="${sug.image}" alt="${sug.name}" class="size-7 rounded-xl object-cover" />
+              <img src="${sug.image}" alt="${sug.name}" class="size-7 rounded-xl object-contain bg-white border border-slate-100 p-0.5" onerror="this.parentElement.innerHTML='<span class=\\'text-base\\'>${sug.emoji}</span>';" />
               <span>${sug.name.split(' ')[0]}</span>
               <span class="text-[10px] text-slate-400">${zar.format(sug.price)}</span>
             </button>
@@ -868,40 +1042,95 @@ function renderList() {
               </div>
 
               <!-- Retailer Items -->
-              <div class="space-y-2.5">
-                ${items.map((item) => `
-                  <div class="flex items-center justify-between gap-3 rounded-2xl border bg-slate-50/50 p-3 transition ${item.checked ? 'border-emerald-300 bg-emerald-50/40 text-slate-400' : 'border-slate-100 text-slate-800'}">
-                    <!-- Checkbox Toggle Circle -->
-                    <button type="button" data-toggle-list="${item.id}" class="grid size-7 shrink-0 place-items-center rounded-full border-2 transition ${item.checked ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm' : 'border-slate-300 hover:border-emerald-500'}" title="Toggle Physical Cartel">
-                      ${item.checked ? '<svg viewBox="0 0 24 24" class="size-4 fill-none stroke-current stroke-[3]"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
-                    </button>
+              <div class="space-y-3">
+                ${items.map((item) => {
+                  const isExpanded = state.expandedListItemCompares.has(item.id);
+                  const itemStorePrices = getItemStorePrices(item.barcode, item.price || 19.99);
+                  const lowestPrice = itemStorePrices[0];
+                  const isLowestStore = (item.retailerId || 'shoprite') === lowestPrice.retailerId;
 
-                    <!-- Thumbnail -->
-                    <div class="relative size-12 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                      ${item.image ? `<img src="${item.image}" alt="${escapeHtml(item.name)}" class="size-full object-cover" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\\'grid size-full place-items-center text-xl\\'>${item.emoji || '🛍️'}</span>';" />` : `<span class="grid size-full place-items-center text-xl">${item.emoji || '🛍️'}</span>`}
-                    </div>
+                  return `
+                    <div class="rounded-2xl border bg-slate-50/50 p-3 transition ${item.checked ? 'border-emerald-300 bg-emerald-50/40 text-slate-400' : 'border-slate-100 text-slate-800'}">
+                      <div class="flex items-center justify-between gap-3">
+                        <!-- Checkbox Toggle Circle -->
+                        <button type="button" data-toggle-list="${item.id}" class="grid size-7 shrink-0 place-items-center rounded-full border-2 transition ${item.checked ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm' : 'border-slate-300 hover:border-emerald-500'}" title="Toggle Cartel">
+                          ${item.checked ? '<svg viewBox="0 0 24 24" class="size-4 fill-none stroke-current stroke-[3]"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                        </button>
 
-                    <!-- Item Details -->
-                    <div class="min-w-0 flex-1 cursor-pointer" data-toggle-list="${item.id}">
-                      <p class="truncate text-xs font-black ${item.checked ? 'line-through text-slate-400' : 'text-slate-900'}">${escapeHtml(item.name)}</p>
-                      <div class="mt-0.5 flex items-center gap-2">
-                        <span class="text-[11px] font-bold text-slate-700">${zar.format(item.price || 19.99)}</span>
-                        <span class="text-[10px] text-slate-400">${item.weight || ''}</span>
-                        <span class="rounded bg-slate-200/60 px-1 py-0.2 font-mono text-[8px] text-slate-500">${item.barcode}</span>
+                        <!-- Packshot Thumbnail -->
+                        <div class="relative size-12 shrink-0 overflow-hidden rounded-xl bg-white border border-slate-100 p-1 flex items-center justify-center">
+                          ${item.image ? `<img src="${item.image}" alt="${escapeHtml(item.name)}" class="max-h-full max-w-full object-contain" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\\'grid size-full place-items-center text-xl\\'>${item.emoji || '🛍️'}</span>';" />` : `<span class="grid size-full place-items-center text-xl">${item.emoji || '🛍️'}</span>`}
+                        </div>
+
+                        <!-- Item Details -->
+                        <div class="min-w-0 flex-1 cursor-pointer" data-toggle-list="${item.id}">
+                          <p class="truncate text-xs font-black ${item.checked ? 'line-through text-slate-400' : 'text-slate-900'}">${escapeHtml(item.name)}</p>
+                          <div class="mt-0.5 flex items-center gap-2 flex-wrap">
+                            <span class="text-[11px] font-bold text-slate-700">${zar.format(item.price || 19.99)}</span>
+                            <span class="text-[10px] text-slate-400">${item.weight || ''}</span>
+                            <span class="rounded bg-slate-200/60 px-1 py-0.2 font-mono text-[8px] text-slate-500">${item.barcode}</span>
+                          </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex items-center gap-1 shrink-0">
+                          <button type="button" data-move-single-cartel="${item.id}" class="flex items-center gap-1 rounded-xl bg-slate-950 px-2.5 py-1.5 text-[10px] font-black text-white hover:bg-emerald-600 active:scale-95 transition" title="Put in Cartel">
+                            <span>+ Cartel</span>
+                          </button>
+                          <button type="button" data-delete-list="${item.id}" class="grid size-7 place-items-center rounded-xl text-slate-300 hover:bg-red-50 hover:text-red-500 transition" title="Remove">
+                            &times;
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Item Cross-Store Comparison Drawer -->
+                      <div class="mt-2.5 border-t border-slate-200/60 pt-2">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-1.5">
+                            ${isLowestStore ? `
+                              <span class="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[8.5px] font-black text-emerald-700 border border-emerald-200">
+                                🟢 Best Store Price
+                              </span>
+                            ` : `
+                              <span class="rounded-md bg-amber-50 px-1.5 py-0.5 text-[8.5px] font-black text-amber-700 border border-amber-200">
+                                Save ${zar.format(item.price - lowestPrice.activePrice)} at ${lowestPrice.retailer.name}
+                              </span>
+                            `}
+                          </div>
+
+                          <button type="button" data-toggle-item-compare="${item.id}" class="text-[9.5px] font-black text-violet-700 hover:text-violet-900 transition flex items-center gap-1">
+                            <span>${isExpanded ? '▲ Hide Comparison' : '▼ Compare 6 Stores'}</span>
+                          </button>
+                        </div>
+
+                        ${isExpanded ? `
+                          <div class="mt-2 grid grid-cols-3 gap-1.5 pt-1 animate-in fade-in">
+                            ${itemStorePrices.map((sp) => {
+                              const isCurrentItemStore = (item.retailerId || 'shoprite') === sp.retailerId;
+                              const isCheapestPrice = sp.activePrice === lowestPrice.activePrice;
+
+                              return `
+                                <button 
+                                  type="button" 
+                                  data-switch-item-store="${item.id}" 
+                                  data-target-retailer="${sp.retailerId}"
+                                  class="flex flex-col items-start rounded-xl p-2 text-left border transition active:scale-95 ${isCurrentItemStore ? 'border-slate-950 bg-slate-900 text-white shadow-xs' : 'border-slate-200 bg-white text-slate-800 hover:border-slate-300'}"
+                                >
+                                  <div class="flex items-center justify-between w-full">
+                                    <span class="text-[9px] font-black truncate">${sp.retailer.name}</span>
+                                    ${isCheapestPrice ? '<span class="rounded bg-emerald-500 px-1 py-0.2 text-[7px] font-black text-slate-950">LOW</span>' : ''}
+                                  </div>
+                                  <span class="text-[11px] font-black mt-1 ${isCurrentItemStore ? 'text-emerald-300' : 'text-slate-900'}">${zar.format(sp.activePrice)}</span>
+                                  <span class="text-[8px] font-bold ${isCurrentItemStore ? 'text-white/70' : 'text-slate-400'}">${isCurrentItemStore ? '● In List' : 'Tap to switch'}</span>
+                                </button>
+                              `;
+                            }).join('')}
+                          </div>
+                        ` : ''}
                       </div>
                     </div>
-
-                    <!-- Actions -->
-                    <div class="flex items-center gap-1 shrink-0">
-                      <button type="button" data-move-single-cartel="${item.id}" class="flex items-center gap-1 rounded-xl bg-slate-950 px-2.5 py-1.5 text-[10px] font-black text-white hover:bg-emerald-600 active:scale-95 transition" title="Put in Cartel">
-                        <span>+ Cartel</span>
-                      </button>
-                      <button type="button" data-delete-list="${item.id}" class="grid size-7 place-items-center rounded-xl text-slate-300 hover:bg-red-50 hover:text-red-500 transition" title="Remove">
-                        &times;
-                      </button>
-                    </div>
-                  </div>
-                `).join('')}
+                  `;
+                }).join('')}
               </div>
             </div>
           `;
@@ -911,7 +1140,7 @@ function renderList() {
           <div class="rounded-3xl border border-dashed border-slate-300 bg-white/60 p-8 text-center">
             <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-violet-50 text-2xl">📝</span>
             <h3 class="mt-3 text-base font-black">Your list is clear</h3>
-            <p class="mt-1 text-xs text-slate-500">Add products above or browse the catalogue to plan your groceries by store.</p>
+            <p class="mt-1 text-xs text-slate-500">Add products above or browse the catalogue to plan your groceries across retail stores.</p>
           </div>
         ` : ''}
       </div>
@@ -938,7 +1167,7 @@ function renderList() {
           </div>
         </div>` : ''}
 
-      <!-- Last Option Barcode Fallback -->
+      <!-- Barcode Fallback -->
       <div class="mt-8 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-center">
         <p class="text-xs font-bold text-slate-500">Need to scan a physical barcode manually?</p>
         <button id="list-open-camera" type="button" class="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-black text-slate-700 hover:bg-slate-100 transition">
@@ -960,6 +1189,69 @@ function bindListInteractions(quickSuggestions) {
     });
   });
 
+  // Switch entire list to another store from comparison barometer
+  screen.querySelectorAll('[data-switch-list-store]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const targetRetId = btn.dataset.switchListStore;
+      const targetRetailer = RETAILERS[targetRetId];
+      if (!targetRetailer) return;
+
+      const store = PHYSICAL_STORES.find(s => s.retailerId === targetRetId) || PHYSICAL_STORES[0];
+
+      state.shoppingList.forEach((item) => {
+        item.retailerId = targetRetId;
+        if (item.barcode && MASTER_PRODUCTS.has(item.barcode)) {
+          const p = getStorePrice(store.id, item.barcode);
+          item.price = (p.promoPrice && p.promoPrice < p.regularPrice) ? p.promoPrice : p.regularPrice;
+        } else {
+          const factor = (STORE_PRICE_FACTORS[targetRetId]?.regMult) || 1.0;
+          item.price = Math.round((item.price || 19.99) * factor * 2) / 2 - 0.01;
+        }
+      });
+
+      state.retailerId = targetRetId;
+      playBeepSound();
+      if (navigator.vibrate) navigator.vibrate(30);
+      showToast(`✓ Switched entire list to ${targetRetailer.name}!`);
+      renderList();
+    });
+  });
+
+  // Toggle item-level comparison drawer
+  screen.querySelectorAll('[data-toggle-item-compare]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const itemId = btn.dataset.toggleItemCompare;
+      if (state.expandedListItemCompares.has(itemId)) {
+        state.expandedListItemCompares.delete(itemId);
+      } else {
+        state.expandedListItemCompares.add(itemId);
+      }
+      renderList();
+    });
+  });
+
+  // Switch individual item to chosen store
+  screen.querySelectorAll('[data-switch-item-store]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const itemId = btn.dataset.switchItemStore;
+      const targetRetId = btn.dataset.targetRetailer;
+      const targetRetailer = RETAILERS[targetRetId];
+      const item = state.shoppingList.find(i => i.id === itemId);
+      if (item && targetRetailer) {
+        const store = PHYSICAL_STORES.find(s => s.retailerId === targetRetId) || PHYSICAL_STORES[0];
+        item.retailerId = targetRetId;
+        if (item.barcode && MASTER_PRODUCTS.has(item.barcode)) {
+          const p = getStorePrice(store.id, item.barcode);
+          item.price = (p.promoPrice && p.promoPrice < p.regularPrice) ? p.promoPrice : p.regularPrice;
+        }
+        playBeepSound();
+        if (navigator.vibrate) navigator.vibrate(20);
+        showToast(`✓ Moved "${item.name.slice(0, 20)}..." to ${targetRetailer.name}`);
+        renderList();
+      }
+    });
+  });
+
   // Add custom item form
   screen.querySelector('#add-list-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -969,16 +1261,16 @@ function bindListInteractions(quickSuggestions) {
     const chosenRetailer = retailerSelect ? retailerSelect.value : state.retailerId;
     if (!name) return;
 
-    const matchedProduct = [...PRODUCTS.values()].find(p => p.name.toLowerCase().includes(name.toLowerCase()));
+    const matchedProduct = [...MASTER_PRODUCTS.values()].find(p => p.title.toLowerCase().includes(name.toLowerCase()));
 
     state.shoppingList.unshift({
       id: `item-${Date.now()}`,
-      name: matchedProduct ? matchedProduct.name : name,
+      name: matchedProduct ? matchedProduct.title : name,
       weight: matchedProduct ? matchedProduct.weight : '1 unit',
-      price: matchedProduct ? matchedProduct.price : 19.99,
-      image: matchedProduct ? matchedProduct.image : 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&auto=format&fit=crop&q=80',
+      price: matchedProduct ? (matchedProduct.promoPrice || matchedProduct.basePrice) : 19.99,
+      image: matchedProduct ? matchedProduct.imageUrl : '/products/6001007001001.jpg',
       emoji: matchedProduct ? matchedProduct.emoji : '🛍️',
-      barcode: matchedProduct ? [...PRODUCTS.entries()].find(([, p]) => p === matchedProduct)[0] : `600${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+      barcode: matchedProduct ? matchedProduct.gtin : `600${Math.floor(1000000000 + Math.random() * 9000000000)}`,
       checked: false,
       retailerId: chosenRetailer
     });
@@ -1026,7 +1318,7 @@ function bindListInteractions(quickSuggestions) {
             price: item.price || 19.99,
             basePrice: (item.price || 19.99) * 1.15,
             image: item.image,
-            category: 'Bakery & Grains',
+            category: 'Bakery & Fresh Produce',
             emoji: item.emoji || '🛍️'
           }, targetRet);
           showToast(`✓ In Physical & Digital Cartel (${RETAILERS[targetRet]?.name}): ${item.name}`);
@@ -1066,7 +1358,7 @@ function bindListInteractions(quickSuggestions) {
           price: item.price || 19.99,
           basePrice: (item.price || 19.99) * 1.15,
           image: item.image,
-          category: 'Bakery & Grains',
+          category: 'Bakery & Fresh Produce',
           emoji: item.emoji || '🛍️'
         }, targetRet);
         item.checked = true;
@@ -1089,7 +1381,7 @@ function bindListInteractions(quickSuggestions) {
           price: item.price || 19.99,
           basePrice: (item.price || 19.99) * 1.15,
           image: item.image,
-          category: 'Bakery & Grains',
+          category: 'Bakery & Fresh Produce',
           emoji: item.emoji || '🛍️'
         }, retId);
         item.checked = true;
@@ -1112,7 +1404,7 @@ function bindListInteractions(quickSuggestions) {
         price: item.price || 19.99,
         basePrice: (item.price || 19.99) * 1.15,
         image: item.image,
-        category: 'Bakery & Grains',
+        category: 'Bakery & Fresh Produce',
         emoji: item.emoji || '🛍️'
       }, retId);
       item.checked = true;
@@ -1131,121 +1423,11 @@ function bindListInteractions(quickSuggestions) {
   screen.querySelector('#list-open-camera')?.addEventListener('click', openLiveCameraScanner);
 }
 
-function retailerSelector() {
-  return `
-    <div class="flex gap-2.5 overflow-x-auto px-5 pb-2 [scrollbar-width:none]" aria-label="Select retailer">
-      ${Object.values(RETAILERS).map((retailer) => {
-        const isSelected = state.retailerId === retailer.id;
-        return `
-          <button type="button" data-retailer="${retailer.id}" class="min-w-[10rem] flex-1 rounded-3xl border p-3.5 text-left transition active:scale-[.98] ${isSelected ? 'border-transparent text-white shadow-xl ring-2 ring-white/50' : 'border-slate-200 bg-white text-slate-800'}" style="${isSelected ? `background:${retailer.color}` : ''}">
-            <div class="flex items-center justify-between">
-              <div class="grid size-9 shrink-0 place-items-center rounded-xl bg-white p-1 shadow-sm border border-slate-100 overflow-hidden">
-                <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${retailer.initials}</span>';" />
-              </div>
-              ${isSelected ? '<span class="rounded-full bg-black/25 px-2 py-0.5 text-[9px] font-black text-white">Live Store</span>' : ''}
-            </div>
-            <strong class="mt-2.5 block text-sm font-black">${retailer.name}</strong>
-            <span class="mt-0.5 block font-mono text-[10px] ${isSelected ? 'text-white/80' : 'text-slate-400'}">${retailer.host}</span>
-          </button>
-        `;
-      }).join('')}
-    </div>`;
-}
-
-function renderRetailerStoreDeck() {
-  return `
-    <section class="pb-40">
-      <!-- Store Portals Deck Hero Header -->
-      <div class="bg-slate-950 px-5 pt-5 pb-6 text-white shadow-xl">
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="rounded-lg bg-emerald-500/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-emerald-400">
-                ● Live Retail Web Portals
-              </span>
-              <span class="rounded-lg bg-white/10 px-2 py-0.5 text-[9px] font-bold text-white/70">
-                ⚡ ${automationCore.getAdapterName()}
-              </span>
-            </div>
-            <h2 class="mt-2 text-2xl font-black tracking-tight text-white">Supermarket Portals Deck</h2>
-            <p class="mt-1 text-xs text-white/70 max-w-sm">
-              Browse authentic live store portals with official retailer branding, local branch pricing, and real-time inventory across South Africa.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Floating Retail Store Deck Grid -->
-      <div class="px-5 -mt-3 space-y-4">
-        ${Object.values(RETAILERS).map((r) => {
-          const productCount = getRetailerProducts(r.id).length;
-
-          return `
-            <div class="group relative overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-5 shadow-lg shadow-slate-900/5 transition-all duration-200 hover:shadow-xl hover:border-slate-300">
-              <!-- Store Identity & Logo Badge -->
-              <div class="flex items-center justify-between gap-3">
-                <div class="flex items-center gap-3.5 min-w-0">
-                  <div class="grid size-14 shrink-0 place-items-center rounded-2xl bg-white p-2 shadow-md border border-slate-200/90 transition-transform group-hover:scale-105 overflow-hidden">
-                    <img src="${r.logoUrl}" alt="${r.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${r.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-lg\\'>${r.initials}</span>';" />
-                  </div>
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                      <h3 class="text-lg font-black text-slate-900 truncate">${r.name}</h3>
-                      <span class="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0">
-                        <span class="size-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-                        <span>Active Portal (${productCount})</span>
-                      </span>
-                    </div>
-                    <p class="text-xs font-mono text-slate-400 font-semibold mt-0.5 truncate">${r.host}</p>
-                    <span class="inline-block mt-1 rounded-full px-2 py-0.5 text-[9px] font-black text-white shadow-xs" style="background:${r.color}">
-                      ${r.loyalty || 'Rewards Linked'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Launch Live Store Session Button -->
-              <button 
-                type="button" 
-                data-launch-retailer="${r.id}" 
-                class="mt-4 flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-xs font-black text-white shadow-md active:scale-98 transition hover:brightness-110" 
-                style="background:${r.color}"
-              >
-                <span class="flex items-center gap-2">
-                  <span>🛍️</span>
-                  <span>Launch Live ${r.name} Portal (${productCount} Products)</span>
-                </span>
-                <span class="text-sm font-bold">&rarr;</span>
-              </button>
-            </div>
-          `;
-        }).join('')}
-      </div>
-    </section>
-  `;
-}
-
-function bindDeckInteractions() {
-  screen.querySelectorAll('[data-launch-retailer]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      state.retailerId = btn.dataset.launchRetailer;
-      state.marketViewMode = 'browser';
-      state.catalogCategory = 'all';
-      state.catalogSearch = '';
-      playBeepSound();
-      if (navigator.vibrate) navigator.vibrate(25);
-      renderMarket();
-    });
-  });
-}
+// ==========================================
+// NATIVE MARKET CATALOG (ZERO WEBVIEWS, BASH-STYLE)
+// ==========================================
 
 function renderMarket() {
-  if (state.marketViewMode === 'deck') {
-    screen.innerHTML = renderRetailerStoreDeck();
-    bindDeckInteractions();
-    return;
-  }
-
   const retailer = getRetailer();
   
   // Find current physical store for this retailer or fallback
@@ -1276,26 +1458,46 @@ function renderMarket() {
 
   screen.innerHTML = `
     <section class="overflow-hidden pb-44">
-      <!-- In-App Retailer Clean Top Bar: Back Button & Store Branch Info -->
+      <!-- Bash-Style Central Retailer Rail & Top Header -->
       <div class="px-5 pt-4 pb-2">
         <div class="flex items-center justify-between gap-2">
-          <button id="browser-deck-btn" type="button" class="flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-xs font-black text-white hover:bg-slate-800 active:scale-95 transition shadow-md">
-            <span>&larr;</span><span>Back to Stores Deck</span>
-          </button>
-
-          <div class="flex items-center gap-1.5">
-            <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-black text-emerald-700 border border-emerald-200 flex items-center gap-1">
-              <span class="size-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-              <span>Firestore Sub-50ms</span>
-            </span>
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">South Africa's Central Grocery Hub</p>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Supermarket Deck</h1>
           </div>
+          <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-black text-emerald-700 border border-emerald-200 flex items-center gap-1">
+            <span class="size-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+            <span>6 Live Retailers</span>
+          </span>
+        </div>
+
+        <!-- Horizontal Retailer Brand Selector Rail (Just like Bash) -->
+        <div class="mt-3 flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+          ${Object.values(RETAILERS).map(r => {
+            const isSelected = r.id === retailer.id;
+            return `
+              <button 
+                type="button" 
+                data-switch-market-retailer="${r.id}"
+                class="flex shrink-0 items-center gap-2 rounded-2xl p-2 pr-3.5 transition active:scale-95 ${isSelected ? 'border-2 border-slate-950 bg-white shadow-md ring-2 ring-slate-900/10' : 'border border-slate-200/90 bg-white/70 hover:bg-white'}"
+              >
+                <div class="grid size-8 shrink-0 place-items-center rounded-xl bg-white p-1 border border-slate-100 overflow-hidden shadow-2xs">
+                  <img src="${r.logoUrl}" alt="${r.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${r.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-[9px]\\'>${r.initials}</span>';" />
+                </div>
+                <div class="text-left">
+                  <p class="text-xs font-black text-slate-900 leading-tight">${r.name}</p>
+                  <p class="text-[8.5px] font-bold ${isSelected ? 'text-emerald-700 font-black' : 'text-slate-400'}">${isSelected ? '● Active Store' : r.loyalty}</p>
+                </div>
+              </button>
+            `;
+          }).join('')}
         </div>
 
         <!-- Physical Store Branch Selector Banner with Official Logo -->
-        <button id="store-branch-selector-btn" type="button" class="mt-3 w-full rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm flex items-center justify-between gap-3 text-left hover:border-slate-300 active:scale-98 transition group">
+        <button id="store-branch-selector-btn" type="button" class="mt-3 w-full rounded-2xl border border-slate-200/90 bg-white p-3 shadow-xs flex items-center justify-between gap-3 text-left hover:border-slate-300 active:scale-98 transition group">
           <div class="flex items-center gap-3 min-w-0">
-            <div class="grid size-11 shrink-0 place-items-center rounded-xl bg-white p-1 shadow-xs border border-slate-200/90 overflow-hidden">
-              <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-sm\\'>${retailer.initials}</span>';" />
+            <div class="grid size-10 shrink-0 place-items-center rounded-xl bg-white p-1 shadow-xs border border-slate-200/90 overflow-hidden">
+              <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${retailer.initials}</span>';" />
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
@@ -1315,7 +1517,7 @@ function renderMarket() {
         </button>
       </div>
 
-      <!-- Search Bar & Instant Category Chips -->
+      <!-- Search Bar & Instant 5 Core Category Chips -->
       <div class="px-5 pt-2">
         <div class="relative">
           <input 
@@ -1331,19 +1533,22 @@ function renderMarket() {
           ` : ''}
         </div>
 
-        <!-- Department Category Pills -->
+        <!-- 5 Core Universal Department Pills -->
         <div class="mt-3 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
-          <button type="button" data-catalog-cat="all" class="shrink-0 rounded-xl px-3 py-1.5 text-[11px] font-black transition shadow-2xs ${selectedCat === 'all' ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
-            All (${retailerProducts.length})
+          <button type="button" data-catalog-cat="all" class="shrink-0 flex items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-black transition shadow-2xs ${selectedCat === 'all' ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            <span>🛍️</span><span>All (${retailerProducts.length})</span>
           </button>
-          ${CATEGORIES.map(cat => `
-            <button type="button" data-catalog-cat="${cat}" class="shrink-0 rounded-xl px-3 py-1.5 text-[11px] font-black transition shadow-2xs ${selectedCat === cat ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
-              ${cat}
-            </button>
-          `).join('')}
+          ${CATEGORIES.map(cat => {
+            const catCount = retailerProducts.filter(p => p.category === cat.id).length;
+            return `
+              <button type="button" data-catalog-cat="${cat.id}" class="shrink-0 flex items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-black transition shadow-2xs ${selectedCat === cat.id ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                <span>${cat.emoji}</span><span>${cat.label} (${catCount})</span>
+              </button>
+            `;
+          }).join('')}
         </div>
 
-        <!-- Shared Top Brand Filter Chips (White Star, Albany, Clover, etc.) -->
+        <!-- Shared Top Brand Filter Chips -->
         <div class="mt-2 flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
           <span class="shrink-0 text-[10px] font-black text-slate-400 uppercase tracking-wider pl-0.5">Staples:</span>
           ${['White Star', 'Albany', 'Clover', 'Tastic', 'Koo', 'Sunlight', 'Rama', 'All Gold'].map(b => {
@@ -1548,12 +1753,18 @@ function renderCatalogActionDock(retailer, selectedProduct, selectedBarcode, sto
 }
 
 function bindCatalogInteractions(retailer, store) {
-  // Return to Store Deck button
-  screen.querySelector('#browser-deck-btn')?.addEventListener('click', () => {
-    state.marketViewMode = 'deck';
-    playBeepSound();
-    if (navigator.vibrate) navigator.vibrate(20);
-    renderMarket();
+  // Bash-style Top Brand Rail Retailer Switcher
+  screen.querySelectorAll('[data-switch-market-retailer]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const retId = btn.dataset.switchMarketRetailer;
+      state.retailerId = retId;
+      const newStore = PHYSICAL_STORES.find(s => s.retailerId === retId);
+      if (newStore) state.currentStoreId = newStore.id;
+      playBeepSound();
+      if (navigator.vibrate) navigator.vibrate(20);
+      showToast(`🛍️ Switched to ${RETAILERS[retId]?.name} Catalog`);
+      renderMarket();
+    });
   });
 
   // Switch to Shoprite Catalog from Empty Retailer View
@@ -2086,7 +2297,7 @@ function renderSavings() {
   const cartTotal = getMerchandiseTotal();
   const basketBoostTarget = 100;
   const basketBoostProgress = Math.min(100, Math.round((cartTotal / basketBoostTarget) * 100));
-  const cartProduceItems = state.cart.filter((item) => item.category === 'Vegetables & Fruit');
+  const cartProduceItems = state.cart.filter((item) => item.category === 'Bakery & Fresh Produce' || item.category === 'Vegetables & Fruit');
   const projectedPoints = Math.floor(getPayableTotal());
 
   screen.innerHTML = `

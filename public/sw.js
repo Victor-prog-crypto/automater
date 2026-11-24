@@ -1,9 +1,7 @@
-const CACHE_NAME = 'automater-pwa-v5';
+const CACHE_NAME = 'automater-pwa-v7';
 const APP_SHELL = [
   '/',
   '/index.html',
-  '/styles.css',
-  '/app.js',
   '/manifest.webmanifest',
   '/icons/app-icon.svg'
 ];

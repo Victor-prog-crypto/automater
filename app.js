@@ -1,7 +1,8 @@
 import QRCode from 'qrcode';
+import JsBarcode from 'jsbarcode';
 import { automationCore, AUTOMATION_EVENTS, RetailDOMScraper } from './automation-core.js';
 
-const ROUTES = Object.freeze(['market', 'list', 'trolley', 'cartel', 'tracker', 'savings']);
+const ROUTES = Object.freeze(['market', 'trolley', 'cartel', 'tracker', 'savings']);
 const SCANNER_KEY_GAP_MS = 30;
 const MIN_BARCODE_LENGTH = 6;
 
@@ -720,14 +721,28 @@ const MASTER_PRODUCTS = new Map([
 // Initialize active in-memory products from master catalog
 const PRODUCTS = new Map(MASTER_PRODUCTS);
 
-const PHYSICAL_STORES = [
-  { id: 'shoprite_dbn_0142', retailerId: 'shoprite', retailer: 'Shoprite', name: 'Shoprite Durban Central', address: 'Dr Pixley KaSeme St, Durban Central', retailerStoreCode: '0142', color: '#e11d2e', loyalty: 'Xtra Savings' },
-  { id: 'shoprite_cpt_0088', retailerId: 'shoprite', retailer: 'Shoprite', name: 'Shoprite Cape Town City', address: 'Grand Parade Centre, Cape Town', retailerStoreCode: '0088', color: '#e11d2e', loyalty: 'Xtra Savings' },
-  { id: 'checkers_sandton_0210', retailerId: 'checkers', retailer: 'Checkers', name: 'Checkers Sandton City', address: 'Sandton City Mall, Rivonia Rd', retailerStoreCode: '0210', color: '#004831', loyalty: 'Sixty60 / Xtra' },
-  { id: 'pnp_rosebank_0033', retailerId: 'pnp', retailer: 'Pick n Pay', name: 'Pick n Pay Rosebank Mall', address: 'Bath Ave, Rosebank, JHB', retailerStoreCode: '0033', color: '#005baa', loyalty: 'Smart Shopper' },
-  { id: 'spar_umhlanga_0045', retailerId: 'spar', retailer: 'SPAR', name: 'SUPERSPAR Umhlanga Rocks', address: 'Chartwell Dr, Umhlanga, KZN', retailerStoreCode: '0045', color: '#138a42', loyalty: 'SPAR Rewards' },
-  { id: 'woolworths_gateway_0019', retailerId: 'woolworths', retailer: 'Woolworths', name: 'Woolworths Gateway', address: 'Gateway Mall, Umhlanga Ridge', retailerStoreCode: '0019', color: '#18181b', loyalty: 'WRewards' },
-  { id: 'boxer_durban_0012', retailerId: 'boxer', retailer: 'Boxer', name: 'Boxer Durban West St', address: 'West St & Field St, Durban', retailerStoreCode: '0012', color: '#ea580c', loyalty: 'Boxer Club' }
+// South African Pricing Zones:
+// - In regular towns, promotions & pricing apply uniformly across all branches of the same retailer in that town.
+// - In big metropolitan cities, promotions & pricing apply across a specific city area / section rather than an individual store branch.
+const PRICING_ZONES = [
+  // Towns (town-wide sales & pricing across all branches of each retailer)
+  { id: 'polokwane', kind: 'town', name: 'Polokwane', province: 'Limpopo', scopeLabel: 'Town-wide pricing', anchorHub: 'Polokwane Town Retailers', lat: -23.9045, lon: 29.4689, zoneMult: 0.99 },
+  { id: 'mbombela', kind: 'town', name: 'Mbombela (Nelspruit)', province: 'Mpumalanga', scopeLabel: 'Town-wide pricing', anchorHub: 'Mbombela Town Retailers', lat: -25.4753, lon: 30.9694, zoneMult: 1.0 },
+  { id: 'pietermaritzburg', kind: 'town', name: 'Pietermaritzburg', province: 'KwaZulu-Natal', scopeLabel: 'Town-wide pricing', anchorHub: 'Pietermaritzburg Town Retailers', lat: -29.6006, lon: 30.3794, zoneMult: 0.99 },
+  { id: 'bloemfontein', kind: 'town', name: 'Bloemfontein', province: 'Free State', scopeLabel: 'Town-wide pricing', anchorHub: 'Bloemfontein Town Retailers', lat: -29.0852, lon: 26.1596, zoneMult: 0.99 },
+  { id: 'stellenbosch', kind: 'town', name: 'Stellenbosch', province: 'Western Cape', scopeLabel: 'Town-wide pricing', anchorHub: 'Stellenbosch Town Retailers', lat: -33.9321, lon: 18.8602, zoneMult: 1.01 },
+  { id: 'richards_bay', kind: 'town', name: 'Richards Bay', province: 'KwaZulu-Natal', scopeLabel: 'Town-wide pricing', anchorHub: 'Richards Bay Town Retailers', lat: -28.7807, lon: 32.0383, zoneMult: 1.0 },
+  { id: 'rustenburg', kind: 'town', name: 'Rustenburg', province: 'North West', scopeLabel: 'Town-wide pricing', anchorHub: 'Rustenburg Town Retailers', lat: -25.6676, lon: 27.2421, zoneMult: 0.99 },
+  { id: 'george', kind: 'town', name: 'George', province: 'Western Cape', scopeLabel: 'Town-wide pricing', anchorHub: 'George Town Retailers', lat: -33.9630, lon: 22.4617, zoneMult: 1.0 },
+
+  // Big City Sections / Areas (metro section pricing where sales apply by city area)
+  { id: 'jhb_north', kind: 'metro', city: 'Johannesburg', section: 'Sandton, Rosebank & North', name: 'Johannesburg · Sandton & North', province: 'Gauteng', scopeLabel: 'City-area pricing', anchorHub: 'Sandton / Rosebank Area', lat: -26.1076, lon: 28.0567, zoneMult: 1.02 },
+  { id: 'jhb_south_soweto', kind: 'metro', city: 'Johannesburg', section: 'Soweto, Southgate & CBD', name: 'Johannesburg · Soweto & South', province: 'Gauteng', scopeLabel: 'City-area pricing', anchorHub: 'Soweto / Southgate Area', lat: -26.2485, lon: 27.8540, zoneMult: 0.98 },
+  { id: 'pta_east_central', kind: 'metro', city: 'Pretoria', section: 'Hatfield, Menlyn & Centurion', name: 'Pretoria · Hatfield & East', province: 'Gauteng', scopeLabel: 'City-area pricing', anchorHub: 'Hatfield / Menlyn Area', lat: -25.7479, lon: 28.2293, zoneMult: 1.01 },
+  { id: 'dbn_central', kind: 'metro', city: 'Durban', section: 'Central, Berea & Harbour', name: 'Durban · Central & Berea', province: 'KwaZulu-Natal', scopeLabel: 'City-area pricing', anchorHub: 'Durban Central / Berea Area', lat: -29.8587, lon: 31.0218, zoneMult: 0.99 },
+  { id: 'dbn_north_umhlanga', kind: 'metro', city: 'Durban', section: 'Umhlanga, Gateway & Phoenix', name: 'Durban · Umhlanga & North', province: 'KwaZulu-Natal', scopeLabel: 'City-area pricing', anchorHub: 'Umhlanga / North Coast Area', lat: -29.7257, lon: 31.0664, zoneMult: 1.01 },
+  { id: 'cpt_central', kind: 'metro', city: 'Cape Town', section: 'City Bowl, Sea Point & Woodstock', name: 'Cape Town · City Bowl & Atlantic', province: 'Western Cape', scopeLabel: 'City-area pricing', anchorHub: 'City Bowl / Gardens Area', lat: -33.9249, lon: 18.4241, zoneMult: 1.02 },
+  { id: 'cpt_north_flats', kind: 'metro', city: 'Cape Town', section: 'Bellville, Parow & Cape Flats', name: 'Cape Town · Bellville & Cape Flats', province: 'Western Cape', scopeLabel: 'City-area pricing', anchorHub: 'Bellville / Mitchells Plain Area', lat: -33.9000, lon: 18.6290, zoneMult: 0.98 }
 ];
 
 const STORE_PRICES = new Map();
@@ -740,6 +755,31 @@ const STORE_PRICE_FACTORS = {
   woolworths: { regMult: 1.12, promoMult: 1.09 },
   boxer: { regMult: 0.94, promoMult: 0.92 }
 };
+
+function getActiveZone() {
+  return PRICING_ZONES.find(z => z.id === state.pricingZoneId) || PRICING_ZONES[0];
+}
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function findClosestZone(latitude, longitude) {
+  let closest = PRICING_ZONES[0];
+  let minDistance = Infinity;
+  PRICING_ZONES.forEach((zone) => {
+    const dist = haversineKm(latitude, longitude, zone.lat, zone.lon);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closest = zone;
+    }
+  });
+  return { zone: closest, distanceKm: Math.round(minDistance * 10) / 10 };
+}
 
 function formatUnitPrice(price, weightStr) {
   if (!weightStr) return null;
@@ -760,24 +800,27 @@ function formatUnitPrice(price, weightStr) {
   return null;
 }
 
-function getStorePrice(storeId, gtin) {
-  const compositeKey = `${storeId}_${gtin}`;
+function getZonePrice(zoneId, retailerId, gtin) {
+  const safeZoneId = zoneId || 'polokwane';
+  const safeRetId = retailerId || 'shoprite';
+  const compositeKey = `${safeZoneId}_${safeRetId}_${gtin}`;
   if (STORE_PRICES.has(compositeKey)) {
     return STORE_PRICES.get(compositeKey);
   }
   const master = MASTER_PRODUCTS.get(gtin);
   if (!master) return { regularPrice: 19.99, promoPrice: 16.99, inStock: true };
 
-  const store = PHYSICAL_STORES.find(s => s.id === storeId);
-  const retId = store ? store.retailerId : 'shoprite';
-  const factors = STORE_PRICE_FACTORS[retId] || { regMult: 1.0, promoMult: 1.0 };
+  const zone = PRICING_ZONES.find(z => z.id === safeZoneId) || PRICING_ZONES[0];
+  const factors = STORE_PRICE_FACTORS[safeRetId] || { regMult: 1.0, promoMult: 1.0 };
+  const zMult = zone.zoneMult || 1.0;
 
   // Calculate authentic rounded South African retail prices (.99 or .49)
-  const calcReg = Math.round((master.basePrice * factors.regMult) * 2) / 2 - 0.01;
-  const calcPromo = master.promoPrice ? (Math.round((master.promoPrice * factors.promoMult) * 2) / 2 - 0.01) : null;
+  const calcReg = Math.round((master.basePrice * factors.regMult * zMult) * 2) / 2 - 0.01;
+  const calcPromo = master.promoPrice ? (Math.round((master.promoPrice * factors.promoMult * zMult) * 2) / 2 - 0.01) : null;
 
   const priceObj = {
-    storeId,
+    zoneId: safeZoneId,
+    retailerId: safeRetId,
     gtin,
     regularPrice: Math.max(1.99, calcReg),
     promoPrice: calcPromo ? Math.max(1.49, calcPromo) : null,
@@ -801,21 +844,6 @@ function getRetailerProducts(retailerId) {
   });
 }
 
-function renderRetailerLogoBadge(r, sizeClass = 'size-12', imgClass = 'max-h-full max-w-full object-contain') {
-  if (r && r.logoUrl) {
-    return `
-      <div class="grid ${sizeClass} shrink-0 place-items-center rounded-2xl bg-white p-1.5 shadow-sm border border-slate-200/90 overflow-hidden">
-        <img src="${r.logoUrl}" alt="${r.name}" class="${imgClass}" onerror="this.parentElement.style.background='${r.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${r.initials}</span>';" />
-      </div>
-    `;
-  }
-  return `
-    <div class="grid ${sizeClass} shrink-0 place-items-center rounded-2xl text-white font-black text-xs shadow-sm" style="background:${r?.color || '#0f172a'}">
-      ${r?.initials || 'S'}
-    </div>
-  `;
-}
-
 const CATEGORIES = [
   { id: 'Bakery & Fresh Produce', label: 'Bakery & Fresh', emoji: '🥖' },
   { id: 'Dairy, Eggs & Fridge', label: 'Dairy & Fridge', emoji: '🥛' },
@@ -825,15 +853,18 @@ const CATEGORIES = [
 ];
 
 const COUPONS = [
-  { id: 'basket10', label: 'R10 Basket Boost', detail: 'R10 off when your basket reaches R100', tone: 'from-violet-600 to-indigo-700' },
-  { id: 'fresh5', label: 'Fresh Five', detail: '5% off all fruit and vegetables', tone: 'from-emerald-500 to-teal-700' }
+  { id: 'basket10', label: 'R10 Basket Boost', detail: 'R10 off when your basket reaches R100', tone: 'from-slate-800 to-slate-950' },
+  { id: 'fresh5', label: 'Fresh Five', detail: '5% off all fruit and vegetables', tone: 'from-[#234e3b] to-[#1a3a2c]' }
 ];
 
 const state = {
   route: getRouteFromHash(),
+  pricingZoneId: 'polokwane',
+  gpsStatus: 'idle',
+  detectedDistanceKm: null,
   retailerId: 'shoprite',
-  currentStoreId: 'shoprite_dbn_0142',
-  listFilterRetailer: 'all',
+  globalSearchOpen: false,
+  globalSearchQuery: '',
   selectedCatalogBarcode: '6001007001001',
   catalogSearch: '',
   catalogCategory: 'all',
@@ -841,10 +872,7 @@ const state = {
   houseBrandOnly: false,
   catalogSort: 'default',
   cart: [],
-  shoppingList: [],
-  expandedListItemCompares: new Set(),
-  shoppingMode: 'home',
-  instoreBudget: 500,
+  displayedCartTotal: 0,
   coupons: new Set(),
   completedSavings: 0,
   loyaltyPoints: 680,
@@ -856,9 +884,66 @@ const state = {
 const screen = document.querySelector('#screen');
 const modalRoot = document.querySelector('#modal-root');
 const toast = document.querySelector('#toast');
+const searchButton = document.querySelector('#header-search-button');
+const globalSearchDrawer = document.querySelector('#global-search-drawer');
+const cartButton = document.querySelector('#header-cart-button');
 const cartCount = document.querySelector('#header-cart-count');
+const cartTotalEl = document.querySelector('#header-cart-total');
+const cartPlus = document.querySelector('#header-cart-plus');
+const floatingTrolleyCallout = document.querySelector('#floating-trolley-callout');
 const headerSubtitle = document.querySelector('#header-subtitle');
 const zar = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
+
+const RETAILER_THEMES = Object.freeze({
+  shoprite: {
+    heroGradient: 'linear-gradient(145deg, #991b1b 0%, #dc2626 52%, #450a0a 100%)',
+    barometerBg: 'rgba(69, 10, 10, 0.35)',
+    pillBg: '#fef2f2',
+    pillText: '#b91c1c',
+    border: '#fecaca',
+    accent: '#e11d2e'
+  },
+  checkers: {
+    heroGradient: 'linear-gradient(145deg, #003d29 0%, #0d6e52 52%, #022c22 100%)',
+    barometerBg: 'rgba(2, 44, 34, 0.38)',
+    pillBg: '#ecfdf5',
+    pillText: '#065f46',
+    border: '#a7f3d0',
+    accent: '#004831'
+  },
+  pnp: {
+    heroGradient: 'linear-gradient(145deg, #003d75 0%, #005baa 52%, #172554 100%)',
+    barometerBg: 'rgba(23, 37, 84, 0.38)',
+    pillBg: '#eff6ff',
+    pillText: '#1d4ed8',
+    border: '#bfdbfe',
+    accent: '#005baa'
+  },
+  spar: {
+    heroGradient: 'linear-gradient(145deg, #0f6e34 0%, #15803d 52%, #052e16 100%)',
+    barometerBg: 'rgba(5, 46, 22, 0.38)',
+    pillBg: '#f0fdf4',
+    pillText: '#15803d',
+    border: '#bbf7d0',
+    accent: '#138a42'
+  },
+  woolworths: {
+    heroGradient: 'linear-gradient(145deg, #18181b 0%, #27272a 52%, #09090b 100%)',
+    barometerBg: 'rgba(9, 9, 11, 0.45)',
+    pillBg: '#f4f4f5',
+    pillText: '#18181b',
+    border: '#d4d4d8',
+    accent: '#18181b'
+  },
+  boxer: {
+    heroGradient: 'linear-gradient(145deg, #9a3412 0%, #ea580c 52%, #431407 100%)',
+    barometerBg: 'rgba(67, 20, 7, 0.38)',
+    pillBg: '#fff7ed',
+    pillText: '#c2410c',
+    border: '#fed7aa',
+    accent: '#ea580c'
+  }
+});
 
 const firebaseConfig = Object.freeze({
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -886,11 +971,13 @@ async function fetchProductFromFirestore(barcode) {
 
 function getRouteFromHash() {
   const candidate = location.hash.slice(1);
+  if (candidate === 'list') return 'trolley';
   return ROUTES.includes(candidate) ? candidate : 'market';
 }
 
 function routeTo(route) {
-  const safeRoute = ROUTES.includes(route) ? route : 'market';
+  const mapped = route === 'list' ? 'trolley' : route;
+  const safeRoute = ROUTES.includes(mapped) ? mapped : 'market';
   if (location.hash !== `#${safeRoute}`) history.pushState(null, '', `#${safeRoute}`);
   state.route = safeRoute;
   render();
@@ -905,16 +992,37 @@ function getRetailer() {
   return state.retailerId ? RETAILERS[state.retailerId] : RETAILERS.shoprite;
 }
 
-function getRetailerCart(retailerId = state.retailerId) {
-  const target = retailerId || state.retailerId || 'shoprite';
-  return state.cart.filter((item) => (item.retailerId || 'shoprite') === target);
+function getItemPricingForRetailer(item, retailerId = state.retailerId) {
+  const gtin = item.barcode || item.gtin;
+  if (gtin && MASTER_PRODUCTS.has(gtin)) {
+    const zp = getZonePrice(state.pricingZoneId, retailerId, gtin);
+    const hasPromo = Boolean(zp.promoPrice && zp.promoPrice < zp.regularPrice);
+    const activePrice = hasPromo ? zp.promoPrice : zp.regularPrice;
+    return { activePrice, regularPrice: zp.regularPrice, hasPromo };
+  }
+  const factor = (STORE_PRICE_FACTORS[retailerId]?.regMult) || 1.0;
+  const baseUnit = item.rawPrice || item.price || 19.99;
+  const activePrice = Math.max(1.49, Math.round((baseUnit * factor) * 2) / 2 - 0.01);
+  const regularPrice = Math.max(activePrice, Math.round((activePrice * 1.12) * 2) / 2 - 0.01);
+  return { activePrice, regularPrice, hasPromo: regularPrice > activePrice };
 }
 
-function getItemCount(retailerId = state.retailerId) {
-  if (retailerId === 'all') {
-    return state.cart.reduce((count, item) => count + item.quantity, 0);
-  }
-  return getRetailerCart(retailerId).reduce((count, item) => count + item.quantity, 0);
+// Unified Trolley re-priced dynamically for whichever retailer is selected
+function getRetailerCart(retailerId = state.retailerId) {
+  const target = retailerId || state.retailerId || 'shoprite';
+  return state.cart.map((item) => {
+    const { activePrice, regularPrice } = getItemPricingForRetailer(item, target);
+    return {
+      ...item,
+      retailerId: target,
+      price: activePrice,
+      basePrice: regularPrice
+    };
+  });
+}
+
+function getItemCount() {
+  return state.cart.reduce((count, item) => count + item.quantity, 0);
 }
 
 function getMerchandiseTotal(retailerId = state.retailerId) {
@@ -922,7 +1030,7 @@ function getMerchandiseTotal(retailerId = state.retailerId) {
 }
 
 function getBuiltInSavings(retailerId = state.retailerId) {
-  return getRetailerCart(retailerId).reduce((total, item) => total + (item.basePrice - item.price) * item.quantity, 0);
+  return getRetailerCart(retailerId).reduce((total, item) => total + Math.max(0, item.basePrice - item.price) * item.quantity, 0);
 }
 
 function getCouponSavings(retailerId = state.retailerId) {
@@ -943,54 +1051,302 @@ function getCurrentSavings(retailerId = state.retailerId) {
   return getBuiltInSavings(retailerId) + getCouponSavings(retailerId);
 }
 
-function addToCart(product, retailerId = state.retailerId) {
-  const targetRetailer = retailerId || product.retailerId || state.retailerId || 'shoprite';
-  const existing = state.cart.find((item) => item.barcode === product.barcode && (item.retailerId || 'shoprite') === targetRetailer);
+let countAnimFrame = null;
+function animateCartTotalDisplay(targetTotal) {
+  if (!cartTotalEl) return;
+  const startTotal = state.displayedCartTotal || 0;
+  if (Math.abs(targetTotal - startTotal) < 0.005) {
+    state.displayedCartTotal = targetTotal;
+    cartTotalEl.textContent = zar.format(targetTotal);
+    return;
+  }
+  if (countAnimFrame) cancelAnimationFrame(countAnimFrame);
+  const duration = 380;
+  const startAt = performance.now();
+
+  const tick = (now) => {
+    const elapsed = Math.min(1, (now - startAt) / duration);
+    const eased = 1 - Math.pow(1 - elapsed, 3);
+    const current = startTotal + (targetTotal - startTotal) * eased;
+    state.displayedCartTotal = current;
+    cartTotalEl.textContent = zar.format(current);
+    if (elapsed < 1) {
+      countAnimFrame = requestAnimationFrame(tick);
+    } else {
+      state.displayedCartTotal = targetTotal;
+      cartTotalEl.textContent = zar.format(targetTotal);
+    }
+  };
+  countAnimFrame = requestAnimationFrame(tick);
+}
+
+function triggerFloatingTrolleyNotice(product, retailerId = state.retailerId, addedQty = 1) {
+  const totalInCart = getItemCount();
+  const runningTotal = getPayableTotal(retailerId);
+  const itemName = product?.name || product?.title || 'Item';
+  const itemImage = product?.image || product?.imageUrl || '';
+  const itemEmoji = product?.emoji || '🛍️';
+
+  if (cartButton) {
+    cartButton.classList.remove('cart-pop');
+    void cartButton.offsetWidth;
+    cartButton.classList.add('cart-pop');
+  }
+  if (cartCount) {
+    cartCount.classList.remove('cart-pop');
+    void cartCount.offsetWidth;
+    cartCount.classList.add('cart-pop');
+  }
+  if (cartPlus) {
+    cartPlus.textContent = `+${addedQty}`;
+    cartPlus.classList.remove('hidden', 'cart-plus-float');
+    void cartPlus.offsetWidth;
+    cartPlus.classList.add('cart-plus-float');
+    window.clearTimeout(triggerFloatingTrolleyNotice.plusTimer);
+    triggerFloatingTrolleyNotice.plusTimer = window.setTimeout(() => {
+      cartPlus.classList.add('hidden');
+    }, 920);
+  }
+
+  if (floatingTrolleyCallout) {
+    floatingTrolleyCallout.innerHTML = `
+      <div id="floating-trolley-card" class="pointer-events-auto cursor-pointer relative rounded-2xl border border-[#cde0d4] bg-white/98 p-2.5 shadow-xl shadow-slate-900/15 backdrop-blur-xl ring-1 ring-slate-900/5">
+        <div class="absolute -top-1.5 right-6 size-3 rotate-45 border-l border-t border-[#cde0d4] bg-white"></div>
+        <div class="flex items-center gap-2.5">
+          <div class="relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl border border-stone-200/80 bg-stone-50 p-1">
+            ${itemImage ? `<img src="${itemImage}" alt="" class="max-h-full max-w-full object-contain" onerror="this.parentElement.innerHTML='<span class=\\'text-base\\'>${itemEmoji}</span>';" />` : `<span class="text-base">${itemEmoji}</span>`}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center justify-between gap-1">
+              <span class="text-[9px] font-black uppercase tracking-wider text-[#234e3b]">In Trolley · ${totalInCart} item${totalInCart === 1 ? '' : 's'} ↑</span>
+              <span class="rounded-full bg-[#edf3ee] px-1.5 py-0.2 text-[9px] font-black text-[#234e3b] tabular-nums">${zar.format(runningTotal)}</span>
+            </div>
+            <p class="truncate text-[11px] font-black text-slate-900 mt-0.5">${escapeHtml(itemName)}</p>
+            <p class="text-[9.5px] font-semibold text-slate-500">Tap to compare across all 6 stores</p>
+          </div>
+        </div>
+      </div>
+    `;
+    floatingTrolleyCallout.classList.remove('hidden', 'trolley-float-out');
+    floatingTrolleyCallout.classList.add('trolley-float-in');
+
+    floatingTrolleyCallout.querySelector('#floating-trolley-card')?.addEventListener('click', () => {
+      floatingTrolleyCallout.classList.add('hidden');
+      routeTo('trolley');
+    });
+
+    window.clearTimeout(triggerFloatingTrolleyNotice.timer);
+    window.clearTimeout(triggerFloatingTrolleyNotice.hideTimer);
+    triggerFloatingTrolleyNotice.timer = window.setTimeout(() => {
+      floatingTrolleyCallout.classList.remove('trolley-float-in');
+      floatingTrolleyCallout.classList.add('trolley-float-out');
+      triggerFloatingTrolleyNotice.hideTimer = window.setTimeout(() => {
+        floatingTrolleyCallout.classList.add('hidden');
+        floatingTrolleyCallout.classList.remove('trolley-float-out');
+      }, 260);
+    }, 2700);
+  }
+}
+
+function addToCart(product, retailerId = state.retailerId, options = {}) {
+  const targetRetailer = retailerId || state.retailerId || 'shoprite';
+  const barcode = String(product.barcode || product.gtin);
+  const normalizedName = product.name || product.title || 'Grocery Item';
+  const normalizedImage = product.image || product.imageUrl || '';
+  const { activePrice, regularPrice } = getItemPricingForRetailer({ ...product, barcode }, targetRetailer);
+
+  const existing = state.cart.find((item) => item.barcode === barcode);
   if (existing) {
     existing.quantity += 1;
   } else {
     state.cart.push({
       ...product,
+      barcode,
+      name: normalizedName,
+      image: normalizedImage,
+      rawPrice: product.price || product.promoPrice || product.basePrice || activePrice,
+      price: activePrice,
+      basePrice: regularPrice,
+      checkedInStore: false,
       quantity: 1,
       retailerId: targetRetailer
     });
   }
   updateCartBadge();
+  if (!options.silent) {
+    triggerFloatingTrolleyNotice({ ...product, name: normalizedName, image: normalizedImage }, targetRetailer, 1);
+  }
 }
 
-function removeCartItem(barcode, retailerId = state.retailerId) {
-  const targetRetailer = retailerId || state.retailerId || 'shoprite';
-  state.cart = state.cart.filter((item) => !(item.barcode === barcode && (item.retailerId || 'shoprite') === targetRetailer));
+function removeCartItem(barcode) {
+  state.cart = state.cart.filter((item) => item.barcode !== String(barcode));
   updateCartBadge();
   render();
 }
 
-function addToList(product, retailerId = state.retailerId) {
-  const targetRetailer = retailerId || state.retailerId || 'shoprite';
-  const existing = state.shoppingList.find((item) => item.barcode === product.barcode && (item.retailerId || 'shoprite') === targetRetailer);
-  if (existing) {
-    existing.checked = false;
-  } else {
-    state.shoppingList.unshift({
-      id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      name: product.name,
-      weight: product.weight || '1 unit',
-      price: product.price || 19.99,
-      image: product.image,
-      emoji: product.emoji || '🛍️',
-      barcode: product.barcode,
-      checked: false,
-      retailerId: targetRetailer
-    });
+function updateCartBadge() {
+  const totalCount = getItemCount();
+  const runningTotal = getPayableTotal(state.retailerId);
+
+  if (cartCount) {
+    cartCount.textContent = totalCount;
+    cartCount.classList.toggle('hidden', totalCount === 0);
   }
-  showToast(`✓ Added "${product.name}" to ${RETAILERS[targetRetailer]?.name || 'Store'} list`);
-  if (state.route === 'list') renderList();
+  if (cartTotalEl) {
+    cartTotalEl.classList.toggle('hidden', totalCount === 0);
+    animateCartTotalDisplay(totalCount === 0 ? 0 : runningTotal);
+  }
+  if (cartButton) {
+    const isTrolleyActive = state.route === 'trolley' || state.route === 'cartel';
+    cartButton.classList.toggle('bg-slate-900', isTrolleyActive);
+    cartButton.classList.toggle('text-white', isTrolleyActive);
+    cartButton.classList.toggle('ring-slate-900', isTrolleyActive);
+    cartButton.classList.toggle('bg-white', !isTrolleyActive);
+    cartButton.classList.toggle('text-slate-800', !isTrolleyActive);
+    cartButton.classList.toggle('ring-stone-200/90', !isTrolleyActive);
+  }
 }
 
-function updateCartBadge() {
-  const count = getItemCount(state.retailerId);
-  cartCount.textContent = count;
-  cartCount.classList.toggle('hidden', count === 0);
+function toggleGlobalSearchDrawer(forceState) {
+  state.globalSearchOpen = typeof forceState === 'boolean' ? forceState : !state.globalSearchOpen;
+  if (searchButton) {
+    searchButton.classList.toggle('bg-slate-900', state.globalSearchOpen);
+    searchButton.classList.toggle('text-white', state.globalSearchOpen);
+    searchButton.classList.toggle('ring-slate-900', state.globalSearchOpen);
+    searchButton.classList.toggle('bg-stone-100/90', !state.globalSearchOpen);
+    searchButton.classList.toggle('text-slate-700', !state.globalSearchOpen);
+  }
+  renderGlobalSearchDrawer(true);
+}
+
+function renderGlobalSearchDrawer(shouldFocus = false) {
+  if (!globalSearchDrawer) return;
+  if (!state.globalSearchOpen) {
+    globalSearchDrawer.classList.add('hidden');
+    globalSearchDrawer.innerHTML = '';
+    return;
+  }
+  globalSearchDrawer.classList.remove('hidden');
+  const q = (state.globalSearchQuery || '').trim().toLowerCase();
+  const matches = q
+    ? Array.from(MASTER_PRODUCTS.values()).filter((p) => {
+        const kw = p.searchKeywords && p.searchKeywords.some((k) => k.toLowerCase().includes(q));
+        return kw || p.title.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.gtin.includes(q);
+      }).slice(0, 8)
+    : Array.from(MASTER_PRODUCTS.values()).slice(0, 5);
+
+  globalSearchDrawer.innerHTML = `
+    <div class="rounded-2xl border border-stone-200 bg-white p-2.5 shadow-lg">
+      <div class="relative flex items-center gap-2">
+        <span class="pl-2 text-sm text-slate-400">🔍</span>
+        <input
+          id="global-header-search-input"
+          type="text"
+          value="${escapeHtml(state.globalSearchQuery)}"
+          placeholder="Search products across Market & Trolley (e.g. Milk, Bread, Rice, 600...)..."
+          class="h-9 flex-1 bg-transparent text-xs font-bold text-slate-900 outline-none"
+        />
+        ${state.globalSearchQuery ? `<button id="clear-global-search" type="button" class="rounded-lg px-2 py-1 text-[10px] font-black text-slate-400 hover:text-slate-700">Clear</button>` : ''}
+        <button id="close-global-search" type="button" class="rounded-xl bg-stone-100 px-2.5 py-1 text-[10px] font-black text-slate-600 hover:bg-stone-200">Done</button>
+      </div>
+
+      <div class="mt-2 max-h-64 space-y-1.5 overflow-y-auto border-t border-stone-100 pt-2">
+        <p class="px-1 text-[9.5px] font-black uppercase tracking-wider text-slate-400">${q ? `Matching Products (${matches.length})` : 'Quick Add Popular Staples'}</p>
+        ${matches.length ? matches.map((p) => {
+          const zp = getZonePrice(state.pricingZoneId, state.retailerId, p.gtin);
+          const price = (zp.promoPrice && zp.promoPrice < zp.regularPrice) ? zp.promoPrice : zp.regularPrice;
+          const inCart = state.cart.find((c) => c.barcode === p.gtin);
+          return `
+            <div class="flex items-center justify-between gap-2.5 rounded-xl bg-stone-50/80 p-2 hover:bg-stone-100/80 transition">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="size-9 shrink-0 rounded-lg bg-white border border-stone-200/70 p-0.5 flex items-center justify-center overflow-hidden">
+                  <img src="${p.imageUrl}" alt="" class="max-h-full max-w-full object-contain" onerror="this.parentElement.innerHTML='<span class=\\'text-base\\'>${p.emoji || '🛍️'}</span>';" />
+                </div>
+                <div class="min-w-0">
+                  <p class="truncate text-xs font-black text-slate-900">${escapeHtml(p.title)}</p>
+                  <p class="text-[10px] font-semibold text-slate-500">${p.weight} &middot; <strong class="text-slate-800">${zar.format(price)}</strong></p>
+                </div>
+              </div>
+              <button type="button" data-global-search-add="${p.gtin}" class="shrink-0 rounded-xl bg-[#234e3b] px-3 py-1.5 text-[10px] font-black text-white shadow-2xs hover:bg-[#1b3d2e] active:scale-95 transition">
+                ${inCart ? `🛒 ${inCart.quantity} (+1)` : '+ Trolley'}
+              </button>
+            </div>
+          `;
+        }).join('') : `
+          <div class="flex items-center justify-between rounded-xl bg-stone-50 p-2.5 text-xs">
+            <span class="text-slate-500">Add custom item "<strong>${escapeHtml(state.globalSearchQuery)}</strong>"?</span>
+            <button id="global-add-custom-btn" type="button" class="rounded-xl bg-slate-900 px-3 py-1.5 text-[10px] font-black text-white">+ Add to Trolley</button>
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+
+  const input = globalSearchDrawer.querySelector('#global-header-search-input');
+  if (shouldFocus && input) {
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+
+  input?.addEventListener('input', (e) => {
+    state.globalSearchQuery = e.target.value;
+    if (state.route === 'market') {
+      state.catalogSearch = e.target.value;
+      renderMarket();
+    }
+    renderGlobalSearchDrawer(true);
+  });
+
+  globalSearchDrawer.querySelector('#clear-global-search')?.addEventListener('click', () => {
+    state.globalSearchQuery = '';
+    if (state.route === 'market') {
+      state.catalogSearch = '';
+      renderMarket();
+    }
+    renderGlobalSearchDrawer(true);
+  });
+
+  globalSearchDrawer.querySelector('#close-global-search')?.addEventListener('click', () => {
+    toggleGlobalSearchDrawer(false);
+  });
+
+  globalSearchDrawer.querySelectorAll('[data-global-search-add]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const gtin = btn.dataset.globalSearchAdd;
+      const prod = MASTER_PRODUCTS.get(gtin);
+      if (!prod) return;
+      addToCart({
+        barcode: prod.gtin,
+        name: prod.title,
+        weight: prod.weight,
+        category: prod.category,
+        image: prod.imageUrl,
+        emoji: prod.emoji
+      }, state.retailerId);
+      playBeepSound();
+      if (navigator.vibrate) navigator.vibrate(25);
+      render();
+      renderGlobalSearchDrawer(false);
+    });
+  });
+
+  globalSearchDrawer.querySelector('#global-add-custom-btn')?.addEventListener('click', () => {
+    const customName = state.globalSearchQuery.trim();
+    if (!customName) return;
+    addToCart({
+      barcode: `600${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+      name: customName,
+      weight: '1 unit',
+      category: 'Pantry Staples & Grains',
+      price: 19.99,
+      basePrice: 22.99,
+      emoji: '🛍️'
+    }, state.retailerId);
+    state.globalSearchQuery = '';
+    playBeepSound();
+    render();
+    renderGlobalSearchDrawer(true);
+  });
 }
 
 function render() {
@@ -999,21 +1355,19 @@ function render() {
     button.classList.toggle('active', active);
     button.setAttribute('aria-current', active ? 'page' : 'false');
   });
-  if (state.route === 'cartel' && getRetailer()) {
-    headerSubtitle.textContent = `${getRetailer().name} · Trolley`;
-  } else if (state.route === 'list') {
-    headerSubtitle.textContent = 'Smart Checklist';
+  const zone = getActiveZone();
+  if ((state.route === 'cartel' || state.route === 'trolley') && getRetailer()) {
+    headerSubtitle.textContent = `${getRetailer().name} · Trolley Comparison`;
   } else if (state.route === 'tracker' && state.order) {
     headerSubtitle.textContent = `Order #${state.order.id} · Live`;
-  } else if (state.route === 'market' && getRetailer()) {
-    headerSubtitle.textContent = `${getRetailer().name} · Market`;
+  } else if (state.route === 'market') {
+    headerSubtitle.textContent = `Open Market · ${zone.kind === 'town' ? zone.name : zone.city}`;
   } else if (state.route === 'savings') {
     headerSubtitle.textContent = 'Savings & Coupons';
   } else {
     headerSubtitle.textContent = 'Retail, reimagined';
   }
   if (state.route === 'market') renderMarket();
-  if (state.route === 'list') renderList();
   if (state.route === 'trolley' || state.route === 'cartel') renderCartel();
   if (state.route === 'tracker') renderTracker();
   if (state.route === 'savings') renderSavings();
@@ -1021,672 +1375,31 @@ function render() {
 }
 
 // ==========================================
-// CROSS-RETAILER GROCERY LIST COMPARISON ENGINE
+// UNIFIED TROLLEY STORE COMPARISON ENGINE
 // ==========================================
 
-function calculateListTotalsByRetailer(items) {
-  const listItems = items || state.shoppingList;
-  if (!listItems || !listItems.length) {
-    return { storeTotals: [], cheapest: null, mostExpensive: null, maxSavings: 0, splitTotal: 0, splitSavings: 0 };
+function calculateTrolleyComparison() {
+  if (!state.cart.length) {
+    return { storeTotals: [], cheapest: null, mostExpensive: null, maxSavings: 0 };
   }
 
-  const results = [];
-  let splitTotal = 0;
-
-  Object.values(RETAILERS).forEach((ret) => {
-    const store = PHYSICAL_STORES.find((s) => s.retailerId === ret.id) || PHYSICAL_STORES[0];
-    let total = 0;
-    listItems.forEach((item) => {
-      const gtin = item.barcode;
-      if (gtin && MASTER_PRODUCTS.has(gtin)) {
-        const priceObj = getStorePrice(store.id, gtin);
-        const activePrice = (priceObj.promoPrice && priceObj.promoPrice < priceObj.regularPrice) ? priceObj.promoPrice : priceObj.regularPrice;
-        total += activePrice;
-      } else {
-        const factor = (STORE_PRICE_FACTORS[ret.id]?.regMult) || 1.0;
-        total += (item.price || 19.99) * factor;
-      }
-    });
-    results.push({
+  const results = Object.values(RETAILERS).map((ret) => {
+    const total = getPayableTotal(ret.id);
+    const builtInSav = getCurrentSavings(ret.id);
+    return {
       retailerId: ret.id,
       retailer: ret,
-      store,
-      total: Math.round(total * 100) / 100
-    });
+      total: Math.round(total * 100) / 100,
+      savings: Math.round(builtInSav * 100) / 100
+    };
   });
-
-  // Calculate split basket: lowest price per item across all stores
-  listItems.forEach((item) => {
-    let minItemPrice = Infinity;
-    Object.values(RETAILERS).forEach((ret) => {
-      const store = PHYSICAL_STORES.find((s) => s.retailerId === ret.id) || PHYSICAL_STORES[0];
-      let p = item.price || 19.99;
-      if (item.barcode && MASTER_PRODUCTS.has(item.barcode)) {
-        const priceObj = getStorePrice(store.id, item.barcode);
-        p = (priceObj.promoPrice && priceObj.promoPrice < priceObj.regularPrice) ? priceObj.promoPrice : priceObj.regularPrice;
-      } else {
-        p = (item.price || 19.99) * ((STORE_PRICE_FACTORS[ret.id]?.regMult) || 1.0);
-      }
-      if (p < minItemPrice) minItemPrice = p;
-    });
-    splitTotal += minItemPrice;
-  });
-  splitTotal = Math.round(splitTotal * 100) / 100;
 
   results.sort((a, b) => a.total - b.total);
   const cheapest = results[0];
   const mostExpensive = results[results.length - 1];
   const maxSavings = Math.max(0, Math.round((mostExpensive.total - cheapest.total) * 100) / 100);
-  const splitSavings = Math.max(0, Math.round((cheapest.total - splitTotal) * 100) / 100);
 
-  return { storeTotals: results, cheapest, mostExpensive, maxSavings, splitTotal, splitSavings };
-}
-
-function getItemStorePrices(barcode, basePrice = 19.99) {
-  const storePrices = [];
-  Object.values(RETAILERS).forEach((ret) => {
-    const store = PHYSICAL_STORES.find((s) => s.retailerId === ret.id) || PHYSICAL_STORES[0];
-    let activePrice = basePrice;
-    let regularPrice = basePrice;
-    let hasPromo = false;
-
-    if (barcode && MASTER_PRODUCTS.has(barcode)) {
-      const priceObj = getStorePrice(store.id, barcode);
-      regularPrice = priceObj.regularPrice;
-      hasPromo = Boolean(priceObj.promoPrice && priceObj.promoPrice < priceObj.regularPrice);
-      activePrice = hasPromo ? priceObj.promoPrice : priceObj.regularPrice;
-    } else {
-      const factor = (STORE_PRICE_FACTORS[ret.id]?.regMult) || 1.0;
-      activePrice = Math.round((basePrice * factor) * 2) / 2 - 0.01;
-      regularPrice = activePrice;
-    }
-
-    storePrices.push({
-      retailerId: ret.id,
-      retailer: ret,
-      store,
-      activePrice,
-      regularPrice,
-      hasPromo
-    });
-  });
-
-  storePrices.sort((a, b) => a.activePrice - b.activePrice);
-  return storePrices;
-}
-
-function renderList() {
-  const filter = state.listFilterRetailer || 'all';
-  const filteredList = filter === 'all' 
-    ? state.shoppingList 
-    : state.shoppingList.filter((item) => (item.retailerId || 'shoprite') === filter);
-
-  const completedCount = filteredList.filter((item) => item.checked).length;
-  const totalItems = filteredList.length;
-  const listEstimatedTotal = filteredList.reduce((acc, item) => acc + (item.price || 19.99), 0);
-
-  const countsByRetailer = {
-    all: state.shoppingList.length,
-    shoprite: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'shoprite').length,
-    checkers: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'checkers').length,
-    pnp: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'pnp').length,
-    spar: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'spar').length,
-    woolworths: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'woolworths').length,
-    boxer: state.shoppingList.filter(i => (i.retailerId || 'shoprite') === 'boxer').length
-  };
-
-  const quickSuggestions = [
-    { name: 'Albany Superior White Bread', emoji: '🍞', barcode: '6001007001001', price: 16.99, weight: '700 g', image: '/products/6001007001001.jpg' },
-    { name: 'Clover Full Cream Fresh Milk', emoji: '🥛', barcode: '6001299000270', price: 33.99, weight: '2 L', image: '/products/6001299000270.jpg' },
-    { name: 'White Star Super Maize Meal', emoji: '🌽', barcode: '6001007002343', price: 31.99, weight: '2.5 kg', image: '/products/6001007002343.jpg' },
-    { name: 'Tastic Long Grain Rice', emoji: '🍚', barcode: '6001007000127', price: 37.99, weight: '2 kg', image: '/products/6001007000127.jpg' },
-    { name: 'Koo Baked Beans', emoji: '🥫', barcode: '6001007000899', price: 14.99, weight: '410 g', image: '/products/6001007000899.jpg' }
-  ];
-
-  const listComparison = calculateListTotalsByRetailer(state.shoppingList);
-
-  // Group items by retailer
-  const retailersToRender = filter === 'all' 
-    ? Object.keys(RETAILERS) 
-    : [filter];
-
-  screen.innerHTML = `
-    <section class="px-5 pb-36 pt-7">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="section-kicker">Multi-Store Planner</p>
-          <h1 class="mt-2 text-3xl font-black tracking-tight">Grocery Checklist</h1>
-        </div>
-        <span class="rounded-2xl bg-violet-100 px-3.5 py-2 text-xs font-black text-violet-800">
-          ${completedCount}/${totalItems} Checked
-        </span>
-      </div>
-      <p class="mt-2 text-xs text-slate-500">Plan items across all 6 South African retail giants and compare basket prices in real time.</p>
-
-      ${state.shoppingList.length > 0 ? `
-        <!-- Cross-Retailer Multi-Store Comparison Barometer (The Bash Experience) -->
-        <div class="mt-5 overflow-hidden rounded-3xl bg-slate-950 p-4 text-white shadow-xl border border-slate-800">
-          <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="rounded-md bg-emerald-500/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-400">⚖️ Store Comparison Barometer</span>
-                <span class="rounded-md bg-white/10 px-2 py-0.5 text-[9px] font-bold text-white/70">6 SA Retailers</span>
-              </div>
-              <h3 class="mt-1 text-base font-black tracking-tight">Basket Price Comparison</h3>
-              <p class="text-[11px] text-white/70">Total estimated checkout cost for all ${state.shoppingList.length} items</p>
-            </div>
-            ${listComparison.maxSavings > 0 ? `
-              <div class="text-right">
-                <span class="rounded-xl bg-emerald-500/20 px-2.5 py-1 text-xs font-black text-emerald-400 border border-emerald-500/30">
-                  Save up to ${zar.format(listComparison.maxSavings)}
-                </span>
-              </div>
-            ` : ''}
-          </div>
-
-          <!-- Store Ranking Cards Horizontal Rail -->
-          <div class="mt-3 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none]">
-            ${listComparison.storeTotals.map((st, rank) => {
-              const isCheapest = rank === 0;
-              const diff = Math.max(0, Math.round((st.total - listComparison.cheapest.total) * 100) / 100);
-              const medals = ['🥇', '🥈', '🥉', '4th', '5th', '6th'];
-
-              return `
-                <div class="flex-1 min-w-[8.5rem] shrink-0 rounded-2xl p-3 border transition ${isCheapest ? 'bg-gradient-to-b from-emerald-950/80 to-slate-900 border-emerald-500/60 shadow-lg ring-1 ring-emerald-500/30' : 'bg-white/5 border-white/10'}">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-1.5">
-                      <span class="text-xs">${medals[rank]}</span>
-                      <span class="text-xs font-black truncate">${st.retailer.name}</span>
-                    </div>
-                    <div class="size-5 shrink-0 rounded-md bg-white p-0.5 overflow-hidden">
-                      <img src="${st.retailer.logoUrl}" alt="${st.retailer.name}" class="size-full object-contain" onerror="this.parentElement.style.background='${st.retailer.color}';this.parentElement.innerHTML='<span class=\\'text-[8px] font-black text-white\\'>${st.retailer.initials}</span>';" />
-                    </div>
-                  </div>
-
-                  <div class="mt-2.5">
-                    <div class="text-base font-black ${isCheapest ? 'text-emerald-400' : 'text-white'}">
-                      ${zar.format(st.total)}
-                    </div>
-                    <div class="text-[9.5px] font-semibold ${isCheapest ? 'text-emerald-400/90 font-bold' : 'text-white/50'} mt-0.5">
-                      ${isCheapest ? 'Lowest Total 🎯' : `+${zar.format(diff)}`}
-                    </div>
-                  </div>
-
-                  <button 
-                    type="button" 
-                    data-switch-list-store="${st.retailerId}" 
-                    class="mt-2.5 w-full rounded-xl py-1.5 text-[10px] font-black transition active:scale-95 ${isCheapest ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400 shadow-sm' : 'bg-white/10 text-white/80 hover:bg-white/20'}"
-                  >
-                    ${isCheapest ? 'Switch Entire List' : 'Move to Store'}
-                  </button>
-                </div>
-              `;
-            }).join('')}
-          </div>
-
-          ${listComparison.splitSavings > 0 ? `
-            <!-- Smart Split Basket Hint -->
-            <div class="mt-2.5 rounded-2xl bg-white/5 border border-white/10 p-2.5 flex items-center justify-between text-xs">
-              <div class="flex items-center gap-2">
-                <span>💡</span>
-                <span class="text-[11px] text-white/80 font-medium">
-                  Split Trolley Savings: Pay only <strong class="text-emerald-400 font-black">${zar.format(listComparison.splitTotal)}</strong> by buying items at their cheapest store!
-                </span>
-              </div>
-              <span class="shrink-0 rounded-lg bg-emerald-500/20 px-2 py-0.5 text-[9px] font-black text-emerald-300">
-                +Save ${zar.format(listComparison.splitSavings)}
-              </span>
-            </div>
-          ` : ''}
-        </div>
-      ` : ''}
-
-      <!-- Retailer Filter Tabs -->
-      <div class="mt-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-        <button type="button" data-list-filter="all" class="shrink-0 rounded-2xl px-3.5 py-2 text-xs font-black transition active:scale-95 ${filter === 'all' ? 'bg-slate-950 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
-          All Stores (${countsByRetailer.all})
-        </button>
-        ${Object.values(RETAILERS).map((ret) => `
-          <button type="button" data-list-filter="${ret.id}" class="shrink-0 flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-black transition active:scale-95 ${filter === ret.id ? 'text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}" style="${filter === ret.id ? `background:${ret.color}` : ''}">
-            <span class="size-2 rounded-full" style="background:${ret.color}"></span>
-            <span>${ret.name} (${countsByRetailer[ret.id] || 0})</span>
-          </button>
-        `).join('')}
-      </div>
-
-      <!-- Add New Custom Item Form with Store Selector -->
-      <form id="add-list-form" class="mt-5 flex flex-col gap-2 rounded-3xl bg-white p-3.5 shadow-sm border border-slate-200">
-        <div class="flex gap-2">
-          <input id="new-list-item-input" type="text" required placeholder="Add item (e.g. Bread, Eggs, Coffee, Rice)..." class="h-11 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-bold outline-none focus:border-violet-500">
-          <select id="new-list-retailer-select" class="h-11 rounded-xl border border-slate-200 bg-slate-50 px-2.5 text-xs font-bold outline-none">
-            ${Object.values(RETAILERS).map(r => `<option value="${r.id}" ${state.retailerId === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}
-          </select>
-          <button type="submit" class="grid size-11 shrink-0 place-items-center rounded-xl bg-slate-950 text-base font-black text-white active:scale-95 transition">
-            +
-          </button>
-        </div>
-      </form>
-
-      <!-- Quick Add Essentials From Catalogue -->
-      <div class="mt-4">
-        <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Quick Add Essentials</p>
-        <div class="mt-2 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-          ${quickSuggestions.map((sug, idx) => `
-            <button type="button" data-quick-add="${idx}" class="shrink-0 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 pr-3 text-xs font-bold text-slate-700 shadow-sm hover:border-violet-400 active:scale-95 transition">
-              <img src="${sug.image}" alt="${sug.name}" class="size-7 rounded-xl object-contain bg-white border border-slate-100 p-0.5" onerror="this.parentElement.innerHTML='<span class=\\'text-base\\'>${sug.emoji}</span>';" />
-              <span>${sug.name.split(' ')[0]}</span>
-              <span class="text-[10px] text-slate-400">${zar.format(sug.price)}</span>
-            </button>
-          `).join('')}
-        </div>
-      </div>
-
-      <!-- Categorized List by Retailer -->
-      <div class="mt-6 space-y-6">
-        ${retailersToRender.map((retId) => {
-          const ret = RETAILERS[retId];
-          const items = state.shoppingList.filter((item) => (item.retailerId || 'shoprite') === retId);
-          if (!items.length) return '';
-          const retTotal = items.reduce((sum, item) => sum + (item.price || 19.99), 0);
-
-          return `
-            <div class="rounded-3xl border border-slate-200/90 bg-white p-4 shadow-sm">
-              <!-- Retailer Header -->
-              <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
-                <div class="flex items-center gap-2.5">
-                  <div class="grid size-9 shrink-0 place-items-center rounded-xl bg-white p-1 shadow-sm border border-slate-100 overflow-hidden">
-                    <img src="${ret.logoUrl}" alt="${ret.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${ret.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${ret.initials}</span>';" />
-                  </div>
-                  <div>
-                    <h3 class="text-sm font-black text-slate-900">${ret.name}</h3>
-                    <p class="text-[10px] font-bold text-slate-400">${items.length} items &middot; Est. ${zar.format(retTotal)}</p>
-                  </div>
-                </div>
-                <button type="button" data-move-retailer-cartel="${ret.id}" class="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black text-white shadow-sm active:scale-95 transition" style="background:${ret.color}">
-                  <span>🛒</span><span>Put in ${ret.name} Cartel</span>
-                </button>
-              </div>
-
-              <!-- Retailer Items -->
-              <div class="space-y-3">
-                ${items.map((item) => {
-                  const isExpanded = state.expandedListItemCompares.has(item.id);
-                  const itemStorePrices = getItemStorePrices(item.barcode, item.price || 19.99);
-                  const lowestPrice = itemStorePrices[0];
-                  const isLowestStore = (item.retailerId || 'shoprite') === lowestPrice.retailerId;
-
-                  return `
-                    <div class="rounded-2xl border bg-slate-50/50 p-3 transition ${item.checked ? 'border-emerald-300 bg-emerald-50/40 text-slate-400' : 'border-slate-100 text-slate-800'}">
-                      <div class="flex items-center justify-between gap-3">
-                        <!-- Checkbox Toggle Circle -->
-                        <button type="button" data-toggle-list="${item.id}" class="grid size-7 shrink-0 place-items-center rounded-full border-2 transition ${item.checked ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm' : 'border-slate-300 hover:border-emerald-500'}" title="Toggle Cartel">
-                          ${item.checked ? '<svg viewBox="0 0 24 24" class="size-4 fill-none stroke-current stroke-[3]"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
-                        </button>
-
-                        <!-- Packshot Thumbnail -->
-                        <div class="relative size-12 shrink-0 overflow-hidden rounded-xl bg-white border border-slate-100 p-1 flex items-center justify-center">
-                          ${item.image ? `<img src="${item.image}" alt="${escapeHtml(item.name)}" class="max-h-full max-w-full object-contain" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\\'grid size-full place-items-center text-xl\\'>${item.emoji || '🛍️'}</span>';" />` : `<span class="grid size-full place-items-center text-xl">${item.emoji || '🛍️'}</span>`}
-                        </div>
-
-                        <!-- Item Details -->
-                        <div class="min-w-0 flex-1 cursor-pointer" data-toggle-list="${item.id}">
-                          <p class="truncate text-xs font-black ${item.checked ? 'line-through text-slate-400' : 'text-slate-900'}">${escapeHtml(item.name)}</p>
-                          <div class="mt-0.5 flex items-center gap-2 flex-wrap">
-                            <span class="text-[11px] font-bold text-slate-700">${zar.format(item.price || 19.99)}</span>
-                            <span class="text-[10px] text-slate-400">${item.weight || ''}</span>
-                            <span class="rounded bg-slate-200/60 px-1 py-0.2 font-mono text-[8px] text-slate-500">${item.barcode}</span>
-                          </div>
-                        </div>
-
-                        <!-- Actions -->
-                        <div class="flex items-center gap-1 shrink-0">
-                          <button type="button" data-move-single-cartel="${item.id}" class="flex items-center gap-1 rounded-xl bg-slate-950 px-2.5 py-1.5 text-[10px] font-black text-white hover:bg-emerald-600 active:scale-95 transition" title="Put in Trolley">
-                            <span>+ Trolley</span>
-                          </button>
-                          <button type="button" data-delete-list="${item.id}" class="grid size-7 place-items-center rounded-xl text-slate-300 hover:bg-red-50 hover:text-red-500 transition" title="Remove">
-                            &times;
-                          </button>
-                        </div>
-                      </div>
-
-                      <!-- Item Cross-Store Comparison Drawer -->
-                      <div class="mt-2.5 border-t border-slate-200/60 pt-2">
-                        <div class="flex items-center justify-between">
-                          <div class="flex items-center gap-1.5">
-                            ${isLowestStore ? `
-                              <span class="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[8.5px] font-black text-emerald-700 border border-emerald-200">
-                                🟢 Best Store Price
-                              </span>
-                            ` : `
-                              <span class="rounded-md bg-amber-50 px-1.5 py-0.5 text-[8.5px] font-black text-amber-700 border border-amber-200">
-                                Save ${zar.format(item.price - lowestPrice.activePrice)} at ${lowestPrice.retailer.name}
-                              </span>
-                            `}
-                          </div>
-
-                          <button type="button" data-toggle-item-compare="${item.id}" class="text-[9.5px] font-black text-violet-700 hover:text-violet-900 transition flex items-center gap-1">
-                            <span>${isExpanded ? '▲ Hide Comparison' : '▼ Compare 6 Stores'}</span>
-                          </button>
-                        </div>
-
-                        ${isExpanded ? `
-                          <div class="mt-2 grid grid-cols-3 gap-1.5 pt-1 animate-in fade-in">
-                            ${itemStorePrices.map((sp) => {
-                              const isCurrentItemStore = (item.retailerId || 'shoprite') === sp.retailerId;
-                              const isCheapestPrice = sp.activePrice === lowestPrice.activePrice;
-
-                              return `
-                                <button 
-                                  type="button" 
-                                  data-switch-item-store="${item.id}" 
-                                  data-target-retailer="${sp.retailerId}"
-                                  class="flex flex-col items-start rounded-xl p-2 text-left border transition active:scale-95 ${isCurrentItemStore ? 'border-slate-950 bg-slate-900 text-white shadow-xs' : 'border-slate-200 bg-white text-slate-800 hover:border-slate-300'}"
-                                >
-                                  <div class="flex items-center justify-between w-full">
-                                    <span class="text-[9px] font-black truncate">${sp.retailer.name}</span>
-                                    ${isCheapestPrice ? '<span class="rounded bg-emerald-500 px-1 py-0.2 text-[7px] font-black text-slate-950">LOW</span>' : ''}
-                                  </div>
-                                  <span class="text-[11px] font-black mt-1 ${isCurrentItemStore ? 'text-emerald-300' : 'text-slate-900'}">${zar.format(sp.activePrice)}</span>
-                                  <span class="text-[8px] font-bold ${isCurrentItemStore ? 'text-white/70' : 'text-slate-400'}">${isCurrentItemStore ? '● In List' : 'Tap to switch'}</span>
-                                </button>
-                              `;
-                            }).join('')}
-                          </div>
-                        ` : ''}
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-          `;
-        }).join('')}
-
-        ${!state.shoppingList.length ? `
-          <div class="rounded-3xl border border-dashed border-slate-300 bg-white/60 p-8 text-center">
-            <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-violet-50 text-2xl">📝</span>
-            <h3 class="mt-3 text-base font-black">Your list is clear</h3>
-            <p class="mt-1 text-xs text-slate-500">Add products above or browse the catalogue to plan your groceries across retail stores.</p>
-          </div>
-        ` : ''}
-      </div>
-
-      <!-- In-Store Checkout Hub -->
-      ${state.shoppingList.length ? `
-        <div class="mt-6 rounded-3xl bg-slate-950 p-5 text-white shadow-xl">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-[10px] font-black uppercase tracking-wider text-white/50">Estimated List Value</p>
-              <p class="text-2xl font-black">${zar.format(listEstimatedTotal)}</p>
-            </div>
-            <button id="move-all-cartel" type="button" class="flex items-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3 text-xs font-black text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 active:scale-95 transition">
-              <span>🛒</span>
-              <span>Put All in Trolley</span>
-            </button>
-          </div>
-
-          <div class="mt-4 border-t border-white/10 pt-3">
-            <button id="list-go-checkout" type="button" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-xs font-black text-slate-950 shadow-md transition active:scale-95">
-              <span>⚡</span>
-              <span>Go to Active Cartel & Single QR Till Checkout (${getItemCount('all')} items across stores)</span>
-            </button>
-          </div>
-        </div>` : ''}
-
-      <!-- Barcode Fallback -->
-      <div class="mt-8 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-center">
-        <p class="text-xs font-bold text-slate-500">Need to scan a physical barcode manually?</p>
-        <button id="list-open-camera" type="button" class="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-black text-slate-700 hover:bg-slate-100 transition">
-          <svg viewBox="0 0 24 24" class="size-3.5 fill-none stroke-current stroke-2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          <span>Open Barcode Camera Scanner (Secondary Fallback)</span>
-        </button>
-      </div>
-    </section>`;
-
-  bindListInteractions(quickSuggestions);
-}
-
-function bindListInteractions(quickSuggestions) {
-  // Filter tabs
-  screen.querySelectorAll('[data-list-filter]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      state.listFilterRetailer = btn.dataset.listFilter;
-      renderList();
-    });
-  });
-
-  // Switch entire list to another store from comparison barometer
-  screen.querySelectorAll('[data-switch-list-store]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const targetRetId = btn.dataset.switchListStore;
-      const targetRetailer = RETAILERS[targetRetId];
-      if (!targetRetailer) return;
-
-      const store = PHYSICAL_STORES.find(s => s.retailerId === targetRetId) || PHYSICAL_STORES[0];
-
-      state.shoppingList.forEach((item) => {
-        item.retailerId = targetRetId;
-        if (item.barcode && MASTER_PRODUCTS.has(item.barcode)) {
-          const p = getStorePrice(store.id, item.barcode);
-          item.price = (p.promoPrice && p.promoPrice < p.regularPrice) ? p.promoPrice : p.regularPrice;
-        } else {
-          const factor = (STORE_PRICE_FACTORS[targetRetId]?.regMult) || 1.0;
-          item.price = Math.round((item.price || 19.99) * factor * 2) / 2 - 0.01;
-        }
-      });
-
-      state.retailerId = targetRetId;
-      playBeepSound();
-      if (navigator.vibrate) navigator.vibrate(30);
-      showToast(`✓ Switched entire list to ${targetRetailer.name}!`);
-      renderList();
-    });
-  });
-
-  // Toggle item-level comparison drawer
-  screen.querySelectorAll('[data-toggle-item-compare]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const itemId = btn.dataset.toggleItemCompare;
-      if (state.expandedListItemCompares.has(itemId)) {
-        state.expandedListItemCompares.delete(itemId);
-      } else {
-        state.expandedListItemCompares.add(itemId);
-      }
-      renderList();
-    });
-  });
-
-  // Switch individual item to chosen store
-  screen.querySelectorAll('[data-switch-item-store]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const itemId = btn.dataset.switchItemStore;
-      const targetRetId = btn.dataset.targetRetailer;
-      const targetRetailer = RETAILERS[targetRetId];
-      const item = state.shoppingList.find(i => i.id === itemId);
-      if (item && targetRetailer) {
-        const store = PHYSICAL_STORES.find(s => s.retailerId === targetRetId) || PHYSICAL_STORES[0];
-        item.retailerId = targetRetId;
-        if (item.barcode && MASTER_PRODUCTS.has(item.barcode)) {
-          const p = getStorePrice(store.id, item.barcode);
-          item.price = (p.promoPrice && p.promoPrice < p.regularPrice) ? p.promoPrice : p.regularPrice;
-        }
-        playBeepSound();
-        if (navigator.vibrate) navigator.vibrate(20);
-        showToast(`✓ Moved "${item.name.slice(0, 20)}..." to ${targetRetailer.name}`);
-        renderList();
-      }
-    });
-  });
-
-  // Add custom item form
-  screen.querySelector('#add-list-form')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const input = screen.querySelector('#new-list-item-input');
-    const retailerSelect = screen.querySelector('#new-list-retailer-select');
-    const name = input.value.trim();
-    const chosenRetailer = retailerSelect ? retailerSelect.value : state.retailerId;
-    if (!name) return;
-
-    const matchedProduct = [...MASTER_PRODUCTS.values()].find(p => p.title.toLowerCase().includes(name.toLowerCase()));
-
-    state.shoppingList.unshift({
-      id: `item-${Date.now()}`,
-      name: matchedProduct ? matchedProduct.title : name,
-      weight: matchedProduct ? matchedProduct.weight : '1 unit',
-      price: matchedProduct ? (matchedProduct.promoPrice || matchedProduct.basePrice) : 19.99,
-      image: matchedProduct ? matchedProduct.imageUrl : '/products/6001007001001.jpg',
-      emoji: matchedProduct ? matchedProduct.emoji : '🛍️',
-      barcode: matchedProduct ? matchedProduct.gtin : `600${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-      checked: false,
-      retailerId: chosenRetailer
-    });
-    input.value = '';
-    renderList();
-    showToast(`Added "${name}" to ${RETAILERS[chosenRetailer]?.name} list`);
-  });
-
-  // Quick suggestions
-  screen.querySelectorAll('[data-quick-add]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.quickAdd, 10);
-      const sug = quickSuggestions[idx];
-      if (sug) {
-        state.shoppingList.unshift({
-          id: `item-${Date.now()}`,
-          name: sug.name,
-          weight: sug.weight,
-          price: sug.price,
-          image: sug.image,
-          emoji: sug.emoji,
-          barcode: sug.barcode,
-          checked: false,
-          retailerId: state.retailerId
-        });
-        renderList();
-        showToast(`Added ${sug.name} to ${getRetailer().name} list`);
-      }
-    });
-  });
-
-  // Toggle checked status -> Synchronizes into that retailer's Digital Cartel!
-  screen.querySelectorAll('[data-toggle-list]').forEach((el) => {
-    el.addEventListener('click', () => {
-      const id = el.dataset.toggleList;
-      const item = state.shoppingList.find((i) => i.id === id);
-      if (item) {
-        item.checked = !item.checked;
-        const targetRet = item.retailerId || 'shoprite';
-        if (item.checked) {
-          addToCart({
-            barcode: item.barcode || `600${Date.now().toString().slice(-10)}`,
-            name: item.name,
-            weight: item.weight || '1 unit',
-            price: item.price || 19.99,
-            basePrice: (item.price || 19.99) * 1.15,
-            image: item.image,
-            category: 'Bakery & Fresh Produce',
-            emoji: item.emoji || '🛍️'
-          }, targetRet);
-          showToast(`✓ In Physical & Digital Cartel (${RETAILERS[targetRet]?.name}): ${item.name}`);
-        } else {
-          removeCartItem(item.barcode, targetRet);
-          showToast(`Removed from ${RETAILERS[targetRet]?.name} Cartel`);
-        }
-        renderList();
-      }
-    });
-  });
-
-  // Delete single item from list
-  screen.querySelectorAll('[data-delete-list]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.deleteList;
-      const item = state.shoppingList.find((i) => i.id === id);
-      if (item && item.checked) {
-        removeCartItem(item.barcode, item.retailerId || 'shoprite');
-      }
-      state.shoppingList = state.shoppingList.filter((i) => i.id !== id);
-      renderList();
-    });
-  });
-
-  // Single Move to Cartel
-  screen.querySelectorAll('[data-move-single-cartel]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.moveSingleCartel;
-      const item = state.shoppingList.find((i) => i.id === id);
-      if (item) {
-        const targetRet = item.retailerId || 'shoprite';
-        addToCart({
-          barcode: item.barcode || `600${Date.now().toString().slice(-10)}`,
-          name: item.name,
-          weight: item.weight || '1 unit',
-          price: item.price || 19.99,
-          basePrice: (item.price || 19.99) * 1.15,
-          image: item.image,
-          category: 'Bakery & Fresh Produce',
-          emoji: item.emoji || '🛍️'
-        }, targetRet);
-        item.checked = true;
-        renderList();
-        showToast(`✓ Put into ${RETAILERS[targetRet]?.name} Cartel: ${item.name}`);
-      }
-    });
-  });
-
-  // Move entire retailer's items to Cartel
-  screen.querySelectorAll('[data-move-retailer-cartel]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const retId = btn.dataset.moveRetailerCartel;
-      const retItems = state.shoppingList.filter((i) => (i.retailerId || 'shoprite') === retId);
-      retItems.forEach((item) => {
-        addToCart({
-          barcode: item.barcode || `600${Date.now().toString().slice(-10)}`,
-          name: item.name,
-          weight: item.weight || '1 unit',
-          price: item.price || 19.99,
-          basePrice: (item.price || 19.99) * 1.15,
-          image: item.image,
-          category: 'Bakery & Fresh Produce',
-          emoji: item.emoji || '🛍️'
-        }, retId);
-        item.checked = true;
-      });
-      state.retailerId = retId;
-      routeTo('cartel');
-      showToast(`Mirrored all ${retItems.length} items into ${RETAILERS[retId]?.name} Cartel!`);
-    });
-  });
-
-  // Move all to Cartel
-  screen.querySelector('#move-all-cartel')?.addEventListener('click', () => {
-    let addedCount = 0;
-    state.shoppingList.forEach((item) => {
-      const retId = item.retailerId || 'shoprite';
-      addToCart({
-        barcode: item.barcode || `600${Date.now().toString().slice(-10)}`,
-        name: item.name,
-        weight: item.weight || '1 unit',
-        price: item.price || 19.99,
-        basePrice: (item.price || 19.99) * 1.15,
-        image: item.image,
-        category: 'Bakery & Fresh Produce',
-        emoji: item.emoji || '🛍️'
-      }, retId);
-      item.checked = true;
-      addedCount++;
-    });
-    routeTo('cartel');
-    showToast(`Mirrored all ${addedCount} items across store Cartels!`);
-  });
-
-  // Jump to In-Store QR Checkout
-  screen.querySelector('#list-go-checkout')?.addEventListener('click', () => {
-    routeTo('cartel');
-  });
-
-  // Open camera scanner as fallback
-  screen.querySelector('#list-open-camera')?.addEventListener('click', openLiveCameraScanner);
+  return { storeTotals: results, cheapest, mostExpensive, maxSavings };
 }
 
 // ==========================================
@@ -1702,127 +1415,94 @@ const SA_STAPLE_BARGAINS = [
 ];
 
 
-function renderProductCard(product, retailer, store, selectedBarcode) {
-  const priceData = getStorePrice(store.id, product.gtin);
-  const isSelected = product.gtin === selectedBarcode;
+function renderProductCard(product, zone) {
+  const priceData = getZonePrice(zone.id, state.retailerId, product.gtin);
   const hasPromo = priceData.promoPrice && priceData.promoPrice < priceData.regularPrice;
   const activePrice = hasPromo ? priceData.promoPrice : priceData.regularPrice;
   const savings = hasPromo ? (priceData.regularPrice - priceData.promoPrice) : 0;
   const unitPrice = formatUnitPrice(activePrice, product.weight);
 
-  // Cross-store comparison badge
-  const itemStorePrices = getItemStorePrices(product.gtin, activePrice);
-  const lowestStore = itemStorePrices[0];
-  const isLowestInSA = Math.abs(activePrice - lowestStore.activePrice) < 0.05;
-  const savingsVsLowest = Math.max(0, activePrice - lowestStore.activePrice);
+  const inCartItem = state.cart.find((i) => i.barcode === product.gtin);
+  const inCartQty = inCartItem ? inCartItem.quantity : 0;
 
   return `
-    <div 
-      data-select-catalog-product="${product.gtin}"
-      class="group relative flex flex-col justify-between rounded-3xl border-2 bg-white p-3.5 shadow-sm transition-all duration-200 cursor-pointer active:scale-98 ${isSelected ? 'border-slate-950 ring-4 ring-slate-900/10 shadow-md' : 'border-slate-200/90 hover:border-slate-300'}"
-    >
+    <div class="group relative flex flex-col justify-between rounded-3xl border border-stone-200/90 bg-white p-3 shadow-2xs transition-all duration-200 hover:border-stone-300 hover:shadow-sm">
       <div>
-        <!-- Product Packshot Container (1:1 Ratio on Crisp White Backdrop) -->
-        <div class="relative w-full aspect-square overflow-hidden rounded-2xl bg-white border border-slate-100 p-2 flex items-center justify-center shadow-2xs">
+        <!-- Product Packshot Container with Direct 1-Tap Trolley Control -->
+        <div class="relative w-full aspect-square overflow-hidden rounded-2xl bg-white border border-stone-100 p-2 pb-10 flex items-center justify-center">
           <img 
             src="${product.imageUrl}" 
             alt="${escapeHtml(product.title)}" 
             class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300"
-            onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'grid size-full place-items-center text-3xl\'>${product.emoji || '🛍️'}</span>';"
+            onerror="this.onerror=null;this.parentElement.querySelector('img')?.remove();this.parentElement.insertAdjacentHTML('afterbegin','<span class=\\'grid size-full place-items-center text-3xl\\'>${product.emoji || '🛍️'}</span>');"
           />
-          <div class="absolute top-2 left-2 flex flex-col gap-1 items-start">
-            <span class="rounded-md bg-slate-950/80 px-1.5 py-0.5 font-mono text-[7px] font-bold text-white backdrop-blur-xs">
-              ${product.gtin}
-            </span>
-            ${product.isHouseBrand ? `
-              <span class="rounded-md bg-red-600 px-1.5 py-0.5 text-[7px] font-black uppercase text-white shadow-xs">
-                House Brand
-              </span>
-            ` : ''}
-          </div>
+
           ${hasPromo ? `
-            <span class="absolute top-2 right-2 rounded-md px-1.5 py-0.5 text-[8px] font-black text-white shadow-xs" style="background:${retailer.color}">
-              ${retailer.loyalty ? retailer.loyalty.toUpperCase() : 'PROMO'}
+            <span class="pointer-events-none absolute top-2 right-2 rounded-md bg-[#234e3b] px-1.5 py-0.5 text-[7.5px] font-black text-white shadow-2xs">
+              -${Math.round((savings / priceData.regularPrice) * 100)}%
             </span>
           ` : ''}
+
+          <!-- Direct 1-Tap Trolley Action on Product Image -->
+          <div class="absolute inset-x-2 bottom-2 z-10 flex items-center justify-center">
+            ${inCartQty > 0 ? `
+              <div class="flex w-full items-center justify-between rounded-xl bg-[#234e3b] px-1.5 py-1 text-white shadow-md">
+                <button type="button" data-card-dec-trolley="${product.gtin}" class="grid size-6 place-items-center rounded-lg bg-white/15 text-xs font-black hover:bg-white/25 active:scale-90 transition">&minus;</button>
+                <span class="text-[10px] font-black tabular-nums">🛒 ${inCartQty} in Trolley</span>
+                <button type="button" data-card-add-trolley="${product.gtin}" class="grid size-6 place-items-center rounded-lg bg-white text-xs font-black text-[#234e3b] hover:bg-stone-100 active:scale-90 transition">+</button>
+              </div>
+            ` : `
+              <button
+                type="button"
+                data-card-add-trolley="${product.gtin}"
+                class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#234e3b] px-3 py-1.5 text-[10px] font-black text-white shadow-sm transition hover:bg-[#1b3d2e] active:scale-95"
+                title="Add directly to Trolley"
+              >
+                <span>+ Add to Trolley</span>
+              </button>
+            `}
+          </div>
         </div>
 
-        <!-- Details & Brand Tag & Category -->
+        <!-- Product Details -->
         <div class="mt-2.5">
-          <div class="flex items-center justify-between">
-            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">${product.brand}</span>
-            <span class="rounded bg-slate-100 px-1.5 py-0.2 text-[8px] font-bold text-slate-600">${product.category.split(' ')[0]}</span>
+          <div class="flex items-center justify-between gap-1">
+            <span class="truncate text-[9px] font-black uppercase tracking-wider text-slate-400">${escapeHtml(product.brand)}</span>
+            <span class="shrink-0 rounded bg-stone-100 px-1.5 py-0.2 text-[8px] font-bold text-slate-500">${escapeHtml(product.category.split(' ')[0])}</span>
           </div>
           <h4 class="text-xs font-black text-slate-900 line-clamp-2 leading-snug mt-0.5">${escapeHtml(product.title)}</h4>
           <div class="flex items-center justify-between mt-0.5">
             <p class="text-[10px] text-slate-400 font-semibold">${product.weight || '1 unit'}</p>
-            ${unitPrice ? `<span class="text-[8.5px] font-bold text-slate-500 font-mono">${unitPrice}</span>` : ''}
+            ${unitPrice ? `<span class="text-[8.5px] font-bold text-slate-400 font-mono">${unitPrice}</span>` : ''}
           </div>
-        </div>
-
-        <!-- Cross-Store Price Indicator -->
-        <div class="mt-2">
-          ${isLowestInSA ? `
-            <span class="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[8px] font-black text-emerald-700 border border-emerald-200">
-              🟢 Lowest in SA
-            </span>
-          ` : `
-            <span class="rounded-md bg-amber-50 px-1.5 py-0.5 text-[8px] font-black text-amber-700 border border-amber-200">
-              Save ${zar.format(savingsVsLowest)} at ${lowestStore.retailer.name}
-            </span>
-          `}
         </div>
       </div>
 
-      <!-- Store Live Price & Quick Add Action -->
-      <div class="mt-3 border-t border-slate-100 pt-2 flex items-end justify-between">
-        <div>
-          <div class="text-sm font-black text-slate-900">
-            ${zar.format(activePrice)}
+      <!-- Clean Market Price Row -->
+      <div class="mt-2.5 border-t border-stone-100 pt-2 flex items-baseline justify-between gap-1">
+        <span class="text-sm font-black text-slate-900 tabular-nums">${zar.format(activePrice)}</span>
+        ${hasPromo ? `
+          <div class="flex items-center gap-1">
+            <span class="text-[10px] text-slate-400 line-through">${zar.format(priceData.regularPrice)}</span>
+            <span class="rounded-md bg-[#edf3ee] px-1.5 py-0.2 text-[8px] font-black text-[#234e3b]">
+              -${zar.format(savings)}
+            </span>
           </div>
-          ${hasPromo ? `
-            <div class="flex items-center gap-1.5 mt-0.5">
-              <span class="text-[10px] text-slate-400 line-through">
-                ${zar.format(priceData.regularPrice)}
-              </span>
-              <span class="rounded-md bg-emerald-50 px-1 py-0.2 text-[8px] font-black text-emerald-700">
-                -${zar.format(savings)}
-              </span>
-            </div>
-          ` : ''}
-        </div>
-
-        <button 
-          type="button" 
-          data-catalog-add-cart="${product.gtin}"
-          class="grid size-8 shrink-0 place-items-center rounded-xl bg-slate-900 text-white font-black text-sm shadow-sm hover:bg-slate-800 active:scale-90 transition"
-          title="Add to Shopping Trolley"
-        >
-          +
-        </button>
+        ` : ''}
       </div>
     </div>
   `;
 }
 
 function renderMarket() {
-  const retailer = getRetailer();
-  
-  // Find current physical store for this retailer or fallback
-  const store = PHYSICAL_STORES.find(s => s.retailerId === retailer.id) || PHYSICAL_STORES[0];
-  state.currentStoreId = store.id;
-
+  const zone = getActiveZone();
   const searchQuery = (state.catalogSearch || '').toLowerCase().trim();
   const selectedCat = state.catalogCategory || 'all';
-  const isInstore = state.shoppingMode === 'instore';
+  const allProducts = Array.from(MASTER_PRODUCTS.values());
 
-  const retailerProducts = getRetailerProducts(retailer.id);
-
-  // Filter master products by category & search query & house brand
-  let filteredProducts = retailerProducts.filter((product) => {
+  let filteredProducts = allProducts.filter((product) => {
     const matchesCategory = selectedCat === 'all' || product.category === selectedCat;
     if (!matchesCategory) return false;
-    if (state.houseBrandOnly && !product.isHouseBrand) return false;
     if (!searchQuery) return true;
 
     const inKeywords = product.searchKeywords && product.searchKeywords.some(k => k.toLowerCase().includes(searchQuery));
@@ -1832,17 +1512,16 @@ function renderMarket() {
     return inKeywords || inTitle || inBrand || inGtin;
   });
 
-  // Apply category sort
   if (state.catalogSort === 'price-asc') {
     filteredProducts.sort((a, b) => {
-      const pA = getStorePrice(store.id, a.gtin);
-      const pB = getStorePrice(store.id, b.gtin);
+      const pA = getZonePrice(zone.id, state.retailerId, a.gtin);
+      const pB = getZonePrice(zone.id, state.retailerId, b.gtin);
       return (pA.promoPrice || pA.regularPrice) - (pB.promoPrice || pB.regularPrice);
     });
   } else if (state.catalogSort === 'savings-desc') {
     filteredProducts.sort((a, b) => {
-      const pA = getStorePrice(store.id, a.gtin);
-      const pB = getStorePrice(store.id, b.gtin);
+      const pA = getZonePrice(zone.id, state.retailerId, a.gtin);
+      const pB = getZonePrice(zone.id, state.retailerId, b.gtin);
       const savA = (pA.promoPrice && pA.promoPrice < pA.regularPrice) ? (pA.regularPrice - pA.promoPrice) : 0;
       const savB = (pB.promoPrice && pB.promoPrice < pB.regularPrice) ? (pB.regularPrice - pB.promoPrice) : 0;
       return savB - savA;
@@ -1851,182 +1530,99 @@ function renderMarket() {
     filteredProducts.sort((a, b) => a.title.localeCompare(b.title));
   }
 
-  const selectedBarcode = state.selectedCatalogBarcode || (filteredProducts[0] ? filteredProducts[0].gtin : '6001007001001');
-  state.selectedCatalogBarcode = selectedBarcode;
-  const selectedProduct = MASTER_PRODUCTS.get(selectedBarcode) || filteredProducts[0];
-
-  const currentCartTotal = getPayableTotal(state.retailerId);
-  const budget = state.instoreBudget || 500;
-  const budgetPct = Math.min(100, Math.round((currentCartTotal / budget) * 100));
+  const totalItemsInCart = getItemCount();
 
   screen.innerHTML = `
-    <section class="overflow-hidden pb-44">
-      <!-- Bash-Style Storefront Top Banner & Mode Switcher -->
-      <div class="px-5 pt-4 pb-2" style="background: linear-gradient(180deg, color-mix(in srgb, ${retailer.color} 8%, #ffffff) 0%, #ffffff 100%)">
+    <section class="overflow-hidden pb-28">
+      <!-- Open Grocery Market Top Header (Softly Blended, Retailer-Agnostic) -->
+      <div class="px-5 pt-4 pb-3 border-b border-stone-200/60" style="background: linear-gradient(180deg, #eff4f0 0%, #f8faf8 58%, #fafaf9 100%)">
         <div class="flex items-center justify-between gap-2">
           <div>
-            <p class="text-[9.5px] font-black uppercase tracking-widest text-slate-400">South Africa's Central Grocery Hub</p>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <span>${retailer.name}</span>
-              <span class="rounded-full px-2 py-0.5 text-[9px] font-black text-white shadow-2xs" style="background:${retailer.color}">
-                ${retailer.loyalty || 'Rewards'}
-              </span>
-            </h1>
+            <p class="text-[9.5px] font-black uppercase tracking-widest text-[#3b5e4c]/80">Central Grocery Catalog</p>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight mt-0.5">Open Market</h1>
           </div>
-
-          <!-- Dual Mode Switcher (At Home vs In-Store) -->
-          <div class="flex items-center rounded-2xl bg-slate-100 p-1 border border-slate-200/80 shadow-2xs">
-            <button 
-              type="button" 
-              data-toggle-mode="home" 
-              class="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[10px] font-black transition active:scale-95 ${!isInstore ? 'bg-white text-slate-950 shadow-xs border border-slate-200/80' : 'text-slate-500 hover:text-slate-900'}"
-            >
-              <span>🏠</span><span>At Home</span>
+          ${totalItemsInCart > 0 ? `
+            <button id="market-compare-cta" type="button" class="flex items-center gap-1.5 rounded-2xl bg-[#234e3b] px-3.5 py-2 text-[11px] font-black text-white shadow-xs hover:bg-[#1b3d2e] active:scale-95 transition">
+              <span>⚖️</span>
+              <span>Compare ${totalItemsInCart} in Trolley ➔</span>
             </button>
-            <button 
-              type="button" 
-              data-toggle-mode="instore" 
-              class="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[10px] font-black transition active:scale-95 ${isInstore ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'}"
-            >
-              <span>🛒</span><span>In-Store</span>
-            </button>
-          </div>
-        </div>
-
-        ${isInstore ? `
-          <!-- In-Store Shopping Mode HUD -->
-          <div class="mt-3 rounded-3xl bg-slate-950 p-4 text-white shadow-lg border border-slate-800 animate-in slide-in-from-top-3">
-            <div class="flex items-center justify-between text-xs">
-              <div class="flex items-center gap-2">
-                <span class="relative flex size-2.5">
-                  <span class="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                  <span class="relative inline-flex size-2.5 rounded-full bg-emerald-500"></span>
-                </span>
-                <span class="font-black truncate">${store.name} (#${store.retailerStoreCode})</span>
-              </div>
-              <span class="text-[10px] font-mono text-emerald-400 font-bold">${getItemCount(state.retailerId)} in Trolley</span>
-            </div>
-
-            <!-- Live Budget Progress Bar -->
-            <div class="mt-3">
-              <div class="flex items-center justify-between text-[10px] font-bold text-slate-300">
-                <span>Trolley Total: ${zar.format(currentCartTotal)}</span>
-                <span>Budget: ${zar.format(budget)} (${budgetPct}%)</span>
-              </div>
-              <div class="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-800">
-                <div class="h-full rounded-full transition-all duration-300 ${budgetPct > 90 ? 'bg-rose-500' : 'bg-emerald-500'}" style="width: ${budgetPct}%"></div>
-              </div>
-            </div>
-
-            <!-- In-Store Fast Scanner Trigger -->
-            <button id="instore-scan-btn" type="button" class="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3 text-xs font-black text-slate-950 shadow-md hover:bg-emerald-400 active:scale-98 transition">
-              <svg viewBox="0 0 24 24" class="size-4 fill-none stroke-current stroke-2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-              <span>Scan Shelf Barcode into Trolley</span>
-            </button>
-          </div>
-        ` : ''}
-
-        <!-- Horizontal Retailer Brand Selector Rail (Just like Bash) -->
-        <div class="mt-3 flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-          ${Object.values(RETAILERS).map(r => {
-            const isSelected = r.id === retailer.id;
-            return `
-              <button 
-                type="button" 
-                data-switch-market-retailer="${r.id}"
-                class="flex shrink-0 items-center gap-2 rounded-2xl p-2 pr-3.5 transition active:scale-95 ${isSelected ? 'border-2 border-slate-950 bg-white shadow-md ring-2 ring-slate-900/10' : 'border border-slate-200/90 bg-white/70 hover:bg-white'}"
-              >
-                <div class="grid size-8 shrink-0 place-items-center rounded-xl bg-white p-1 border border-slate-100 overflow-hidden shadow-2xs">
-                  <img src="${r.logoUrl}" alt="${r.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${r.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-[9px]\\'>${r.initials}</span>';" />
-                </div>
-                <div class="text-left">
-                  <p class="text-xs font-black text-slate-900 leading-tight">${r.name}</p>
-                  <p class="text-[8.5px] font-bold ${isSelected ? 'text-emerald-700 font-black' : 'text-slate-400'}">${isSelected ? '● Active Store' : r.loyalty}</p>
-                </div>
-              </button>
-            `;
-          }).join('')}
-        </div>
-
-        <!-- Physical Store Branch Selector Banner with Official Logo -->
-        <button id="store-branch-selector-btn" type="button" class="mt-3 w-full rounded-2xl border border-slate-200/90 bg-white p-3 shadow-xs flex items-center justify-between gap-3 text-left hover:border-slate-300 active:scale-98 transition group">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="grid size-10 shrink-0 place-items-center rounded-xl bg-white p-1 shadow-xs border border-slate-200/90 overflow-hidden">
-              <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${retailer.initials}</span>';" />
-            </div>
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5">
-                <h3 class="text-xs font-black text-slate-900 truncate">${store.name}</h3>
-                <span class="rounded-md bg-slate-100 px-1.5 py-0.2 text-[8px] font-mono font-bold text-slate-500">#${store.retailerStoreCode}</span>
-              </div>
-              <p class="text-[10px] text-slate-400 truncate">${store.address}</p>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2 shrink-0">
-            <span class="rounded-full px-2.5 py-1 text-[9px] font-black text-white shadow-2xs" style="background:${retailer.color}">
-              ${store.loyalty}
+          ` : `
+            <span class="rounded-2xl bg-[#e7efe9] px-3 py-1.5 text-[10px] font-black text-[#234e3b]">
+              ${allProducts.length} Staples
             </span>
-            <span class="text-xs text-slate-400 font-bold group-hover:translate-x-0.5 transition">▾</span>
+          `}
+        </div>
+
+        <!-- Town / City Area Pricing Zone Bar -->
+        <button id="open-zone-selector-btn" type="button" class="mt-3 w-full rounded-2xl border border-[#d6e3da] bg-white/85 px-3.5 py-2.5 shadow-2xs flex items-center justify-between gap-3 text-left hover:bg-white hover:border-[#bed3c5] active:scale-99 transition">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="grid size-8 shrink-0 place-items-center rounded-xl bg-[#eaf2ec] text-sm text-[#234e3b]">📍</span>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-black text-slate-900 truncate">${escapeHtml(zone.name)}</span>
+                <span class="rounded-md bg-[#eaf2ec] px-1.5 py-0.2 text-[8.5px] font-bold text-[#2b5440]">
+                  ${zone.kind === 'town' ? 'Town-wide pricing' : 'City-area pricing'}
+                </span>
+                ${state.detectedDistanceKm !== null ? `<span class="text-[8.5px] font-mono font-bold text-slate-400">${state.detectedDistanceKm} km</span>` : ''}
+              </div>
+              <p class="text-[10px] text-slate-500 truncate mt-0.5">
+                Pick items freely — compare total across all 6 retailers inside your Trolley
+              </p>
+            </div>
           </div>
+          <span class="shrink-0 rounded-xl bg-stone-100 px-2.5 py-1 text-[10px] font-black text-slate-600">
+            ${zone.kind === 'town' ? 'Town ▾' : 'Area ▾'}
+          </span>
         </button>
       </div>
 
-      <!-- Live SA Staples Price War Ticker -->
-      <div class="px-5 pt-2">
-        <div class="rounded-2xl bg-gradient-to-r from-slate-950 to-slate-900 p-2.5 text-white shadow-sm flex items-center justify-between gap-2">
+      <!-- Softly Blended SA Staples Deal Ticker -->
+      <div class="px-5 pt-2.5">
+        <div class="rounded-2xl bg-[#eef3ef]/90 border border-[#d6e3da] p-2 shadow-2xs flex items-center justify-between gap-2">
           <div class="flex items-center gap-2 overflow-x-auto [scrollbar-width:none]">
-            <span class="shrink-0 rounded-lg bg-emerald-500/20 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-400">
-              ⚡ SA Price War
+            <span class="shrink-0 rounded-lg bg-[#2b5440]/12 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-[#234e3b]">
+              Popular
             </span>
             ${SA_STAPLE_BARGAINS.map(b => `
               <button 
                 type="button" 
                 data-staple-search="${b.name.split(' ')[0]}"
-                class="shrink-0 flex items-center gap-1.5 rounded-xl bg-white/10 px-2 py-1 text-[9.5px] font-bold text-white hover:bg-white/20 transition active:scale-95"
+                class="shrink-0 flex items-center gap-1.5 rounded-xl bg-white/90 border border-stone-200/70 px-2.5 py-1 text-[9.5px] font-bold text-slate-700 hover:bg-white transition active:scale-95"
               >
                 <span>${b.name.split(' ').slice(0, 2).join(' ')}</span>
-                <span class="font-black text-emerald-400">${zar.format(b.price)}</span>
-                <span class="rounded bg-white/15 px-1 py-0.2 text-[7.5px] text-white/80">${b.store}</span>
+                <span class="font-black text-[#234e3b]">${zar.format(b.price)}</span>
               </button>
             `).join('')}
           </div>
         </div>
       </div>
 
-      <!-- Search Bar -->
+      <!-- Department Filter & Toolbar -->
       <div class="px-5 pt-3">
-        <div class="relative">
-          <input 
-            id="catalog-search-input" 
-            type="text" 
-            value="${escapeHtml(state.catalogSearch || '')}"
-            placeholder="Search 600... GTIN, White Star, Albany, milk, rice..." 
-            class="h-11 w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-10 text-xs font-bold shadow-xs outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition"
-          />
-          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
-          ${state.catalogSearch ? `
-            <button id="clear-search-btn" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600">✕</button>
-          ` : ''}
-        </div>
+        ${state.catalogSearch ? `
+          <div class="mb-3 flex items-center justify-between rounded-2xl border border-[#cfe0d5] bg-[#edf3ee]/80 px-3.5 py-2 text-xs">
+            <span class="font-bold text-slate-700">Showing results for "<strong>${escapeHtml(state.catalogSearch)}</strong>"</span>
+            <button id="clear-search-btn" type="button" class="rounded-lg bg-white px-2.5 py-1 text-[10px] font-black text-slate-700 shadow-2xs">Clear ✕</button>
+          </div>
+        ` : ''}
 
-        <!-- 5 Core Circular Department Icons (The Woolworths & Bash Pattern) -->
-        <div class="mt-3.5 flex items-center justify-between gap-1 overflow-x-auto pb-1 [scrollbar-width:none]">
+        <!-- 5 Core Circular Department Icons -->
+        <div class="flex items-center justify-between gap-1 overflow-x-auto pb-1 [scrollbar-width:none]">
           <button type="button" data-catalog-cat="all" class="flex flex-col items-center shrink-0 group">
-            <div class="size-13 rounded-2xl grid place-items-center text-xl transition shadow-2xs ${selectedCat === 'all' ? 'bg-slate-950 text-white scale-105 ring-2 ring-slate-900/20' : 'bg-white text-slate-700 border border-slate-200/90 hover:border-slate-400'}">
+            <div class="size-13 rounded-2xl grid place-items-center text-xl transition shadow-2xs ${selectedCat === 'all' ? 'bg-slate-900 text-white scale-105 ring-2 ring-slate-900/15' : 'bg-white text-slate-700 border border-stone-200/90 hover:border-slate-400'}">
               🛍️
             </div>
-            <span class="mt-1 text-[9.5px] font-black truncate max-w-[4.8rem] text-center ${selectedCat === 'all' ? 'text-slate-900 font-black' : 'text-slate-500'}">All (${retailerProducts.length})</span>
+            <span class="mt-1 text-[9.5px] font-black truncate max-w-[4.8rem] text-center ${selectedCat === 'all' ? 'text-slate-900' : 'text-slate-500'}">All (${allProducts.length})</span>
           </button>
           ${CATEGORIES.map(cat => {
             const isCatActive = selectedCat === cat.id;
-            const count = retailerProducts.filter(p => p.category === cat.id).length;
+            const count = allProducts.filter(p => p.category === cat.id).length;
             return `
               <button type="button" data-catalog-cat="${cat.id}" class="flex flex-col items-center shrink-0 group">
-                <div class="size-13 rounded-2xl grid place-items-center text-xl transition shadow-2xs ${isCatActive ? 'bg-slate-950 text-white scale-105 ring-2 ring-slate-900/20' : 'bg-white text-slate-700 border border-slate-200/90 hover:border-slate-400'}">
+                <div class="size-13 rounded-2xl grid place-items-center text-xl transition shadow-2xs ${isCatActive ? 'bg-slate-900 text-white scale-105 ring-2 ring-slate-900/15' : 'bg-white text-slate-700 border border-stone-200/90 hover:border-slate-400'}">
                   ${cat.emoji}
                 </div>
-                <span class="mt-1 text-[9.5px] font-black truncate max-w-[4.8rem] text-center ${isCatActive ? 'text-slate-900 font-black' : 'text-slate-500'}">${cat.label.split(' ')[0]} (${count})</span>
+                <span class="mt-1 text-[9.5px] font-black truncate max-w-[4.8rem] text-center ${isCatActive ? 'text-slate-900' : 'text-slate-500'}">${cat.label.split(' ')[0]} (${count})</span>
               </button>
             `;
           }).join('')}
@@ -2034,14 +1630,14 @@ function renderMarket() {
 
         <!-- Shared Top Brand Filter Chips -->
         <div class="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
-          <span class="shrink-0 text-[10px] font-black text-slate-400 uppercase tracking-wider pl-0.5">Staples:</span>
+          <span class="shrink-0 text-[10px] font-black text-slate-400 uppercase tracking-wider pl-0.5">Brands:</span>
           ${['White Star', 'Albany', 'Clover', 'Tastic', 'Koo', 'Sunlight', 'Rama', 'All Gold'].map(b => {
             const isBrandActive = (state.catalogSearch || '').toLowerCase() === b.toLowerCase();
             return `
               <button 
                 type="button" 
                 data-brand-filter="${b}" 
-                class="shrink-0 rounded-lg px-2.5 py-1 text-[10px] font-bold border transition ${isBrandActive ? 'bg-slate-900 text-white border-slate-900 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}"
+                class="shrink-0 rounded-lg px-2.5 py-1 text-[10px] font-bold border transition ${isBrandActive ? 'bg-slate-900 text-white border-slate-900 shadow-2xs' : 'bg-white text-slate-600 border-stone-200 hover:border-stone-300'}"
               >
                 ${b}
               </button>
@@ -2049,48 +1645,31 @@ function renderMarket() {
           }).join('')}
         </div>
 
-        <!-- Category Management & View Mode Toolbar -->
-        <div class="mt-3 flex items-center justify-between gap-1.5 pt-2 border-t border-slate-100">
+        <!-- View Mode & Sort Toolbar -->
+        <div class="mt-3 flex items-center justify-between gap-1.5 pt-2 border-t border-stone-200/70">
           <div class="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
-            ${retailer.id === 'shoprite' ? `
-              <button 
-                type="button" 
-                data-toggle-house-brand
-                class="shrink-0 flex items-center gap-1 rounded-xl px-2.5 py-1 text-[10px] font-black transition active:scale-95 ${state.houseBrandOnly ? 'bg-red-600 text-white shadow-xs' : 'bg-red-50 text-red-700 border border-red-200/80 hover:bg-red-100'}"
-                title="Filter to Shoprite Ritebrand & House Brands"
-              >
-                <span>🔴</span>
-                <span>Ritebrand (${retailerProducts.filter(p => p.isHouseBrand).length})</span>
-              </button>
-            ` : ''}
-
-            <!-- View Mode Switcher: Grid vs Aisle Mode -->
             <button 
               type="button" 
               data-toggle-view-mode
-              class="shrink-0 flex items-center gap-1 rounded-xl px-2.5 py-1 text-[10px] font-bold border border-slate-200 bg-white text-slate-700 hover:border-slate-300 transition active:scale-95"
-              title="Switch between Flat Grid and Department Aisle View"
+              class="shrink-0 flex items-center gap-1 rounded-xl px-2.5 py-1 text-[10px] font-bold border border-stone-200 bg-white text-slate-700 hover:border-stone-300 transition active:scale-95"
             >
               <span>${state.catalogViewMode === 'aisles' ? '🏬 Aisle Mode' : '▦ Grid Mode'}</span>
             </button>
 
-            <!-- Sort Cycling Pill -->
             <button 
               type="button" 
               data-cycle-sort
-              class="shrink-0 flex items-center gap-1 rounded-xl px-2.5 py-1 text-[10px] font-bold border border-slate-200 bg-white text-slate-700 hover:border-slate-300 transition active:scale-95"
+              class="shrink-0 flex items-center gap-1 rounded-xl px-2.5 py-1 text-[10px] font-bold border border-stone-200 bg-white text-slate-700 hover:border-stone-300 transition active:scale-95"
             >
               <span>⇅</span>
               <span>Sort: ${state.catalogSort === 'price-asc' ? 'Low Price' : (state.catalogSort === 'savings-desc' ? 'Top Savings' : (state.catalogSort === 'name-asc' ? 'A-Z' : 'Default'))}</span>
             </button>
           </div>
 
-          <!-- Open Category Manager Modal Button -->
           <button 
             type="button" 
             id="open-category-manager-btn"
-            class="shrink-0 flex items-center gap-1 rounded-xl bg-slate-900 px-2.5 py-1 text-[10px] font-black text-white hover:bg-slate-800 active:scale-95 transition shadow-xs"
-            title="Open Category Manager"
+            class="shrink-0 flex items-center gap-1 rounded-xl bg-slate-900 px-2.5 py-1 text-[10px] font-black text-white hover:bg-slate-800 active:scale-95 transition shadow-2xs"
           >
             <span>🏷️</span>
             <span>Departments</span>
@@ -2098,14 +1677,14 @@ function renderMarket() {
         </div>
       </div>
 
-      <!-- Decoupled Native Catalog Grid / Aisle Sections -->
+      <!-- Product Catalog Grid / Aisle Sections -->
       <div class="px-5 pt-3">
         ${filteredProducts.length === 0 ? `
-          <div class="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xs">
+          <div class="rounded-3xl border border-stone-200 bg-white p-8 text-center shadow-2xs">
             <span class="text-3xl">🔍</span>
             <h4 class="mt-2 text-sm font-black text-slate-900">No items found for "${escapeHtml(state.catalogSearch)}"</h4>
-            <p class="mt-1 text-xs text-slate-400">Try searching for White Star, bread, milk, chips, rice, or a 13-digit EAN barcode.</p>
-            <button id="reset-catalog-btn" type="button" class="mt-4 rounded-xl bg-slate-950 px-4 py-2 text-xs font-black text-white">Reset Search</button>
+            <p class="mt-1 text-xs text-slate-400">Try searching for White Star, bread, milk, chips, rice, or tap the top search button.</p>
+            <button id="reset-catalog-btn" type="button" class="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-xs font-black text-white">Reset Search</button>
           </div>
         ` : (state.catalogViewMode === 'aisles' && selectedCat === 'all' && !searchQuery) ? `
           <div class="space-y-5">
@@ -2113,8 +1692,8 @@ function renderMarket() {
               const deptProducts = filteredProducts.filter(p => p.category === cat.id);
               if (!deptProducts.length) return '';
               return `
-                <div class="rounded-3xl bg-slate-50/80 p-3.5 border border-slate-200/80 shadow-2xs">
-                  <div class="flex items-center justify-between pb-2.5 border-b border-slate-200">
+                <div class="rounded-3xl bg-stone-100/70 p-3.5 border border-stone-200/80 shadow-2xs">
+                  <div class="flex items-center justify-between pb-2.5 border-b border-stone-200">
                     <div class="flex items-center gap-2">
                       <span class="grid size-8 place-items-center rounded-xl bg-white text-base shadow-2xs">${cat.emoji}</span>
                       <div>
@@ -2122,12 +1701,12 @@ function renderMarket() {
                         <p class="text-[9.5px] text-slate-400 font-bold">${deptProducts.length} items in this department</p>
                       </div>
                     </div>
-                    <button type="button" data-catalog-cat="${cat.id}" class="rounded-lg bg-white px-2.5 py-1 text-[9.5px] font-black text-slate-800 border border-slate-200 hover:border-slate-400 active:scale-95 transition">
+                    <button type="button" data-catalog-cat="${cat.id}" class="rounded-lg bg-white px-2.5 py-1 text-[9.5px] font-black text-slate-800 border border-stone-200 hover:border-slate-400 active:scale-95 transition">
                       Filter Aisle ▾
                     </button>
                   </div>
                   <div class="mt-3 grid grid-cols-2 gap-3">
-                    ${deptProducts.map(product => renderProductCard(product, retailer, store, selectedBarcode)).join('')}
+                    ${deptProducts.map(product => renderProductCard(product, zone)).join('')}
                   </div>
                 </div>
               `;
@@ -2135,417 +1714,199 @@ function renderMarket() {
           </div>
         ` : `
           <div class="grid grid-cols-2 gap-3">
-            ${filteredProducts.map(product => renderProductCard(product, retailer, store, selectedBarcode)).join('')}
+            ${filteredProducts.map(product => renderProductCard(product, zone)).join('')}
           </div>
         `}
       </div>
-
-      <!-- Lower End Real-Time Scraped Action Dock -->
-      ${renderCatalogActionDock(retailer, selectedProduct, selectedBarcode, store)}
     </section>`;
 
-  bindCatalogInteractions(retailer, store);
+  bindCatalogInteractions(zone);
 }
 
+function bindCatalogInteractions(zone) {
+  screen.querySelector('#market-compare-cta')?.addEventListener('click', () => routeTo('trolley'));
 
-function renderCatalogActionDock(retailer, selectedProduct, selectedBarcode, store) {
-  if (!selectedProduct) {
-    return `
-      <div id="catalog-action-dock" class="fixed inset-x-0 bottom-[5.25rem] z-30 mx-auto max-w-3xl border-t border-slate-200/90 bg-white/95 px-4 py-3 shadow-[0_-16px_40px_-24px_rgba(15,23,42,.45)] backdrop-blur-xl transition-all duration-300">
-        <div class="flex items-center justify-between gap-3">
-          <div class="flex items-center gap-2.5 text-xs font-bold text-slate-400 min-w-0 flex-1">
-            <span class="grid size-9 shrink-0 place-items-center rounded-2xl bg-slate-100 text-base shadow-sm">🛒</span>
-            <div class="min-w-0">
-              <span class="truncate block font-bold text-slate-600">Select any grocery item above</span>
-              <span class="text-[10px] text-slate-400 font-normal">Tap item to view store pricing and add to cart</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 shrink-0 opacity-40">
-            <button disabled class="flex items-center gap-1 rounded-2xl bg-slate-100 px-3.5 py-2.5 text-xs font-bold text-slate-400 cursor-not-allowed">
-              <span>+</span><span>List</span>
-            </button>
-            <button disabled class="flex items-center gap-1 rounded-2xl bg-slate-100 px-3.5 py-2.5 text-xs font-bold text-slate-400 cursor-not-allowed">
-              <span>+</span><span>Trolley</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  const currentStore = store || PHYSICAL_STORES.find(s => s.retailerId === retailer.id) || PHYSICAL_STORES[0];
-  const priceData = getStorePrice(currentStore.id, selectedProduct.gtin);
-  const activePrice = (priceData.promoPrice && priceData.promoPrice < priceData.regularPrice) ? priceData.promoPrice : priceData.regularPrice;
-  const regularPrice = priceData.regularPrice || selectedProduct.basePrice;
-  const savings = Math.max(0, regularPrice - activePrice);
-  const discountPercent = regularPrice > activePrice 
-    ? Math.round((1 - activePrice / regularPrice) * 100)
-    : 0;
-
-  return `
-    <div id="catalog-action-dock" class="fixed inset-x-0 bottom-[5.25rem] z-30 mx-auto max-w-3xl border-t-2 bg-white/95 px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-3" style="border-color:${retailer.color}; box-shadow: 0 -12px 35px -10px ${retailer.color}45;">
-      <div class="flex items-center justify-between gap-3">
-        <!-- Real-Time Catalog Product Details Preview -->
-        <div class="flex items-center gap-3 min-w-0 flex-1">
-          <div class="relative size-12 shrink-0 overflow-hidden rounded-2xl bg-slate-100 border border-slate-200 shadow-md">
-            ${selectedProduct.imageUrl ? `
-              <img src="${selectedProduct.imageUrl}" alt="${escapeHtml(selectedProduct.title)}" class="size-full object-cover rounded-2xl" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\\'grid size-full place-items-center text-2xl\\'>${selectedProduct.emoji || '🛍️'}</span>';" />
-            ` : `<span class="grid size-full place-items-center text-2xl">${selectedProduct.emoji || '🛍️'}</span>`}
-            <span class="absolute bottom-0 inset-x-0 bg-black/60 py-0.5 text-center text-[7px] font-mono text-white font-bold backdrop-blur-xs">EAN-13</span>
-          </div>
-
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="rounded-full px-2 py-0.5 text-[8px] font-black text-white shadow-xs flex items-center gap-1" style="background:${retailer.color}">
-                <span class="size-1.5 rounded-full bg-white animate-ping"></span>
-                <span>${retailer.name}</span>
-              </span>
-              <span class="rounded-md bg-slate-950 px-1.5 py-0.5 font-mono text-[8px] font-bold text-white shadow-xs">
-                ${selectedProduct.gtin}
-              </span>
-              ${discountPercent > 0 ? `
-                <span class="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[8px] font-black text-emerald-800">
-                  -${discountPercent}%
-                </span>
-              ` : ''}
-            </div>
-
-            <p class="truncate text-xs font-black text-slate-900 mt-1 leading-snug">${escapeHtml(selectedProduct.title)}</p>
-
-            <div class="flex items-center gap-2 mt-0.5">
-              <strong class="text-xs font-black text-slate-900">${zar.format(activePrice)}</strong>
-              ${regularPrice > activePrice ? `
-                <span class="text-[10px] text-slate-400 line-through">${zar.format(regularPrice)}</span>
-              ` : ''}
-              ${savings > 0 ? `
-                <span class="text-[9px] font-black text-emerald-600">Save ${zar.format(savings)}</span>
-              ` : ''}
-              <span class="text-[9px] text-slate-400 font-semibold">&bull; ${selectedProduct.weight || '1 unit'}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- The Two Active Buttons: + List and + Trolley -->
-        <div class="flex items-center gap-2 shrink-0">
-          <button id="dock-add-list-btn" type="button" class="flex items-center gap-1.5 rounded-2xl bg-slate-950 px-3.5 py-2.5 text-xs font-black text-white hover:bg-violet-700 active:scale-95 transition shadow-sm" title="Add to Grocery List">
-            <span>+</span><span>List</span>
-          </button>
-          <button id="dock-add-cartel-btn" type="button" class="flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-xs font-black text-white shadow-lg active:scale-95 transition hover:brightness-110" style="background:${retailer.color}" title="Add to Digital Trolley">
-            <span>+</span><span>Trolley</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function bindCatalogInteractions(retailer, store) {
-  // Dual mode toggle (At Home vs In-Store)
-  screen.querySelectorAll('[data-toggle-mode]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      state.shoppingMode = btn.dataset.toggleMode;
-      playBeepSound();
-      if (navigator.vibrate) navigator.vibrate(15);
-      renderMarket();
-    });
+  screen.querySelector('#open-zone-selector-btn')?.addEventListener('click', () => {
+    playBeepSound();
+    if (navigator.vibrate) navigator.vibrate(20);
+    openPricingZoneModal();
   });
 
-  // Fast shelf barcode scan trigger in in-store HUD
-  screen.querySelector('#instore-scan-btn')?.addEventListener('click', openLiveCameraScanner);
-
-  // SA staple search chips
   screen.querySelectorAll('[data-staple-search]').forEach((btn) => {
     btn.addEventListener('click', () => {
       state.catalogSearch = btn.dataset.stapleSearch;
+      state.globalSearchQuery = state.catalogSearch;
       playBeepSound();
       renderMarket();
     });
-  });
-
-  // Switch retailer from Bash-style brand rail
-  screen.querySelectorAll('[data-switch-market-retailer]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const retId = btn.dataset.switchMarketRetailer;
-      state.retailerId = retId;
-      const newStore = PHYSICAL_STORES.find(s => s.retailerId === retId);
-      if (newStore) state.currentStoreId = newStore.id;
-      playBeepSound();
-      if (navigator.vibrate) navigator.vibrate(20);
-      showToast(`🛍️ Switched to ${RETAILERS[retId]?.name} Catalog`);
-      renderMarket();
-    });
-  });
-
-  // Store Branch Selector Modal
-  screen.querySelector('#store-branch-selector-btn')?.addEventListener('click', () => {
-    playBeepSound();
-    if (navigator.vibrate) navigator.vibrate(20);
-    openStoreBranchModal(retailer);
-  });
-
-  // Search input handler
-  const searchInput = screen.querySelector('#catalog-search-input');
-  searchInput?.addEventListener('input', (e) => {
-    state.catalogSearch = e.target.value;
-    renderMarket();
-    const inputEl = screen.querySelector('#catalog-search-input');
-    if (inputEl) {
-      inputEl.focus();
-      inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
-    }
   });
 
   screen.querySelector('#clear-search-btn')?.addEventListener('click', () => {
     state.catalogSearch = '';
+    state.globalSearchQuery = '';
     renderMarket();
+    if (state.globalSearchOpen) renderGlobalSearchDrawer(false);
   });
 
   screen.querySelector('#reset-catalog-btn')?.addEventListener('click', () => {
     state.catalogSearch = '';
+    state.globalSearchQuery = '';
     state.catalogCategory = 'all';
     renderMarket();
   });
 
-
-  // View mode toggle (Grid vs Aisles)
   screen.querySelector('[data-toggle-view-mode]')?.addEventListener('click', () => {
     state.catalogViewMode = state.catalogViewMode === 'aisles' ? 'grid' : 'aisles';
     playBeepSound();
-    if (navigator.vibrate) navigator.vibrate(15);
     renderMarket();
   });
 
-  // House brand filter toggle (Ritebrand)
-  screen.querySelector('[data-toggle-house-brand]')?.addEventListener('click', () => {
-    state.houseBrandOnly = !state.houseBrandOnly;
-    playBeepSound();
-    if (navigator.vibrate) navigator.vibrate(20);
-    renderMarket();
-  });
-
-  // Cycle sort options
   screen.querySelector('[data-cycle-sort]')?.addEventListener('click', () => {
     const sorts = ['default', 'price-asc', 'savings-desc', 'name-asc'];
-    const nextIdx = (sorts.indexOf(state.catalogSort) + 1) % sorts.length;
-    state.catalogSort = sorts[nextIdx];
+    state.catalogSort = sorts[(sorts.indexOf(state.catalogSort) + 1) % sorts.length];
     playBeepSound();
-    if (navigator.vibrate) navigator.vibrate(15);
     renderMarket();
   });
 
-  // Open Category Manager Modal
   screen.querySelector('#open-category-manager-btn')?.addEventListener('click', () => {
-    openCategoryManagerModal(retailer, store);
+    openCategoryManagerModal(zone);
     playBeepSound();
-    if (navigator.vibrate) navigator.vibrate(20);
   });
 
-  // Category filter chips
   screen.querySelectorAll('[data-catalog-cat]').forEach((btn) => {
     btn.addEventListener('click', () => {
       state.catalogCategory = btn.dataset.catalogCat;
       playBeepSound();
-      if (navigator.vibrate) navigator.vibrate(15);
       renderMarket();
     });
   });
 
-  // Shared brand filter chips (White Star, Albany, Clover, etc.)
   screen.querySelectorAll('[data-brand-filter]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const brand = btn.dataset.brandFilter;
-      if ((state.catalogSearch || '').toLowerCase() === brand.toLowerCase()) {
-        state.catalogSearch = '';
-      } else {
-        state.catalogSearch = brand;
-      }
+      state.catalogSearch = (state.catalogSearch || '').toLowerCase() === brand.toLowerCase() ? '' : brand;
+      state.globalSearchQuery = state.catalogSearch;
       playBeepSound();
-      if (navigator.vibrate) navigator.vibrate(15);
       renderMarket();
     });
   });
 
-  // Direct Quick-Add Button on Product Cards
-  screen.querySelectorAll('[data-catalog-add-cart]').forEach((btn) => {
+  // 1-Tap Add to Trolley directly on Product Image
+  screen.querySelectorAll('[data-card-add-trolley]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const gtin = btn.dataset.catalogAddCart;
+      const gtin = btn.dataset.cardAddTrolley;
       const product = MASTER_PRODUCTS.get(gtin);
-      if (product) {
-        const priceData = getStorePrice(store.id, gtin);
-        const activePrice = (priceData.promoPrice && priceData.promoPrice < priceData.regularPrice) ? priceData.promoPrice : priceData.regularPrice;
-        const itemToAdd = {
-          barcode: gtin,
-          name: product.title,
-          weight: product.weight || '1 unit',
-          category: product.category || 'Pantry Staples & Grains',
-          price: activePrice,
-          basePrice: priceData.regularPrice || activePrice,
-          image: product.imageUrl,
-          retailerId: retailer.id,
-          emoji: product.emoji || '🛍️'
-        };
-        addToList(itemToAdd, state.retailerId);
-        automationCore.addToList(itemToAdd, state.retailerId);
-        playBeepSound();
-        if (navigator.vibrate) navigator.vibrate(30);
+      if (!product) return;
 
-        btn.innerHTML = '✓';
-        btn.classList.add('bg-emerald-600');
-        window.setTimeout(() => {
-          btn.innerHTML = '+';
-          btn.classList.remove('bg-emerald-600');
-        }, 900);
-        showToast(`✓ Added ${product.title.slice(0, 28)}... to ${retailer.name} list!`);
-      }
-    });
-  });
-
-  // Product Card Selection
-  screen.querySelectorAll('[data-select-catalog-product]').forEach((card) => {
-    card.addEventListener('click', () => {
-      const gtin = card.dataset.selectCatalogProduct;
-      state.selectedCatalogBarcode = gtin;
-      const product = MASTER_PRODUCTS.get(gtin);
-      if (product) {
-        const priceData = getStorePrice(store.id, gtin);
-        const activePrice = (priceData.promoPrice && priceData.promoPrice < priceData.regularPrice) ? priceData.promoPrice : priceData.regularPrice;
-        automationCore.selectProduct({
-          barcode: gtin,
-          name: product.title,
-          price: activePrice,
-          basePrice: priceData.regularPrice,
-          image: product.imageUrl,
-          weight: product.weight,
-          retailerId: retailer.id
-        });
-      }
-
+      addToCart({
+        barcode: gtin,
+        name: product.title,
+        weight: product.weight || '1 unit',
+        category: product.category || 'Pantry Staples & Grains',
+        image: product.imageUrl,
+        emoji: product.emoji || '🛍️'
+      }, state.retailerId);
+      automationCore.addToCartel({ barcode: gtin, name: product.title }, state.retailerId);
       playBeepSound();
-      if (navigator.vibrate) navigator.vibrate(25);
+      if (navigator.vibrate) navigator.vibrate([35, 20, 35]);
       renderMarket();
     });
   });
 
-  bindDockActionButtons(retailer, store);
-}
-
-function bindDockActionButtons(retailer, store) {
-  const selectedBarcode = state.selectedCatalogBarcode;
-  const masterProduct = MASTER_PRODUCTS.get(selectedBarcode);
-  const selectedProduct = masterProduct || (selectedBarcode ? PRODUCTS.get(selectedBarcode) : null);
-
-  if (!selectedProduct) return;
-
-  const currentStore = store || PHYSICAL_STORES.find(s => s.retailerId === retailer.id) || PHYSICAL_STORES[0];
-  const priceData = getStorePrice(currentStore.id, selectedBarcode);
-  const activePrice = (priceData.promoPrice && priceData.promoPrice < priceData.regularPrice) ? priceData.promoPrice : priceData.regularPrice;
-
-  const itemToAdd = {
-    barcode: selectedBarcode,
-    name: selectedProduct.title || selectedProduct.name,
-    weight: selectedProduct.weight || '1 unit',
-    category: selectedProduct.category || 'Pantry Staples & Grains',
-    price: activePrice,
-    basePrice: priceData.regularPrice || selectedProduct.basePrice || activePrice,
-    image: selectedProduct.imageUrl || selectedProduct.image,
-    retailerId: retailer.id,
-    emoji: selectedProduct.emoji || '🛍️'
-  };
-
-  // Add to List from Dock
-  screen.querySelector('#dock-add-list-btn')?.addEventListener('click', () => {
-    addToList(itemToAdd, state.retailerId);
-    automationCore.addToList(itemToAdd, state.retailerId);
-    playBeepSound();
-    if (navigator.vibrate) navigator.vibrate(30);
-
-    const btn = screen.querySelector('#dock-add-list-btn');
-    if (btn) {
-      btn.innerHTML = '<span>✓</span><span>Listed</span>';
-      btn.classList.add('bg-emerald-600');
-      window.setTimeout(() => {
-        btn.innerHTML = '<span>+</span><span>List</span>';
-        btn.classList.remove('bg-emerald-600');
-      }, 900);
-    }
-    showToast(`✓ Added ${itemToAdd.name} to ${retailer.name} Checklist`);
-  });
-
-  // Add to Trolley from Dock
-  screen.querySelector('#dock-add-cartel-btn')?.addEventListener('click', () => {
-    addToCart(itemToAdd, state.retailerId);
-    automationCore.addToCartel(itemToAdd, state.retailerId);
-    playBeepSound();
-    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-
-    const btn = screen.querySelector('#dock-add-cartel-btn');
-    if (btn) {
-      btn.innerHTML = '<span>✓</span><span>In Trolley</span>';
-      btn.classList.add('bg-emerald-600');
-      window.setTimeout(() => {
-        btn.innerHTML = '<span>+</span><span>Trolley</span>';
-        btn.classList.remove('bg-emerald-600');
-      }, 900);
-    }
-    showToast(`✓ Added ${itemToAdd.name} to ${retailer.name} Trolley for till checkout`);
+  // 1-Tap Decrement right on Product Image
+  screen.querySelectorAll('[data-card-dec-trolley]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const gtin = btn.dataset.cardDecTrolley;
+      const existing = state.cart.find((i) => i.barcode === gtin);
+      if (!existing) return;
+      if (existing.quantity <= 1) {
+        removeCartItem(gtin);
+      } else {
+        existing.quantity -= 1;
+        updateCartBadge();
+        renderMarket();
+      }
+    });
   });
 }
 
+function triggerLiveZoneGpsMatch({ onComplete } = {}) {
+  if (!('geolocation' in navigator)) {
+    state.gpsStatus = 'manual';
+    showToast('Geolocation not supported — select your town or city area.');
+    if (onComplete) onComplete(false);
+    return;
+  }
+  state.gpsStatus = 'locating';
+  if (onComplete) onComplete('locating');
 
-function openCategoryManagerModal(retailer, store) {
-  const retailerProducts = getRetailerProducts(retailer.id);
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      const { zone, distanceKm } = findClosestZone(latitude, longitude);
+      state.pricingZoneId = zone.id;
+      state.detectedDistanceKm = distanceKm;
+      state.gpsStatus = 'matched';
+      playBeepSound();
+      if (navigator.vibrate) navigator.vibrate([35, 20, 35]);
+      showToast(`📍 Matched to ${zone.name} (${distanceKm} km)`);
+      if (onComplete) onComplete(true, zone);
+    },
+    () => {
+      state.gpsStatus = 'manual';
+      showToast('Live GPS unavailable — pick your town or city area.');
+      if (onComplete) onComplete(false);
+    },
+    { enableHighAccuracy: true, timeout: 7000, maximumAge: 60000 }
+  );
+}
+
+function openCategoryManagerModal(zone) {
+  const allProducts = Array.from(MASTER_PRODUCTS.values());
 
   modalRoot.innerHTML = `
-    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md animate-in fade-in">
-      <div class="relative max-h-[85vh] w-full max-w-lg overflow-hidden rounded-[2.5rem] bg-white p-6 shadow-2xl animate-in slide-in-from-bottom-5">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/65 p-4 backdrop-blur-md animate-in fade-in">
+      <div class="relative max-h-[85vh] w-full max-w-lg overflow-hidden rounded-[2.25rem] bg-white p-6 shadow-2xl animate-in slide-in-from-bottom-5">
+        <div class="flex items-center justify-between pb-3 border-b border-stone-100">
           <div>
-            <h3 class="text-base font-black text-slate-900">${retailer.name} Department Manager</h3>
-            <p class="text-xs text-slate-400">Manage and browse ${retailerProducts.length} items categorized by store aisle</p>
+            <h3 class="text-base font-black text-slate-900">Market Departments</h3>
+            <p class="text-xs text-slate-400">Browse ${allProducts.length} grocery staples by aisle</p>
           </div>
-          <button id="close-cat-modal-btn" type="button" class="grid size-8 place-items-center rounded-xl bg-slate-100 text-xs font-bold text-slate-500 hover:bg-slate-200">✕</button>
+          <button id="close-cat-modal-btn" type="button" class="grid size-8 place-items-center rounded-xl bg-stone-100 text-xs font-bold text-slate-500 hover:bg-stone-200">✕</button>
         </div>
 
         <div class="mt-4 space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
-          <button type="button" data-pick-dept="all" class="w-full flex items-center justify-between rounded-2xl border-2 p-3 text-left transition active:scale-98 ${state.catalogCategory === 'all' && !state.houseBrandOnly ? 'border-slate-950 bg-slate-50 ring-2 ring-slate-900/10' : 'border-slate-100 bg-white hover:border-slate-200'}">
+          <button type="button" data-pick-dept="all" class="w-full flex items-center justify-between rounded-2xl border-2 p-3 text-left transition active:scale-98 ${state.catalogCategory === 'all' ? 'border-slate-900 bg-stone-50' : 'border-stone-100 bg-white hover:border-stone-200'}">
             <div class="flex items-center gap-3">
-              <span class="grid size-11 place-items-center rounded-2xl bg-slate-950 text-white text-xl shadow-xs">🛍️</span>
+              <span class="grid size-11 place-items-center rounded-2xl bg-slate-900 text-white text-xl shadow-2xs">🛍️</span>
               <div>
-                <h4 class="text-xs font-black text-slate-900">All Supermarket Departments</h4>
-                <p class="text-[10px] text-slate-400">Complete catalog of ${retailerProducts.length} grocery items</p>
+                <h4 class="text-xs font-black text-slate-900">All Market Departments</h4>
+                <p class="text-[10px] text-slate-400">Complete catalog of ${allProducts.length} grocery items</p>
               </div>
             </div>
-            <span class="rounded-full bg-slate-200 px-2.5 py-0.5 text-[9px] font-black text-slate-700">${retailerProducts.length} items</span>
+            <span class="rounded-full bg-stone-200 px-2.5 py-0.5 text-[9px] font-black text-slate-700">${allProducts.length} items</span>
           </button>
 
           ${CATEGORIES.map(cat => {
-            const items = retailerProducts.filter(p => p.category === cat.id);
-            const hbCount = items.filter(p => p.isHouseBrand).length;
+            const items = allProducts.filter(p => p.category === cat.id);
             const minPrice = items.length ? Math.min(...items.map(p => {
-              const pd = getStorePrice(store.id, p.gtin);
+              const pd = getZonePrice(zone.id, state.retailerId, p.gtin);
               return pd.promoPrice || pd.regularPrice;
             })) : 0;
-            const isSelected = state.catalogCategory === cat.id && !state.houseBrandOnly;
+            const isSelected = state.catalogCategory === cat.id;
 
             return `
-              <button type="button" data-pick-dept="${cat.id}" class="w-full flex items-center justify-between rounded-2xl border-2 p-3 text-left transition active:scale-98 ${isSelected ? 'border-slate-950 bg-slate-50 ring-2 ring-slate-900/10' : 'border-slate-100 bg-white hover:border-slate-200'}">
+              <button type="button" data-pick-dept="${cat.id}" class="w-full flex items-center justify-between rounded-2xl border-2 p-3 text-left transition active:scale-98 ${isSelected ? 'border-slate-900 bg-stone-50' : 'border-stone-100 bg-white hover:border-stone-200'}">
                 <div class="flex items-center gap-3">
-                  <span class="grid size-11 place-items-center rounded-2xl bg-slate-100 text-xl shadow-2xs">${cat.emoji}</span>
+                  <span class="grid size-11 place-items-center rounded-2xl bg-stone-100 text-xl shadow-2xs">${cat.emoji}</span>
                   <div>
                     <h4 class="text-xs font-black text-slate-900">${cat.id}</h4>
-                    <p class="text-[10px] text-slate-400 font-bold">
-                      ${items.length} items &bull; From ${zar.format(minPrice)}
-                      ${hbCount ? `<span class="text-red-600 font-bold">&bull; ${hbCount} Ritebrand</span>` : ''}
-                    </p>
+                    <p class="text-[10px] text-slate-400 font-bold">${items.length} items &bull; From ${zar.format(minPrice)}</p>
                   </div>
                 </div>
-                <div class="text-right">
-                  <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[8.5px] font-black text-emerald-800">
-                    Browse Aisle
-                  </span>
-                  ${isSelected ? '<span class="block text-[8px] font-black text-slate-900 mt-1">● ACTIVE</span>' : ''}
-                </div>
+                <span class="rounded-full bg-[#edf3ee] px-2 py-0.5 text-[8.5px] font-black text-[#234e3b]">Browse Aisle</span>
               </button>
             `;
           }).join('')}
@@ -2554,209 +1915,247 @@ function openCategoryManagerModal(retailer, store) {
     </div>
   `;
 
-  modalRoot.querySelector('#close-cat-modal-btn')?.addEventListener('click', () => {
-    modalRoot.innerHTML = '';
-  });
-
+  modalRoot.querySelector('#close-cat-modal-btn')?.addEventListener('click', () => { modalRoot.innerHTML = ''; });
   modalRoot.querySelectorAll('[data-pick-dept]').forEach(btn => {
     btn.addEventListener('click', () => {
       state.catalogCategory = btn.dataset.pickDept;
-      state.houseBrandOnly = false;
       modalRoot.innerHTML = '';
       playBeepSound();
-      if (navigator.vibrate) navigator.vibrate(20);
       renderMarket();
     });
   });
 }
 
+function openPricingZoneModal() {
+  state.overlay = 'pricing-zone';
+  const currentZone = getActiveZone();
+  const townZones = PRICING_ZONES.filter((z) => z.kind === 'town');
+  const metroZones = PRICING_ZONES.filter((z) => z.kind === 'metro');
 
-function openStoreBranchModal(currentRetailer) {
   modalRoot.innerHTML = `
-    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md animate-in fade-in">
-      <div class="relative max-h-[85vh] w-full max-w-lg overflow-hidden rounded-[2.5rem] bg-white p-6 shadow-2xl animate-in slide-in-from-bottom-5">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/65 p-4 backdrop-blur-md animate-in fade-in">
+      <div class="relative max-h-[86vh] w-full max-w-lg overflow-hidden rounded-[2.25rem] bg-stone-50 p-6 shadow-2xl border border-stone-200/90">
+        <div class="flex items-center justify-between pb-3 border-b border-stone-200/80">
           <div>
-            <h3 class="text-base font-black text-slate-900">Select Supermarket Branch</h3>
-            <p class="text-xs text-slate-400">Choose physical branch for live store-level pricing</p>
+            <h3 class="text-base font-black text-slate-900">Select Town or City Area</h3>
+            <p class="text-xs text-slate-500">Retailer sales apply town-wide, or by area in big cities</p>
           </div>
-          <button id="close-branch-modal-btn" type="button" class="grid size-8 place-items-center rounded-xl bg-slate-100 text-xs font-bold text-slate-500 hover:bg-slate-200">✕</button>
+          <button id="close-zone-modal-btn" type="button" class="grid size-8 place-items-center rounded-xl bg-stone-200/80 text-xs font-bold text-slate-600 hover:bg-stone-300/70">✕</button>
         </div>
 
-        <!-- GPS Auto-Detect Button -->
-        <button id="auto-gps-store-btn" type="button" class="mt-4 flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 px-4 py-3 text-xs font-black text-white shadow-md active:scale-98 transition">
+        <button id="auto-gps-zone-btn" type="button" class="mt-4 flex w-full items-center justify-between rounded-2xl bg-[#234e3b] px-4 py-3 text-xs font-black text-white shadow-sm hover:bg-[#1b3d2e] active:scale-98 transition">
           <span class="flex items-center gap-2">
             <span>📍</span>
-            <span>Auto-Detect Nearest Store (Live GPS)</span>
+            <span>Match Live Location to Closest Town / Area</span>
           </span>
-          <span class="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-lg">Haversine</span>
+          <span class="text-[9.5px] font-bold uppercase tracking-wider bg-white/15 px-2 py-0.5 rounded-lg">Live GPS</span>
         </button>
 
-        <!-- Stores List -->
-        <div class="mt-4 space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">
-          ${PHYSICAL_STORES.map((s) => {
-            const isCurrent = s.id === state.currentStoreId;
-            return `
-              <button type="button" data-pick-store="${s.id}" data-pick-retailer="${s.retailerId}" class="w-full flex items-center justify-between rounded-2xl border-2 p-3 text-left transition active:scale-98 ${isCurrent ? 'border-slate-950 bg-slate-50 ring-2 ring-slate-900/10' : 'border-slate-100 bg-white hover:border-slate-200'}">
-                <div class="flex items-center gap-3 min-w-0">
-                  <div class="grid size-10 shrink-0 place-items-center rounded-xl text-white font-black text-xs shadow-xs" style="background:${s.color}">
-                    ${s.retailer.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-1.5">
-                      <h4 class="text-xs font-black text-slate-900 truncate">${s.name}</h4>
-                      <span class="font-mono text-[8px] font-bold text-slate-400">#${s.retailerStoreCode}</span>
+        <div class="mt-4 space-y-4 max-h-[54vh] overflow-y-auto pr-1">
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">🏘️ Towns (Shared across all town branches)</p>
+            <div class="grid grid-cols-2 gap-2">
+              ${townZones.map((z) => {
+                const isCurrent = z.id === currentZone.id;
+                return `
+                  <button type="button" data-pick-zone="${z.id}" class="rounded-2xl border-2 p-3 text-left transition active:scale-98 ${isCurrent ? 'border-[#234e3b] bg-[#eaf2ec]' : 'border-stone-200/90 bg-white hover:border-stone-300'}">
+                    <div class="flex items-center justify-between gap-1">
+                      <h4 class="text-xs font-black text-slate-900 truncate">${escapeHtml(z.name)}</h4>
+                      ${isCurrent ? '<span class="text-[9px] font-black text-[#234e3b]">●</span>' : ''}
                     </div>
-                    <p class="text-[10px] text-slate-400 truncate">${s.address}</p>
-                  </div>
-                </div>
-                <div class="text-right shrink-0">
-                  <span class="rounded-full px-2 py-0.5 text-[8px] font-black text-white shadow-2xs" style="background:${s.color}">
-                    ${s.loyalty}
-                  </span>
-                  ${isCurrent ? '<span class="block text-[8px] font-black text-emerald-600 mt-1">● ACTIVE</span>' : ''}
-                </div>
-              </button>
-            `;
-          }).join('')}
+                    <p class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(z.province)} · Town-wide</p>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">🏙️ Big Cities (Shared across metro area / section)</p>
+            <div class="space-y-2">
+              ${metroZones.map((z) => {
+                const isCurrent = z.id === currentZone.id;
+                return `
+                  <button type="button" data-pick-zone="${z.id}" class="w-full flex items-center justify-between rounded-2xl border-2 p-3 text-left transition active:scale-98 ${isCurrent ? 'border-[#234e3b] bg-[#eaf2ec]' : 'border-stone-200/90 bg-white hover:border-stone-300'}">
+                    <div class="min-w-0">
+                      <h4 class="text-xs font-black text-slate-900 truncate">${escapeHtml(z.city)} · ${escapeHtml(z.section)}</h4>
+                      <p class="text-[10px] text-slate-500 truncate">${escapeHtml(z.province)} · Area-wide promotions</p>
+                    </div>
+                    <span class="shrink-0 rounded-full px-2 py-0.5 text-[8.5px] font-black ${isCurrent ? 'bg-[#234e3b] text-white' : 'bg-stone-100 text-slate-600'}">
+                      ${isCurrent ? 'Active' : 'Select'}
+                    </span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
         </div>
       </div>
     </div>
   `;
 
-  modalRoot.querySelector('#close-branch-modal-btn')?.addEventListener('click', () => {
-    modalRoot.innerHTML = '';
-  });
+  modalRoot.querySelector('#close-zone-modal-btn')?.addEventListener('click', closeModal);
 
-  modalRoot.querySelectorAll('[data-pick-store]').forEach((btn) => {
+  modalRoot.querySelectorAll('[data-pick-zone]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      state.currentStoreId = btn.dataset.pickStore;
-      state.retailerId = btn.dataset.pickRetailer;
+      state.pricingZoneId = btn.dataset.pickZone;
+      state.detectedDistanceKm = null;
+      state.gpsStatus = 'manual';
+      closeModal();
       playBeepSound();
-      if (navigator.vibrate) navigator.vibrate(30);
-      modalRoot.innerHTML = '';
-      showToast(`📍 Switched to ${PHYSICAL_STORES.find(s => s.id === state.currentStoreId)?.name}`);
-      renderMarket();
+      showToast(`📍 Pricing set to ${getActiveZone().name}`);
+      render();
     });
   });
 
-  modalRoot.querySelector('#auto-gps-store-btn')?.addEventListener('click', () => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          let closest = PHYSICAL_STORES[0];
-          let minDistance = Infinity;
-
-          PHYSICAL_STORES.forEach((s) => {
-            const geo = s.geoPoint || { latitude: -29.8587, longitude: 31.0218 };
-            const dLat = (geo.latitude - latitude) * (Math.PI / 180);
-            const dLon = (geo.longitude - longitude) * (Math.PI / 180);
-            const a = Math.sin(dLat / 2) ** 2 + Math.cos(latitude * (Math.PI / 180)) * Math.cos(geo.latitude * (Math.PI / 180)) * Math.sin(dLon / 2) ** 2;
-            const dist = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            if (dist < minDistance) {
-              minDistance = dist;
-              closest = s;
-            }
-          });
-
-          state.currentStoreId = closest.id;
-          state.retailerId = closest.retailerId;
-          playBeepSound();
-          if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
-          modalRoot.innerHTML = '';
-          showToast(`📍 GPS Located: ${closest.name} (${Math.round(minDistance * 10) / 10} km)`);
-          renderMarket();
-        },
-        () => {
-          showToast('GPS unavailable. Selected Shoprite Durban Central.');
-          modalRoot.innerHTML = '';
+  modalRoot.querySelector('#auto-gps-zone-btn')?.addEventListener('click', () => {
+    triggerLiveZoneGpsMatch({
+      onComplete: (ok) => {
+        if (ok) {
+          closeModal();
+          render();
         }
-      );
-    } else {
-      showToast('Geolocation not supported on this browser.');
-    }
+      }
+    });
   });
 }
 
+// ==========================================
+// MERGED UNIFIED TROLLEY + ENGAGED THEMED STORE COMPARISON BAROMETER
+// ==========================================
+
 function renderCartel() {
   const retailer = getRetailer();
+  const theme = RETAILER_THEMES[retailer.id] || RETAILER_THEMES.shoprite;
+  const zone = getActiveZone();
   const activeRetailerCart = getRetailerCart(state.retailerId);
-  const activeItemCount = getItemCount(state.retailerId);
+  const activeItemCount = getItemCount();
   const activeTotal = getPayableTotal(state.retailerId);
   const activeSavings = getCurrentSavings(state.retailerId);
+  const comparison = calculateTrolleyComparison();
+  const cheapestStore = comparison.cheapest;
+  const isCheapestSelected = cheapestStore && cheapestStore.retailerId === retailer.id;
+  const switchPotential = cheapestStore ? Math.max(0, Math.round((activeTotal - cheapestStore.total) * 100) / 100) : 0;
 
   screen.innerHTML = `
-    <section class="pb-40">
-      <!-- Retailer Carousel / Switcher Bar at the Top -->
-      <div class="bg-slate-950 px-5 pt-4 pb-3 text-white">
-        <div class="flex items-center justify-between mb-2.5">
-          <p class="text-[10px] font-black uppercase tracking-[.18em] text-white/50">Swipe / Switch Store Trolley</p>
-          <span class="text-[10px] text-emerald-400 font-bold">Isolated POS Till Checkouts</span>
-        </div>
-
-        <div id="cartel-retailer-carousel" class="flex gap-2.5 overflow-x-auto pb-1 [scrollbar-width:none]">
-          ${Object.values(RETAILERS).map((ret) => {
-            const isSelected = state.retailerId === ret.id;
-            const retCount = getItemCount(ret.id);
-            return `
-              <button type="button" data-switch-cartel-retailer="${ret.id}" class="flex-1 min-w-[7.5rem] rounded-2xl p-2.5 text-left border transition active:scale-95 ${isSelected ? 'border-white text-white shadow-lg' : 'border-white/10 bg-white/5 text-white/70 hover:bg-white/10'}" style="${isSelected ? `background:${ret.color}` : ''}">
-                <div class="flex items-center justify-between">
-                  <div class="grid size-6 shrink-0 place-items-center rounded-lg bg-white p-0.5 shadow-xs overflow-hidden">
-                    <img src="${ret.logoUrl}" alt="${ret.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${ret.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-[9px]\\'>${ret.initials}</span>';" />
-                  </div>
-                  <span class="rounded-full px-2 py-0.5 text-[9px] font-black ${isSelected ? 'bg-black/30 text-white' : 'bg-white/10 text-white/80'}">${retCount} in cart</span>
-                </div>
-                <p class="mt-2 text-xs font-black truncate">${ret.name}</p>
-              </button>
-            `;
-          }).join('')}
-        </div>
-      </div>
-
-      <!-- Active Retailer Banner -->
-      <div class="px-5 pb-5 pt-5 text-white shadow-lg" style="background:linear-gradient(135deg,${retailer.color},color-mix(in srgb,${retailer.color} 68%,#0f172a))">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-[10px] font-black uppercase tracking-[.2em] text-white/70">In-Store Smart Trolley &middot; Active Store</p>
-            <h1 class="mt-1 text-3xl font-black tracking-[-.04em]">${retailer.name}</h1>
-            <p class="mt-0.5 text-xs font-semibold text-white/70">${retailer.tagline}</p>
-          </div>
-          <div class="grid size-14 shrink-0 place-items-center rounded-2xl bg-white p-2 shadow-lg overflow-hidden border border-white/20">
-            <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-base\\'>${retailer.initials}</span>';" />
-          </div>
-        </div>
-
-        <div class="mt-4 flex items-center justify-between gap-3">
-          <div class="flex flex-1 items-center gap-2 rounded-2xl bg-black/20 px-3.5 py-2.5 text-xs font-bold backdrop-blur-sm">
-            <span class="relative flex size-2.5"><span class="absolute inline-flex size-full animate-ping rounded-full bg-white opacity-40"></span><span class="relative size-2.5 rounded-full bg-white"></span></span>
-            <span id="scan-status" class="truncate">${activeItemCount} items in ${retailer.name} Trolley (Ready for Till Flash)</span>
-          </div>
-          <button data-open-camera class="flex shrink-0 items-center gap-1.5 rounded-2xl bg-white px-3.5 py-2.5 text-xs font-black shadow-md transition active:scale-95" style="color:${retailer.color}">
-            <svg viewBox="0 0 24 24" class="size-4 fill-none stroke-current stroke-2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            <span>Scan Camera</span>
+    <section class="pb-44">
+      <!-- Integrated Retailer-Themed Store Comparison Barometer Hero -->
+      <div class="relative overflow-hidden rounded-b-[2.25rem] px-5 pb-6 pt-4 text-white shadow-xl transition-all duration-300" style="background: ${theme.heroGradient}">
+        <!-- Top Utility Row -->
+        <div class="flex items-center justify-between gap-2">
+          <button id="trolley-back-market-btn" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5 text-xs font-black text-white backdrop-blur-md hover:bg-white/25 active:scale-95 transition">
+            <span>←</span><span>Market</span>
+          </button>
+          <button id="trolley-zone-btn" type="button" class="inline-flex items-center gap-1 rounded-xl bg-black/25 px-2.5 py-1.5 text-[10px] font-bold text-white/90 backdrop-blur-md hover:bg-black/35 transition">
+            <span>📍</span><span>${escapeHtml(zone.name)} ▾</span>
+          </button>
+          <button id="trolley-search-add-btn" type="button" class="inline-flex items-center gap-1 rounded-xl bg-white/15 px-3 py-1.5 text-xs font-black text-white backdrop-blur-md hover:bg-white/25 active:scale-95 transition">
+            <span>+ Add Item</span>
           </button>
         </div>
+
+        <!-- Active Store Spotlight -->
+        <div class="mt-4 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="grid size-14 shrink-0 place-items-center rounded-2xl bg-white p-2 shadow-lg border border-white/30 overflow-hidden">
+              <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-base\\'>${retailer.initials}</span>';" />
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="rounded-full bg-white/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">${retailer.loyalty}</span>
+                ${activeRetailerCart.length > 0 && isCheapestSelected ? `
+                  <span class="rounded-full bg-emerald-400/25 border border-emerald-300/40 px-2 py-0.5 text-[9px] font-black text-emerald-100">🥇 Lowest Basket</span>
+                ` : ''}
+              </div>
+              <h1 class="mt-1 text-2xl font-black tracking-tight truncate">${retailer.name} Trolley</h1>
+              <p class="text-[11px] font-medium text-white/80">${activeItemCount} item${activeItemCount === 1 ? '' : 's'} &middot; ${activeSavings > 0 ? `Saving ${zar.format(activeSavings)} on promos` : retailer.tagline}</p>
+            </div>
+          </div>
+
+          <div class="text-right shrink-0">
+            <p class="text-[9.5px] font-black uppercase tracking-wider text-white/70">Store Total</p>
+            <p class="text-2xl font-black tracking-tight tabular-nums">${zar.format(activeTotal)}</p>
+          </div>
+        </div>
+
+        <!-- Engaged 6-Store Comparison Barometer Integrated Into Hero -->
+        ${activeRetailerCart.length > 0 ? `
+          <div class="mt-5 rounded-3xl p-3.5 backdrop-blur-md border border-white/15" style="background: ${theme.barometerBg}">
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs">⚖️</span>
+                <span class="text-[10px] font-black uppercase tracking-[.14em] text-white/90">Store Comparison Barometer</span>
+              </div>
+              ${!isCheapestSelected && switchPotential > 0 ? `
+                <button type="button" data-switch-cartel-retailer="${cheapestStore.retailerId}" class="rounded-full bg-white px-2.5 py-0.5 text-[9.5px] font-black shadow-sm active:scale-95 transition" style="color: ${cheapestStore.retailer.color}">
+                  Save ${zar.format(switchPotential)} at ${cheapestStore.retailer.name} ➔
+                </button>
+              ` : `
+                <span class="text-[10px] font-bold text-emerald-200">Best store active · Max spread ${zar.format(comparison.maxSavings)}</span>
+              `}
+            </div>
+
+            <!-- 6 Interactive Retailer Theme Cards -->
+            <div class="grid grid-cols-3 gap-2">
+              ${comparison.storeTotals.map((st, rank) => {
+                const isSelected = st.retailerId === retailer.id;
+                const isLowest = rank === 0;
+                const diff = Math.max(0, Math.round((st.total - cheapestStore.total) * 100) / 100);
+                const barWidth = comparison.mostExpensive.total > 0
+                  ? Math.max(35, Math.round((st.total / comparison.mostExpensive.total) * 100))
+                  : 100;
+                const rankBadge = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `#${rank + 1}`;
+
+                return `
+                  <button
+                    type="button"
+                    data-switch-cartel-retailer="${st.retailerId}"
+                    class="group relative flex flex-col justify-between overflow-hidden rounded-2xl p-2.5 text-left transition-all duration-200 active:scale-95 ${isSelected ? 'bg-white text-slate-950 shadow-lg ring-2 ring-white scale-[1.02]' : 'bg-white/12 text-white hover:bg-white/20 border border-white/15'}"
+                  >
+                    <div class="absolute inset-x-0 top-0 h-1" style="background: ${st.retailer.color}"></div>
+                    <div class="flex items-center justify-between gap-1 pt-0.5">
+                      <div class="size-5 shrink-0 rounded-md bg-white p-0.5 shadow-2xs overflow-hidden border border-slate-100">
+                        <img src="${st.retailer.logoUrl}" alt="${st.retailer.name}" class="size-full object-contain" onerror="this.parentElement.style.background='${st.retailer.color}';this.parentElement.innerHTML='<span class=\\'text-[7px] font-black text-white\\'>${st.retailer.initials}</span>';" />
+                      </div>
+                      <span class="text-[9.5px] font-black ${isSelected ? 'text-slate-600' : 'text-white/80'}">${rankBadge}</span>
+                    </div>
+
+                    <p class="mt-1.5 truncate text-[10.5px] font-black ${isSelected ? 'text-slate-900' : 'text-white'}">${st.retailer.name}</p>
+                    <p class="text-xs font-black tabular-nums ${isSelected ? '' : 'text-white'}" style="${isSelected ? `color:${st.retailer.color}` : ''}">${zar.format(st.total)}</p>
+
+                    <div class="mt-1.5 h-1 w-full overflow-hidden rounded-full ${isSelected ? 'bg-slate-100' : 'bg-white/15'}">
+                      <div class="h-full rounded-full transition-all duration-300" style="width:${barWidth}%; background:${isLowest ? '#10b981' : st.retailer.color}"></div>
+                    </div>
+
+                    <span class="mt-1 block text-[8.5px] font-bold ${isLowest ? (isSelected ? 'text-emerald-700 font-black' : 'text-emerald-200 font-black') : (isSelected ? 'text-slate-400' : 'text-white/65')}">
+                      ${isLowest ? 'Cheapest 🎯' : `+${zar.format(diff)}`}
+                    </span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        ` : ''}
       </div>
 
-      <!-- Items in this Retailer's Cartel -->
-      ${activeRetailerCart.length ? cartelItems(activeRetailerCart) : emptyCartel(retailer)}
+      <!-- Grocery Items Under Active Retailer -->
+      ${activeRetailerCart.length ? cartelItems(activeRetailerCart, retailer, theme) : emptyCartel(retailer)}
 
-      <!-- Bottom Checkout Bar for this Retailer -->
-      <div class="fixed inset-x-0 bottom-[5.25rem] z-30 mx-auto max-w-3xl border-t border-slate-200 bg-white/95 px-5 py-3 shadow-[0_-16px_40px_-28px_rgba(15,23,42,.5)] backdrop-blur-xl">
-        <div class="mb-3 flex items-end justify-between">
+      <!-- Bottom Checkout Bar (User Chooses Delivery or Single-Code Till Checkout) -->
+      <div class="fixed inset-x-0 bottom-[5rem] z-30 mx-auto max-w-3xl border-t border-stone-200 bg-white/95 px-5 py-3 shadow-[0_-16px_40px_-28px_rgba(15,23,42,.4)] backdrop-blur-xl">
+        <div class="mb-2.5 flex items-end justify-between">
           <div>
-            <p class="text-[10px] font-black uppercase tracking-[.18em] text-slate-400">${activeItemCount} items at ${retailer.name} &middot; saved ${zar.format(activeSavings)}</p>
-            <p class="mt-1 text-sm font-bold">${retailer.name} Total Price</p>
+            <p class="text-[10px] font-black uppercase tracking-[.16em] text-slate-400">${activeItemCount} item${activeItemCount === 1 ? '' : 's'} under ${retailer.name} &middot; saved ${zar.format(activeSavings)}</p>
+            <p class="mt-0.5 text-xs font-bold text-slate-600">${retailer.name} Checkout Total</p>
           </div>
-          <p class="text-3xl font-black tracking-[-.05em]">${zar.format(activeTotal)}</p>
+          <p class="text-2xl font-black tracking-tight tabular-nums" style="color:${retailer.color}">${zar.format(activeTotal)}</p>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <button id="delivery-checkout" class="secondary-button" ${activeRetailerCart.length ? '' : 'disabled'}>
-            <span>Order Delivery</span>
+          <button id="delivery-checkout" class="secondary-button min-h-12 text-xs" ${activeRetailerCart.length ? '' : 'disabled'}>
+            <span>🚚 Order Delivery</span>
           </button>
-          <button id="store-checkout" class="primary-button text-white shadow-lg active:scale-95 transition" style="background:${retailer.color}" ${activeRetailerCart.length ? '' : 'disabled'}>
-            <span>${retailer.name} Till Checkout</span>
+          <button id="store-checkout" class="primary-button min-h-12 text-xs text-white shadow-md active:scale-95 transition" style="background:${retailer.color}" ${activeRetailerCart.length ? '' : 'disabled'}>
+            <span>🏪 ${retailer.name} Till Checkout</span>
           </button>
         </div>
       </div>
@@ -2766,65 +2165,180 @@ function renderCartel() {
 }
 
 function emptyCartel(retailer) {
+  const quickStaples = Array.from(MASTER_PRODUCTS.values()).slice(0, 4);
   return `
-    <div class="mx-5 mt-5 grid min-h-[35dvh] place-items-center rounded-[2rem] border border-dashed border-slate-300 bg-white/60 px-8 text-center">
-      <div>
-        <span class="mx-auto grid size-16 place-items-center rounded-3xl text-4xl" style="background:${retailer.soft}">&#128717;</span>
-        <h2 class="mt-4 font-black">Your ${retailer.name} Cartel is empty</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-500">Pick products from your <a href="#list" class="font-bold text-violet-600 underline">Checklist</a> or browse the <a href="#market" class="font-bold text-violet-600 underline">${retailer.name} Catalogue</a>.</p>
-        <div class="mt-5 flex flex-wrap justify-center gap-2">
-          <button onclick="location.hash='#list'" class="rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-black text-white shadow-md shadow-violet-600/30">
-            Open Grocery Checklist
-          </button>
-          <button data-open-camera class="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black text-white shadow-md flex items-center gap-1.5">
-            <svg viewBox="0 0 24 24" class="size-4 fill-none stroke-current stroke-2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            <span>Scan with Camera</span>
-          </button>
+    <div class="mx-5 mt-5 rounded-[2rem] border border-dashed border-stone-300 bg-white/80 p-6 text-center">
+      <span class="mx-auto grid size-14 place-items-center rounded-2xl text-3xl" style="background:${retailer.soft}">&#128722;</span>
+      <h2 class="mt-3 text-base font-black text-slate-900">Your Trolley is empty</h2>
+      <p class="mt-1 text-xs leading-5 text-slate-500">Add groceries from the Open Market or tap below to start comparing all 6 retailers live.</p>
+
+      <div class="mt-4 flex flex-wrap justify-center gap-2">
+        <button data-go-market-empty class="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black text-white shadow-sm">
+          Browse Open Market
+        </button>
+        <button data-open-camera class="rounded-xl bg-[#234e3b] px-4 py-2.5 text-xs font-black text-white shadow-sm flex items-center gap-1.5">
+          <span>📷 Scan Barcode</span>
+        </button>
+      </div>
+
+      <div class="mt-5 border-t border-stone-200/70 pt-4 text-left">
+        <p class="text-[10px] font-black uppercase tracking-wider text-slate-400 text-center">Quick Add Staples to Test Comparison</p>
+        <div class="mt-2.5 grid grid-cols-2 gap-2">
+          ${quickStaples.map((p) => `
+            <button type="button" data-empty-quick-add="${p.gtin}" class="flex items-center gap-2 rounded-2xl border border-stone-200 bg-stone-50/70 p-2 text-left hover:bg-white transition active:scale-95">
+              <img src="${p.imageUrl}" alt="" class="size-8 rounded-lg object-contain bg-white p-0.5 border border-stone-100" />
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-[10.5px] font-black text-slate-800">${escapeHtml(p.title.split(' ').slice(0, 2).join(' '))}</p>
+                <p class="text-[9.5px] font-bold text-[#234e3b]">+ Add</p>
+              </div>
+            </button>
+          `).join('')}
         </div>
       </div>
     </div>`;
 }
 
-function cartelItems(items = state.cart) {
-  return `<div class="px-5 py-5"><p class="mb-3 text-[10px] font-bold text-slate-400">SWIPE LEFT TO REMOVE FROM CARTEL</p><ul class="space-y-3">${items.map((item) => `
-    <li class="relative overflow-hidden rounded-[1.5rem] bg-red-500" data-swipe-shell="${item.barcode}">
-      <div class="absolute inset-y-0 right-0 flex w-24 items-center justify-center text-xs font-black text-white">Delete</div>
-      <article class="product-row relative flex items-center gap-3 rounded-[1.5rem] bg-white p-3.5 shadow-sm ring-1 ring-slate-900/5" data-swipe-row="${item.barcode}">
-        <div class="relative size-16 shrink-0 overflow-hidden rounded-2xl bg-slate-100">
-          ${item.image ? `<img src="${item.image}" alt="${escapeHtml(item.name)}" class="size-full object-cover" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\\'grid size-full place-items-center text-3xl\\'>${item.emoji || '🛍️'}</span>';" />` : `<span class="grid size-full place-items-center text-3xl">${item.emoji || '🛍️'}</span>`}
+function cartelItems(items, retailer, theme) {
+  const checkedCount = items.filter((i) => i.checkedInStore).length;
+  return `
+    <div class="px-5 pt-4 pb-2">
+      <div class="mb-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="size-2.5 rounded-full" style="background:${retailer.color}"></span>
+          <h2 class="text-xs font-black uppercase tracking-wider text-slate-700">${retailer.name} Priced List</h2>
         </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-start justify-between gap-2">
-            <h2 class="truncate text-xs font-black text-slate-900">${escapeHtml(item.name)}</h2>
-            <strong class="shrink-0 text-sm font-black text-slate-900">${zar.format(item.price * item.quantity)}</strong>
-          </div>
-          <div class="mt-1 flex items-center gap-2">
-            <p class="text-[11px] font-semibold text-slate-400">${item.weight || ''} &middot; Qty ${item.quantity}</p>
-            <span class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[9px] text-slate-600">EAN: ${item.barcode}</span>
-          </div>
-          <div class="mt-2 flex items-center gap-2">
-            <span class="rounded-full bg-red-50 px-2 py-0.5 text-[9px] font-black text-red-600">SAVE ${zar.format((item.basePrice - item.price) * item.quantity)}</span>
-            <span class="text-[10px] text-slate-400 line-through">${zar.format(item.basePrice)}</span>
-            <span class="text-xs font-black text-slate-900">${zar.format(item.price)} each</span>
-          </div>
-        </div>
-      </article>
-    </li>`).join('')}</ul></div>`;
+        <span class="rounded-full px-2.5 py-0.5 text-[10px] font-black" style="background:${theme.pillBg}; color:${theme.pillText}">
+          ${checkedCount}/${items.length} picked &middot; Swipe left to remove
+        </span>
+      </div>
+
+      <ul class="space-y-2.5">
+        ${items.map((item) => `
+          <li class="relative overflow-hidden rounded-[1.4rem] bg-red-500" data-swipe-shell="${item.barcode}">
+            <div class="absolute inset-y-0 right-0 flex w-24 items-center justify-center text-xs font-black text-white">Delete</div>
+            <article class="product-row relative flex items-center gap-3 rounded-[1.4rem] bg-white p-3 shadow-2xs border transition" style="border-color: ${item.checkedInStore ? theme.border : 'rgba(226,232,240,0.8)'}" data-swipe-row="${item.barcode}">
+              <!-- Tick-off Circle (Merged from Checklist for aisle picking) -->
+              <button
+                type="button"
+                data-toggle-cart-picked="${item.barcode}"
+                class="grid size-6 shrink-0 place-items-center rounded-full border-2 transition"
+                style="${item.checkedInStore ? `background:${retailer.color}; border-color:${retailer.color}; color:#fff` : 'border-color:#cbd5e1'}"
+                title="Mark picked off shelf"
+              >
+                ${item.checkedInStore ? '<svg viewBox="0 0 24 24" class="size-3.5 fill-none stroke-current stroke-[3]"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+              </button>
+
+              <div class="relative size-14 shrink-0 overflow-hidden rounded-2xl bg-stone-50 border border-stone-100 p-1 flex items-center justify-center">
+                ${item.image ? `<img src="${item.image}" alt="${escapeHtml(item.name)}" class="max-h-full max-w-full object-contain" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\\'grid size-full place-items-center text-2xl\\'>${item.emoji || '🛍️'}</span>';" />` : `<span class="grid size-full place-items-center text-2xl">${item.emoji || '🛍️'}</span>`}
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-2">
+                  <h3 class="truncate text-xs font-black ${item.checkedInStore ? 'line-through text-slate-400' : 'text-slate-900'}">${escapeHtml(item.name)}</h3>
+                  <strong class="shrink-0 text-sm font-black text-slate-900 tabular-nums">${zar.format(item.price * item.quantity)}</strong>
+                </div>
+
+                <div class="mt-1 flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[10.5px] font-bold text-slate-500">${zar.format(item.price)} ea</span>
+                    ${item.basePrice > item.price ? `
+                      <span class="text-[9.5px] text-slate-400 line-through">${zar.format(item.basePrice)}</span>
+                      <span class="rounded-md px-1.5 py-0.2 text-[8px] font-black" style="background:${theme.pillBg}; color:${theme.pillText}">
+                        -${zar.format((item.basePrice - item.price) * item.quantity)}
+                      </span>
+                    ` : ''}
+                  </div>
+
+                  <div class="flex items-center gap-1">
+                    <button type="button" data-cart-qty-dec="${item.barcode}" class="grid size-6 place-items-center rounded-lg bg-stone-100 text-xs font-black text-slate-700 hover:bg-stone-200">&minus;</button>
+                    <span class="min-w-5 text-center text-xs font-black text-slate-900 tabular-nums">${item.quantity}</span>
+                    <button type="button" data-cart-qty-inc="${item.barcode}" class="grid size-6 place-items-center rounded-lg text-xs font-black text-white" style="background:${retailer.color}">+</button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </li>
+        `).join('')}
+      </ul>
+    </div>`;
 }
 
 function bindCartelInteractions() {
-  // Retailer switcher buttons
+  screen.querySelector('#trolley-back-market-btn')?.addEventListener('click', () => routeTo('market'));
+  screen.querySelector('#trolley-zone-btn')?.addEventListener('click', openPricingZoneModal);
+  screen.querySelector('#trolley-search-add-btn')?.addEventListener('click', () => toggleGlobalSearchDrawer(true));
+  screen.querySelector('[data-go-market-empty]')?.addEventListener('click', () => routeTo('market'));
+
+  screen.querySelectorAll('[data-empty-quick-add]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const prod = MASTER_PRODUCTS.get(btn.dataset.emptyQuickAdd);
+      if (!prod) return;
+      addToCart({
+        barcode: prod.gtin,
+        name: prod.title,
+        weight: prod.weight,
+        category: prod.category,
+        image: prod.imageUrl,
+        emoji: prod.emoji
+      }, state.retailerId);
+      playBeepSound();
+      renderCartel();
+    });
+  });
+
+  // Tap any retailer in Store Comparison Barometer -> Reprices entire list under that retailer & switches theme!
   screen.querySelectorAll('[data-switch-cartel-retailer]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      state.retailerId = btn.dataset.switchCartelRetailer;
+      const retId = btn.dataset.switchCartelRetailer;
+      if (!RETAILERS[retId]) return;
+      state.retailerId = retId;
+      playBeepSound();
+      if (navigator.vibrate) navigator.vibrate(25);
       render();
-      showToast(`Switched to ${getRetailer().name} Cartel`);
+      showToast(`Comparing under ${getRetailer().name} (${zar.format(getPayableTotal(retId))})`);
+    });
+  });
+
+  screen.querySelectorAll('[data-toggle-cart-picked]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const item = state.cart.find((i) => i.barcode === btn.dataset.toggleCartPicked);
+      if (item) {
+        item.checkedInStore = !item.checkedInStore;
+        playBeepSound();
+        renderCartel();
+      }
+    });
+  });
+
+  screen.querySelectorAll('[data-cart-qty-dec]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const code = btn.dataset.cartQtyDec;
+      const existing = state.cart.find((i) => i.barcode === code);
+      if (!existing) return;
+      if (existing.quantity <= 1) {
+        removeCartItem(code);
+      } else {
+        existing.quantity -= 1;
+        updateCartBadge();
+        renderCartel();
+      }
+    });
+  });
+
+  screen.querySelectorAll('[data-cart-qty-inc]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const code = btn.dataset.cartQtyInc;
+      const existing = state.cart.find((i) => i.barcode === code);
+      if (existing) {
+        addToCart(existing, state.retailerId);
+        renderCartel();
+      }
     });
   });
 
   screen.querySelectorAll('[data-open-camera]').forEach((btn) => btn.addEventListener('click', openLiveCameraScanner));
   screen.querySelector('#delivery-checkout')?.addEventListener('click', openPayment);
-  screen.querySelector('#store-checkout')?.addEventListener('click', () => openMasterBarcode(state.retailerId));
+  screen.querySelector('#store-checkout')?.addEventListener('click', () => openMasterBarcode(state.retailerId, 0));
   screen.querySelectorAll('[data-swipe-row]').forEach(bindSwipeRow);
 }
 
@@ -2849,7 +2363,6 @@ function bindSwipeRow(row) {
     const deltaX = event.touches[0].clientX - startX;
     const deltaY = event.touches[0].clientY - startY;
 
-    // Distinguish vertical scrolling from intentional horizontal swipe
     if (!isSwiping && Math.abs(deltaY) > Math.abs(deltaX)) {
       return;
     }
@@ -2857,7 +2370,6 @@ function bindSwipeRow(row) {
     if (deltaX < 0) {
       isSwiping = true;
       if (event.cancelable) event.preventDefault();
-      // Apply smooth resistance
       currentX = Math.max(-140, deltaX);
       row.style.transform = `translateX(${currentX}px)`;
     }
@@ -2866,15 +2378,13 @@ function bindSwipeRow(row) {
   row.addEventListener('touchend', () => {
     row.style.transition = 'transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 200ms ease';
     if (currentX <= -75) {
-      // Threshold reached: animate complete slide-out to the left
       row.style.transform = 'translateX(-115%)';
       row.style.opacity = '0';
       window.setTimeout(() => {
         removeCartItem(barcode);
-        showToast('Item removed from Cartel');
+        showToast('Item removed from Trolley');
       }, 200);
     } else {
-      // Return to original position
       row.style.transform = 'translateX(0px)';
     }
   }, { passive: true });
@@ -2883,23 +2393,24 @@ function bindSwipeRow(row) {
 function renderTracker() {
   const order = state.order;
   if (!order) {
-    screen.innerHTML = `<section class="px-5 py-8"><p class="section-kicker">Tracker</p><h1 class="mt-2 text-4xl font-black tracking-[-.04em]">Nothing on the road.</h1><div class="card mt-7 px-7 py-12 text-center"><span class="mx-auto grid size-16 place-items-center rounded-3xl bg-blue-50 text-3xl">&#128205;</span><h2 class="mt-4 font-black">Your deliveries live here</h2><p class="mt-2 text-sm leading-6 text-slate-500">Place a delivery order from Cartel to follow every step in real time.</p><button data-go-market class="secondary-button mx-auto mt-6">Browse Market</button></div></section>`;
+    screen.innerHTML = `<section class="px-5 py-8"><p class="section-kicker">Tracker</p><h1 class="mt-2 text-4xl font-black tracking-[-.04em]">Nothing on the road.</h1><div class="card mt-7 px-7 py-12 text-center"><span class="mx-auto grid size-16 place-items-center rounded-3xl bg-stone-100 text-3xl">&#128205;</span><h2 class="mt-4 font-black">Your deliveries live here</h2><p class="mt-2 text-sm leading-6 text-slate-500">Place a delivery order from your top-right Trolley to follow every step in real time.</p><button data-go-market class="secondary-button mx-auto mt-6">Browse Market</button></div></section>`;
     screen.querySelector('[data-go-market]').addEventListener('click', () => routeTo('market'));
     return;
   }
   const steps = ['Order confirmed', 'Picking your items', 'Driver on the way', 'Delivered'];
   screen.innerHTML = `
-    <section class="px-5 py-8"><p class="section-kicker">Live delivery</p><div class="mt-2 flex items-end justify-between"><div><h1 class="text-4xl font-black tracking-[-.04em]">On its way.</h1><p class="mt-2 text-sm text-slate-500">Order #${order.id}</p></div><span class="rounded-full bg-emerald-100 px-3 py-1.5 text-[10px] font-black text-emerald-700">LIVE</span></div>
+    <section class="px-5 py-8"><p class="section-kicker">Live delivery</p><div class="mt-2 flex items-end justify-between"><div><h1 class="text-4xl font-black tracking-[-.04em]">On its way.</h1><p class="mt-2 text-sm text-slate-500">Order #${order.id}</p></div><span class="rounded-full bg-[#edf3ee] px-3 py-1.5 text-[10px] font-black text-[#234e3b]">LIVE</span></div>
       <div class="card mt-7 overflow-hidden"><div class="relative h-48 bg-[#e8eee9]"><div class="absolute inset-0 opacity-40" style="background-image:linear-gradient(35deg,transparent 45%,#fff 46%,#fff 51%,transparent 52%),linear-gradient(145deg,transparent 35%,#d1d5db 36%,#d1d5db 39%,transparent 40%);background-size:90px 70px"></div><div class="absolute left-[58%] top-[42%] grid size-12 place-items-center rounded-full bg-slate-950 text-xl text-white shadow-xl ring-4 ring-white">&#128757;</div><div class="absolute bottom-3 left-3 rounded-xl bg-white/95 px-3 py-2 text-[10px] font-black shadow">About ${Math.max(4, 18 - order.step * 5)} min away</div></div>
-        <div class="p-5"><div class="flex items-center gap-3"><div class="grid size-12 place-items-center rounded-2xl bg-amber-100 text-2xl">&#128104;</div><div><h2 class="font-black">Thabo is your driver</h2><p class="text-xs font-semibold text-slate-400">Toyota Starlet &middot; CA 482-991</p></div><button class="ml-auto grid size-10 place-items-center rounded-xl bg-slate-100">Call</button></div>
-        <div class="my-5 border-t border-slate-100"></div><div class="space-y-4">${steps.map((label, index) => `<div class="flex items-center gap-3 ${index > order.step ? 'opacity-35' : ''}"><span class="grid size-7 place-items-center rounded-full ${index <= order.step ? 'bg-violet-600 text-white' : 'bg-slate-200'} text-xs font-black">${index < order.step ? '&check;' : index + 1}</span><span class="text-sm font-bold">${label}</span></div>`).join('')}</div></div></div>
-      <div class="mt-5 rounded-[1.75rem] bg-slate-950 p-5 text-white"><p class="text-[10px] font-black uppercase tracking-[.18em] text-white/50">Give this code to your driver</p><div class="mt-2 flex items-center justify-between"><p class="text-4xl font-black tracking-[.2em]">${order.code}</p><span class="text-xs font-bold text-emerald-300">Payout locked &#128274;</span></div><p class="mt-3 text-xs leading-5 text-white/55">Funds unlock only after the driver enters your secure code.</p></div>
+        <div class="p-5"><div class="flex items-center gap-3"><div class="grid size-12 place-items-center rounded-2xl bg-amber-100 text-2xl">&#128104;</div><div><h2 class="font-black">Thabo is your driver</h2><p class="text-xs font-semibold text-slate-400">Toyota Starlet &middot; CA 482-991</p></div><button class="ml-auto grid size-10 place-items-center rounded-xl bg-stone-100">Call</button></div>
+        <div class="my-5 border-t border-stone-100"></div><div class="space-y-4">${steps.map((label, index) => `<div class="flex items-center gap-3 ${index > order.step ? 'opacity-35' : ''}"><span class="grid size-7 place-items-center rounded-full ${index <= order.step ? 'bg-[#234e3b] text-white' : 'bg-stone-200'} text-xs font-black">${index < order.step ? '&check;' : index + 1}</span><span class="text-sm font-bold">${label}</span></div>`).join('')}</div></div></div>
+      <div class="mt-5 rounded-[1.75rem] bg-slate-950 p-5 text-white"><p class="text-[10px] font-black uppercase tracking-[.18em] text-white/50">Give this code to your driver</p><div class="mt-2 flex items-center justify-between"><p class="text-4xl font-black tracking-[.2em]">${order.code}</p><span class="text-xs font-bold text-[#b7e2cb]">Payout locked &#128274;</span></div><p class="mt-3 text-xs leading-5 text-white/55">Funds unlock only after the driver enters your secure code.</p></div>
       ${order.step < 3 ? '<button id="advance-order" class="secondary-button mt-4 w-full">Demo: advance delivery</button>' : ''}
     </section>`;
   screen.querySelector('#advance-order')?.addEventListener('click', () => { state.order.step += 1; renderTracker(); });
 }
 
 function renderSavings() {
+  const zone = getActiveZone();
   const liveSavings = getCurrentSavings();
   const totalSavings = state.completedSavings + liveSavings;
   const cartTotal = getMerchandiseTotal();
@@ -2910,14 +2421,14 @@ function renderSavings() {
 
   screen.innerHTML = `
     <section class="px-5 py-8">
-      <p class="section-kicker">Savings & Optimization</p>
-      <h1 class="mt-2 text-4xl font-black tracking-[-.04em]">More money,<br><span class="text-violet-600">still in your pocket.</span></h1>
+      <p class="section-kicker">Savings & Optimization · ${escapeHtml(zone.name)}</p>
+      <h1 class="mt-2 text-4xl font-black tracking-[-.04em]">More money,<br><span class="text-[#234e3b]">still in your pocket.</span></h1>
 
       <!-- Real-Time Loyalty Point Ledger -->
-      <div class="mt-7 overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet-800 via-violet-700 to-fuchsia-600 p-6 text-white shadow-xl shadow-violet-500/25">
+      <div class="mt-7 overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#1b3d2e] via-[#234e3b] to-slate-900 p-6 text-white shadow-xl">
         <div class="flex items-center justify-between">
           <p class="text-[10px] font-black uppercase tracking-[.2em] text-white/70">Session Savings</p>
-          <span class="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">Gold Tier</span>
+          <span class="rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">Gold Tier</span>
         </div>
         <p class="mt-2 text-5xl font-black tracking-[-.06em]">${zar.format(totalSavings)}</p>
 
@@ -2929,8 +2440,8 @@ function renderSavings() {
             </div>
             ${projectedPoints > 0 ? `
               <div class="rounded-2xl bg-black/20 px-3.5 py-2 text-right backdrop-blur-md">
-                <p class="text-[9px] font-black uppercase tracking-wider text-emerald-300">+${projectedPoints} pts pending</p>
-                <p class="text-[10px] text-white/70">from active cart</p>
+                <p class="text-[9px] font-black uppercase tracking-wider text-[#b7e2cb]">+${projectedPoints} pts pending</p>
+                <p class="text-[10px] text-white/70">from active trolley</p>
               </div>` : ''}
           </div>
 
@@ -2940,7 +2451,7 @@ function renderSavings() {
               <span>${state.loyaltyPoints} / 1,000 pts</span>
             </div>
             <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-black/25">
-              <div class="h-full rounded-full bg-emerald-400 transition-all duration-500" style="width:${Math.min(100, (state.loyaltyPoints / 1000) * 100)}%"></div>
+              <div class="h-full rounded-full bg-[#9ad4b5] transition-all duration-500" style="width:${Math.min(100, (state.loyaltyPoints / 1000) * 100)}%"></div>
             </div>
           </div>
         </div>
@@ -2950,34 +2461,32 @@ function renderSavings() {
       <div class="mt-7">
         <h2 class="text-xl font-black">Basket Optimization</h2>
         <div class="mt-3 space-y-3">
-          <!-- Basket Boost Tracker -->
           <div class="card p-4">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <span class="grid size-10 place-items-center rounded-xl bg-violet-100 text-lg">⚡</span>
+                <span class="grid size-10 place-items-center rounded-xl bg-stone-100 text-lg">⚡</span>
                 <div>
                   <h3 class="text-sm font-black">R10 Basket Boost</h3>
                   <p class="text-xs text-slate-500">${cartTotal >= basketBoostTarget ? 'Threshold reached! R10 discount applied.' : `Add ${zar.format(basketBoostTarget - cartTotal)} more to unlock R10 off`}</p>
                 </div>
               </div>
-              <span class="text-xs font-black ${cartTotal >= basketBoostTarget ? 'text-emerald-600' : 'text-slate-400'}">${basketBoostProgress}%</span>
+              <span class="text-xs font-black ${cartTotal >= basketBoostTarget ? 'text-[#234e3b]' : 'text-slate-400'}">${basketBoostProgress}%</span>
             </div>
-            <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-              <div class="h-full rounded-full ${cartTotal >= basketBoostTarget ? 'bg-emerald-500' : 'bg-violet-600'} transition-all duration-300" style="width:${basketBoostProgress}%"></div>
+            <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-stone-100">
+              <div class="h-full rounded-full ${cartTotal >= basketBoostTarget ? 'bg-[#2f6f52]' : 'bg-slate-800'} transition-all duration-300" style="width:${basketBoostProgress}%"></div>
             </div>
           </div>
 
-          <!-- Fresh Produce Tracker -->
           <div class="card p-4">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <span class="grid size-10 place-items-center rounded-xl bg-emerald-100 text-lg">🥑</span>
+                <span class="grid size-10 place-items-center rounded-xl bg-[#edf3ee] text-lg">🥑</span>
                 <div>
                   <h3 class="text-sm font-black">Fresh Five Produce Saver</h3>
                   <p class="text-xs text-slate-500">${cartProduceItems.length ? `${cartProduceItems.length} fresh item(s) in trolley receiving 5% off` : 'Add fruit or veg to trigger 5% produce discount'}</p>
                 </div>
               </div>
-              <span class="rounded-xl px-2 py-1 text-[10px] font-black ${state.coupons.has('fresh5') ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
+              <span class="rounded-xl px-2 py-1 text-[10px] font-black ${state.coupons.has('fresh5') ? 'bg-[#edf3ee] text-[#234e3b]' : 'bg-stone-100 text-slate-500'}">
                 ${state.coupons.has('fresh5') ? 'Active' : 'Inactive'}
               </span>
             </div>
@@ -2999,41 +2508,40 @@ function renderSavings() {
                 <h3 class="font-black">${coupon.label}</h3>
                 <p class="mt-1 text-xs leading-5 text-slate-500">${coupon.detail}</p>
               </div>
-              <button data-coupon="${coupon.id}" class="rounded-xl px-3.5 py-2 text-[10px] font-black transition active:scale-95 ${state.coupons.has(coupon.id) ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' : 'bg-slate-950 text-white'}">
+              <button data-coupon="${coupon.id}" class="rounded-xl px-3.5 py-2 text-[10px] font-black transition active:scale-95 ${state.coupons.has(coupon.id) ? 'bg-[#edf3ee] text-[#234e3b] ring-1 ring-[#bdd4c5]' : 'bg-slate-900 text-white'}">
                 ${state.coupons.has(coupon.id) ? '✓ Applied' : '+ Apply'}
               </button>
             </article>`).join('')}
         </div>
       </div>
 
-      <!-- Multi-Store Price Comparison Matrix -->
+      <!-- Town / Area Retailer Price Comparison Matrix -->
       <div class="card mt-7 p-5">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-2">
           <div>
-            <h2 class="font-black text-base text-slate-900">Multi-Store Price Comparison Matrix</h2>
+            <h2 class="font-black text-base text-slate-900">Retailer Comparison · ${escapeHtml(zone.name)}</h2>
             <p class="text-xs text-slate-400">
-              ${state.cart.length > 0 ? `Live price matching for your ${state.cart.reduce((s, i) => s + i.quantity, 0)} trolley item(s)` : 'Live benchmark comparison for top 6 South African grocery staples'}
+              ${state.cart.length > 0 ? `Comparing your ${state.cart.reduce((s, i) => s + i.quantity, 0)} trolley item(s) across ${escapeHtml(zone.name)}` : `Benchmarking top 6 staples across retailers in ${escapeHtml(zone.name)}`}
             </p>
           </div>
-          <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[9px] font-black text-emerald-800">
-            ${state.cart.length > 0 ? 'My Cart' : 'Staples'}
+          <span class="rounded-full bg-[#edf3ee] px-2.5 py-0.5 text-[9px] font-black text-[#234e3b]">
+            ${state.cart.length > 0 ? 'My Trolley' : 'Staples'}
           </span>
         </div>
 
-        <!-- Store Comparison List -->
         <div class="mt-4 space-y-2.5">
           ${(() => {
             const comparisonItems = state.cart.length > 0 
               ? state.cart 
               : Array.from(MASTER_PRODUCTS.values()).slice(0, 6).map(p => ({ barcode: p.gtin, quantity: 1, ...p }));
 
-            const storeComparisons = PHYSICAL_STORES.map((st) => {
+            const storeComparisons = Object.values(RETAILERS).map((ret) => {
               const total = comparisonItems.reduce((sum, item) => {
-                const pr = getStorePrice(st.id, item.barcode || item.gtin);
+                const pr = getZonePrice(zone.id, ret.id, item.barcode || item.gtin);
                 const activePrice = (pr.promoPrice && pr.promoPrice < pr.regularPrice) ? pr.promoPrice : pr.regularPrice;
                 return sum + activePrice * (item.quantity || 1);
               }, 0);
-              return { store: st, total };
+              return { retailer: ret, total };
             }).sort((a, b) => a.total - b.total);
 
             const cheapest = storeComparisons[0];
@@ -3043,31 +2551,31 @@ function renderSavings() {
             return `
               ${storeComparisons.map((item, idx) => {
                 const isCheapest = idx === 0;
-                const isCurrent = item.store.id === state.currentStoreId;
+                const isCurrent = item.retailer.id === state.retailerId;
                 const diff = item.total - cheapest.total;
 
                 return `
                   <div 
-                    data-drilldown-store="${item.store.id}" 
-                    class="flex items-center justify-between rounded-2xl border p-3.5 transition cursor-pointer active:scale-98 ${isCheapest ? 'bg-emerald-50/70 border-emerald-300 ring-2 ring-emerald-200' : isCurrent ? 'bg-slate-50 border-slate-900/30 ring-1 ring-slate-900/10' : 'bg-slate-50 border-slate-200/80 hover:border-slate-300'}"
+                    data-drilldown-retailer="${item.retailer.id}" 
+                    class="flex items-center justify-between rounded-2xl border p-3.5 transition cursor-pointer active:scale-98 ${isCheapest ? 'bg-[#f1f7f3] border-[#bdd4c5]' : isCurrent ? 'bg-stone-50 border-slate-900/30' : 'bg-stone-50/70 border-stone-200/80 hover:border-stone-300'}"
                   >
                     <div class="flex items-center gap-3 min-w-0">
-                      <div class="grid size-10 shrink-0 place-items-center rounded-xl text-white font-black text-xs shadow-2xs" style="background:${item.store.color}">
-                        ${item.store.retailer.slice(0, 2).toUpperCase()}
+                      <div class="grid size-10 shrink-0 place-items-center rounded-xl bg-white p-1.5 border border-stone-200/80 overflow-hidden shadow-2xs">
+                        <img src="${item.retailer.logoUrl}" alt="${item.retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${item.retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${item.retailer.initials}</span>';" />
                       </div>
                       <div class="min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
-                          <h4 class="text-xs font-black text-slate-900 truncate">${item.store.name}</h4>
-                          ${isCheapest ? '<span class="rounded-md bg-emerald-600 px-1.5 py-0.2 text-[8px] font-black text-white">LOWEST BASKET</span>' : ''}
-                          ${isCurrent ? '<span class="rounded-md bg-slate-950 px-1.5 py-0.2 text-[8px] font-mono font-bold text-white">ACTIVE</span>' : ''}
+                          <h4 class="text-xs font-black text-slate-900 truncate">${item.retailer.name}</h4>
+                          ${isCheapest ? '<span class="rounded-md bg-[#234e3b] px-1.5 py-0.2 text-[8px] font-black text-white">LOWEST BASKET</span>' : ''}
+                          ${isCurrent ? '<span class="rounded-md bg-slate-900 px-1.5 py-0.2 text-[8px] font-mono font-bold text-white">ACTIVE</span>' : ''}
                         </div>
-                        <p class="text-[10px] text-slate-400 truncate">${item.store.address}</p>
+                        <p class="text-[10px] text-slate-400 truncate">${escapeHtml(zone.name)} · ${zone.scopeLabel}</p>
                       </div>
                     </div>
 
                     <div class="text-right shrink-0">
                       <span class="text-xs font-black text-slate-900">${zar.format(item.total)}</span>
-                      <span class="block text-[9px] font-bold ${isCheapest ? 'text-emerald-700 font-black' : 'text-slate-400'}">
+                      <span class="block text-[9px] font-bold ${isCheapest ? 'text-[#234e3b] font-black' : 'text-slate-400'}">
                         ${isCheapest ? 'Best Value' : `+${zar.format(diff)}`}
                       </span>
                     </div>
@@ -3076,39 +2584,21 @@ function renderSavings() {
               }).join('')}
 
               ${maxSavings > 0 ? `
-                <!-- 1-Tap Switch to Cheapest Store Action Banner -->
-                <div class="mt-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white shadow-md">
+                <div class="mt-4 rounded-2xl bg-[#234e3b] p-4 text-white shadow-sm">
                   <div class="flex items-center justify-between gap-3">
                     <div>
-                      <p class="text-[9px] font-black uppercase tracking-wider text-emerald-200">Optimal Supermarket Recommendation</p>
-                      <h4 class="text-xs font-black mt-0.5">${cheapest.store.name} is the cheapest store!</h4>
-                      <p class="text-[11px] text-white/80 mt-0.5">Switching stores saves you <strong>${zar.format(maxSavings)}</strong> on this basket.</p>
+                      <p class="text-[9px] font-black uppercase tracking-wider text-[#b7e2cb]">Recommended Retailer in ${escapeHtml(zone.name)}</p>
+                      <h4 class="text-xs font-black mt-0.5">${cheapest.retailer.name} has the lowest basket total</h4>
+                      <p class="text-[11px] text-white/80 mt-0.5">Switching saves <strong>${zar.format(maxSavings)}</strong> across ${escapeHtml(zone.name)}.</p>
                     </div>
                     <button 
                       id="switch-to-cheapest-store-btn" 
                       type="button" 
-                      data-target-store="${cheapest.store.id}" 
-                      data-target-retailer="${cheapest.store.retailerId}" 
-                      class="shrink-0 rounded-xl bg-white px-3.5 py-2.5 text-xs font-black text-emerald-900 shadow-md active:scale-95 transition hover:bg-emerald-50"
+                      data-target-retailer="${cheapest.retailer.id}" 
+                      class="shrink-0 rounded-xl bg-white px-3.5 py-2.5 text-xs font-black text-[#173829] shadow-sm active:scale-95 transition hover:bg-stone-100"
                     >
-                      Switch Store ➔
+                      Switch ➔
                     </button>
-                  </div>
-
-                  <!-- Projected Annual Savings -->
-                  <div class="mt-3 grid grid-cols-3 gap-2 border-t border-white/20 pt-2.5 text-center text-[10px]">
-                    <div>
-                      <span class="block text-white/70 text-[8px] uppercase">This Basket</span>
-                      <strong class="font-black text-emerald-200">${zar.format(maxSavings)}</strong>
-                    </div>
-                    <div>
-                      <span class="block text-white/70 text-[8px] uppercase">Monthly Est.</span>
-                      <strong class="font-black text-emerald-200">${zar.format(maxSavings * 4)}</strong>
-                    </div>
-                    <div>
-                      <span class="block text-white/70 text-[8px] uppercase">Annual Est.</span>
-                      <strong class="font-black text-emerald-200">${zar.format(maxSavings * 52)}</strong>
-                    </div>
                   </div>
                 </div>
               ` : ''}
@@ -3123,25 +2613,24 @@ function renderSavings() {
         <dl class="mt-4 space-y-3 text-sm">
           <div class="flex justify-between">
             <dt class="text-slate-500">Catalogue product specials</dt>
-            <dd class="font-black text-emerald-600">${zar.format(getBuiltInSavings())}</dd>
+            <dd class="font-black text-[#234e3b]">${zar.format(getBuiltInSavings())}</dd>
           </div>
           <div class="flex justify-between">
             <dt class="text-slate-500">Active coupon deductions</dt>
-            <dd class="font-black text-emerald-600">${zar.format(getCouponSavings())}</dd>
+            <dd class="font-black text-[#234e3b]">${zar.format(getCouponSavings())}</dd>
           </div>
           <div class="flex justify-between">
             <dt class="text-slate-500">Past completed order savings</dt>
             <dd class="font-black text-slate-800">${zar.format(state.completedSavings)}</dd>
           </div>
-          <div class="flex justify-between border-t border-slate-100 pt-3">
+          <div class="flex justify-between border-t border-stone-100 pt-3">
             <dt class="font-black text-slate-950">Total Value Preserved</dt>
-            <dd class="text-lg font-black text-violet-700">${zar.format(totalSavings)}</dd>
+            <dd class="text-lg font-black text-[#234e3b]">${zar.format(totalSavings)}</dd>
           </div>
         </dl>
       </div>
     </section>`;
 
-  // Bind coupon clicks
   screen.querySelectorAll('[data-coupon]').forEach((button) => button.addEventListener('click', () => {
     const id = button.dataset.coupon;
     if (state.coupons.has(id)) {
@@ -3154,17 +2643,12 @@ function renderSavings() {
     renderSavings();
   }));
 
-  // Bind 1-tap switch to cheapest store
   screen.querySelector('#switch-to-cheapest-store-btn')?.addEventListener('click', (e) => {
-    const targetStoreId = e.currentTarget.dataset.targetStore;
     const targetRetailerId = e.currentTarget.dataset.targetRetailer;
-
-    state.currentStoreId = targetStoreId;
     state.retailerId = targetRetailerId;
 
-    // Convert cart items to the new store retailerId
     state.cart = state.cart.map(item => {
-      const pr = getStorePrice(targetStoreId, item.barcode || item.gtin);
+      const pr = getZonePrice(zone.id, targetRetailerId, item.barcode || item.gtin);
       const activePrice = (pr.promoPrice && pr.promoPrice < pr.regularPrice) ? pr.promoPrice : pr.regularPrice;
       return {
         ...item,
@@ -3176,61 +2660,59 @@ function renderSavings() {
 
     playBeepSound();
     if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-    showToast(`✓ Trolley transferred to ${PHYSICAL_STORES.find(s => s.id === targetStoreId)?.name}!`);
+    showToast(`✓ Trolley transferred to ${RETAILERS[targetRetailerId]?.name}!`);
     renderSavings();
   });
 
-  // Bind store drilldown modal
-  screen.querySelectorAll('[data-drilldown-store]').forEach((card) => {
+  screen.querySelectorAll('[data-drilldown-retailer]').forEach((card) => {
     card.addEventListener('click', () => {
-      const storeId = card.dataset.drilldownStore;
-      const targetStore = PHYSICAL_STORES.find(s => s.id === storeId);
-      if (targetStore) openStorePriceBreakdownModal(targetStore);
+      const retId = card.dataset.drilldownRetailer;
+      const targetRetailer = RETAILERS[retId];
+      if (targetRetailer) openStorePriceBreakdownModal(targetRetailer, zone);
     });
   });
 }
 
-function openStorePriceBreakdownModal(store) {
+function openStorePriceBreakdownModal(retailer, zone) {
   const comparisonItems = state.cart.length > 0 
     ? state.cart 
     : Array.from(MASTER_PRODUCTS.values()).slice(0, 6).map(p => ({ barcode: p.gtin, quantity: 1, ...p }));
 
   const total = comparisonItems.reduce((sum, item) => {
-    const pr = getStorePrice(store.id, item.barcode || item.gtin);
+    const pr = getZonePrice(zone.id, retailer.id, item.barcode || item.gtin);
     const activePrice = (pr.promoPrice && pr.promoPrice < pr.regularPrice) ? pr.promoPrice : pr.regularPrice;
     return sum + activePrice * (item.quantity || 1);
   }, 0);
 
   modalRoot.innerHTML = `
-    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md animate-in fade-in">
-      <div class="relative max-h-[85vh] w-full max-w-lg overflow-hidden rounded-[2.5rem] bg-white p-6 shadow-2xl animate-in slide-in-from-bottom-5">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/65 p-4 backdrop-blur-md animate-in fade-in">
+      <div class="relative max-h-[85vh] w-full max-w-lg overflow-hidden rounded-[2.25rem] bg-white p-6 shadow-2xl animate-in slide-in-from-bottom-5">
+        <div class="flex items-center justify-between pb-3 border-b border-stone-100">
           <div class="flex items-center gap-2.5">
-            <div class="grid size-10 place-items-center rounded-xl text-white font-black text-xs shadow-2xs" style="background:${store.color}">
-              ${store.retailer.slice(0, 2).toUpperCase()}
+            <div class="grid size-10 place-items-center rounded-xl bg-white p-1.5 border border-stone-200 overflow-hidden shadow-2xs">
+              <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${retailer.initials}</span>';" />
             </div>
             <div>
-              <h3 class="text-sm font-black text-slate-900">${store.name}</h3>
-              <p class="text-[10px] text-slate-400 font-mono">Store Code: #${store.retailerStoreCode} &bull; ${store.loyalty}</p>
+              <h3 class="text-sm font-black text-slate-900">${retailer.name} · ${escapeHtml(zone.name)}</h3>
+              <p class="text-[10px] text-slate-400 font-bold">${zone.scopeLabel} &bull; ${retailer.loyalty}</p>
             </div>
           </div>
-          <button id="close-drilldown-modal-btn" type="button" class="grid size-8 place-items-center rounded-xl bg-slate-100 text-xs font-bold text-slate-500 hover:bg-slate-200">✕</button>
+          <button id="close-drilldown-modal-btn" type="button" class="grid size-8 place-items-center rounded-xl bg-stone-100 text-xs font-bold text-slate-500 hover:bg-stone-200">✕</button>
         </div>
 
-        <!-- Itemized Price List -->
         <div class="mt-4 space-y-2.5 max-h-[48vh] overflow-y-auto pr-1">
           ${comparisonItems.map((item) => {
             const master = MASTER_PRODUCTS.get(item.barcode || item.gtin) || item;
-            const pr = getStorePrice(store.id, master.gtin || item.barcode);
+            const pr = getZonePrice(zone.id, retailer.id, master.gtin || item.barcode);
             const activePrice = (pr.promoPrice && pr.promoPrice < pr.regularPrice) ? pr.promoPrice : pr.regularPrice;
             const hasPromo = pr.promoPrice && pr.promoPrice < pr.regularPrice;
             const qty = item.quantity || 1;
 
             return `
-              <div class="flex items-center justify-between rounded-2xl border border-slate-100 p-2.5 bg-slate-50/70">
+              <div class="flex items-center justify-between rounded-2xl border border-stone-100 p-2.5 bg-stone-50/70">
                 <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="size-10 shrink-0 overflow-hidden rounded-xl bg-slate-100 border border-slate-200">
-                    <img src="${master.imageUrl || master.image}" alt="${escapeHtml(master.title || master.name)}" class="size-full object-cover" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\\'grid size-full place-items-center text-lg\\'>${master.emoji || '🛍️'}</span>';" />
+                  <div class="size-10 shrink-0 overflow-hidden rounded-xl bg-white border border-stone-200 p-1 flex items-center justify-center">
+                    <img src="${master.imageUrl || master.image}" alt="${escapeHtml(master.title || master.name)}" class="max-h-full max-w-full object-contain" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\\'grid size-full place-items-center text-lg\\'>${master.emoji || '🛍️'}</span>';" />
                   </div>
                   <div class="min-w-0">
                     <h4 class="text-xs font-black text-slate-900 truncate">${escapeHtml(master.title || master.name)}</h4>
@@ -3241,7 +2723,7 @@ function openStorePriceBreakdownModal(store) {
                 <div class="text-right shrink-0">
                   <span class="text-xs font-black text-slate-900">${zar.format(activePrice * qty)}</span>
                   ${hasPromo ? `
-                    <span class="block text-[8px] font-bold text-emerald-600">Promo (${zar.format(activePrice)} ea)</span>
+                    <span class="block text-[8px] font-bold text-[#234e3b]">Promo (${zar.format(activePrice)} ea)</span>
                   ` : `
                     <span class="block text-[8px] text-slate-400 font-mono">${zar.format(activePrice)} ea</span>
                   `}
@@ -3251,8 +2733,7 @@ function openStorePriceBreakdownModal(store) {
           }).join('')}
         </div>
 
-        <!-- Total & Switch Button -->
-        <div class="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between">
+        <div class="mt-4 border-t border-stone-100 pt-3 flex items-center justify-between">
           <div>
             <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Total Basket Cost</span>
             <p class="text-base font-black text-slate-900">${zar.format(total)}</p>
@@ -3260,10 +2741,10 @@ function openStorePriceBreakdownModal(store) {
           <button 
             id="modal-select-this-store-btn" 
             type="button" 
-            class="rounded-2xl px-4 py-2.5 text-xs font-black text-white shadow-md active:scale-95 transition" 
-            style="background:${store.color}"
+            class="rounded-2xl px-4 py-2.5 text-xs font-black text-white shadow-sm active:scale-95 transition" 
+            style="background:${retailer.color}"
           >
-            Shop at ${store.retailer} ➔
+            Shop ${retailer.name} ➔
           </button>
         </div>
       </div>
@@ -3275,12 +2756,11 @@ function openStorePriceBreakdownModal(store) {
   });
 
   modalRoot.querySelector('#modal-select-this-store-btn')?.addEventListener('click', () => {
-    state.currentStoreId = store.id;
-    state.retailerId = store.retailerId;
+    state.retailerId = retailer.id;
     modalRoot.innerHTML = '';
     playBeepSound();
     if (navigator.vibrate) navigator.vibrate(30);
-    showToast(`📍 Switched active store to ${store.name}`);
+    showToast(`Switched active store to ${retailer.name}`);
     routeTo('market');
   });
 }
@@ -3691,167 +3171,189 @@ function completeDeliveryPayment(event) {
   showToast('Payment approved - delivery created');
 }
 
-function getSingleQrCheckoutPayload(retailerId = state.retailerId, mode = 'crlf') {
-  // Unpack product quantities for the selected retailer into individual barcode lines
-  const cartItems = getRetailerCart(retailerId);
-  const lines = [];
-  for (const item of cartItems) {
-    const qty = Math.max(1, Math.floor(item.quantity || 1));
-    for (let i = 0; i < qty; i++) {
-      lines.push(String(item.barcode).trim());
-    }
+function isValidEan13(code) {
+  if (!/^\d{13}$/.test(code)) return false;
+  let sum = 0;
+  for (let i = 0; i < 12; i++) {
+    sum += parseInt(code[i], 10) * (i % 2 === 0 ? 1 : 3);
   }
-  if (!lines.length) return '';
-  if (mode === 'cr') return lines.join('\r') + '\r';
-  if (mode === 'lf') return lines.join('\n') + '\n';
-  return lines.join('\r\n') + '\r\n'; // Default CRLF keyboard wedge
+  const check = (10 - (sum % 10)) % 10;
+  return check === parseInt(code[12], 10);
 }
 
-async function openMasterBarcode(retailerId = state.retailerId, streamMode = 'crlf') {
+function openMasterBarcode(retailerId = state.retailerId, stepIndex = 0) {
   const targetRet = retailerId || state.retailerId || 'shoprite';
   const retailer = RETAILERS[targetRet] || RETAILERS.shoprite;
+  const theme = RETAILER_THEMES[targetRet] || RETAILER_THEMES.shoprite;
   const cartItems = getRetailerCart(targetRet);
   if (!cartItems.length) {
-    showToast(`Your ${retailer.name} Cartel is empty`);
+    showToast(`Your ${retailer.name} Trolley is empty`);
     return;
   }
-  const payload = getSingleQrCheckoutPayload(targetRet, streamMode);
-  let qrUrl = '';
-  try {
-    qrUrl = await QRCode.toDataURL(payload, {
-      errorCorrectionLevel: 'M',
-      width: 360,
-      margin: 2,
-      color: {
-        dark: '#020617',
-        light: '#ffffff'
-      }
-    });
-  } catch (err) {
-    console.error('QR generation error:', err);
-    qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&data=${encodeURIComponent(payload)}`;
-  }
+
+  const safeIdx = Math.max(0, Math.min(cartItems.length - 1, Number(stepIndex) || 0));
+  const currentItem = cartItems[safeIdx];
+  const isLast = safeIdx >= cartItems.length - 1;
+  const progressPct = Math.round(((safeIdx + 1) / cartItems.length) * 100);
+  const codeStr = String(currentItem.barcode).trim();
 
   state.overlay = 'barcode';
 
   modalRoot.innerHTML = `
-    <div class="modal-enter fixed inset-0 z-[60] overflow-y-auto bg-slate-950/85 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="qr-checkout-title">
-      <section class="mx-auto flex min-h-dvh max-w-lg flex-col justify-between p-5 pb-safe pt-6 text-white">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2.5">
-            <div class="grid size-11 shrink-0 place-items-center rounded-2xl bg-white p-1 shadow-md border border-white/20 overflow-hidden">
-              <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${retailer.initials}</span>';" />
+    <div class="modal-enter fixed inset-0 z-[60] overflow-y-auto bg-slate-950/90 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="till-checkout-title">
+      <section class="mx-auto flex min-h-dvh max-w-lg flex-col justify-between p-5 pb-safe pt-5 text-white">
+        <!-- Header & Upper Next-Product Controls -->
+        <div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="grid size-10 shrink-0 place-items-center rounded-2xl bg-white p-1 shadow-md overflow-hidden">
+                <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${retailer.initials}</span>';" />
+              </div>
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-[.18em] text-white/70">${retailer.name} Till Scanner</p>
+                <h2 id="till-checkout-title" class="text-lg font-black">Product ${safeIdx + 1} of ${cartItems.length}</h2>
+              </div>
             </div>
-            <div>
-              <p class="text-[10px] font-black uppercase tracking-[.2em] text-emerald-400">${retailer.name} Till Stream</p>
-              <h2 id="qr-checkout-title" class="mt-0.5 text-2xl font-black">Single QR Till Flash</h2>
-            </div>
-          </div>
-          <button data-close-modal class="grid size-11 place-items-center rounded-2xl bg-white/10 text-xl font-bold text-white transition active:scale-95">&times;</button>
-        </div>
-
-        <div class="my-5 rounded-3xl bg-white p-5 text-center text-slate-950 shadow-2xl">
-          <!-- Format Switcher Bar -->
-          <div class="mb-4 flex items-center justify-center gap-1.5 rounded-2xl bg-slate-100 p-1">
-            <button type="button" data-stream-mode="crlf" class="flex-1 rounded-xl py-1.5 text-[11px] font-black transition ${streamMode === 'crlf' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}">
-              Wedge (\\r\\n Enter)
-            </button>
-            <button type="button" data-stream-mode="cr" class="flex-1 rounded-xl py-1.5 text-[11px] font-black transition ${streamMode === 'cr' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}">
-              Raw (\\r Return)
-            </button>
-            <button type="button" data-stream-mode="lf" class="flex-1 rounded-xl py-1.5 text-[11px] font-black transition ${streamMode === 'lf' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}">
-              Unix (\\n Line)
-            </button>
+            <button data-close-modal class="grid size-10 place-items-center rounded-2xl bg-white/10 text-xl font-bold text-white transition active:scale-95">&times;</button>
           </div>
 
-          <!-- QR Code Frame with Presentation Laser Guide -->
-          <div class="relative mx-auto size-72 overflow-hidden rounded-2xl border-2 border-slate-900/10 bg-white p-2 shadow-inner">
-            <img src="${qrUrl}" alt="Single QR Till Stream Code" class="size-full object-contain" />
+          <!-- Progress Bar -->
+          <div class="mt-3.5 h-2 w-full overflow-hidden rounded-full bg-white/15">
+            <div class="h-full rounded-full transition-all duration-300" style="width:${progressPct}%; background:${retailer.color}"></div>
           </div>
 
-          <p class="mt-3 text-xs font-black uppercase tracking-[.18em] text-slate-400">${getItemCount(targetRet)} items at ${retailer.name} &middot; ${zar.format(getPayableTotal(targetRet))}</p>
-          <p class="mx-auto mt-1 max-w-xs text-xs leading-5 text-slate-500">Flash this 2D code once at the cashier's presentation laser scanner to populate all ${cartItems.length} products line-by-line automatically at the POS till.</p>
-
-          <!-- ASCII Stream Item Inspector -->
-          <details class="mt-4 border-t border-slate-100 pt-3 text-left" open>
-            <summary class="cursor-pointer text-center text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-slate-700">Encoded Barcode Stream Sequence (${cartItems.length} items)</summary>
-            <div class="mt-2 max-h-36 overflow-y-auto rounded-xl bg-slate-50 p-2.5 font-mono text-[11px] text-slate-800 space-y-1.5">
-              ${payload.split(/[\r\n]+/).filter(Boolean).map((code, idx) => {
-                const prod = PRODUCTS.get(code) || cartItems.find(i => i.barcode === code);
-                return `
-                  <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200/70 shadow-xs">
-                    <div class="truncate mr-2">
-                      <strong class="text-slate-400">${idx + 1}.</strong>
-                      <span class="font-bold text-slate-900">${escapeHtml(code)}</span>
-                      ${prod ? `<span class="text-[10px] text-slate-500 font-normal"> &middot; ${escapeHtml(prod.name)}</span>` : ''}
-                    </div>
-                    <span class="rounded bg-violet-100 px-1.5 py-0.5 text-[9px] font-bold text-violet-700 shrink-0">[↵ Enter]</span>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </details>
-
-          <!-- Simulated POS Till Scanner Tester -->
-          <div class="mt-4 border-t border-slate-100 pt-3">
-            <button id="simulate-pos-scan-btn" type="button" class="w-full rounded-2xl bg-slate-900 py-3 text-xs font-black text-white hover:bg-violet-700 active:scale-95 transition flex items-center justify-center gap-2 shadow-md">
-              <span>⚡</span><span>Test Simulated POS Till Scanner</span>
+          <!-- UPPER BUTTON BAR TO CHANGE TO NEXT PRODUCT -->
+          <div class="mt-3.5 flex items-center gap-2">
+            <button
+              id="till-prev-btn"
+              type="button"
+              ${safeIdx === 0 ? 'disabled' : ''}
+              class="rounded-2xl bg-white/12 px-4 py-3.5 text-xs font-black text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              ← Prev
             </button>
-            <div id="simulated-pos-output" class="hidden mt-3 rounded-2xl bg-slate-950 p-3.5 text-left font-mono text-xs text-emerald-400 space-y-1 border border-emerald-500/30"></div>
+
+            <button
+              id="till-upper-next-btn"
+              type="button"
+              class="flex-1 rounded-2xl py-3.5 px-4 text-sm font-black text-white shadow-lg transition active:scale-98 flex items-center justify-center gap-2"
+              style="background: ${isLast ? '#16a34a' : retailer.color}"
+            >
+              <span>${isLast ? `✓ Finish Checkout (${cartItems.length}/${cartItems.length})` : `Next Product (${safeIdx + 2} of ${cartItems.length}) ➔`}</span>
+            </button>
           </div>
         </div>
 
-        <div class="mb-2 rounded-2xl bg-white/10 px-4 py-3 text-center text-xs font-bold text-white/80">
-          🔒 Zero payment data in QR &middot; Settle safely at ${retailer.name} till
+        <!-- Single Product Scannable Barcode Card -->
+        <div class="my-5 rounded-[2rem] bg-white p-5 text-center text-slate-950 shadow-2xl">
+          <div class="flex items-center gap-3 rounded-2xl bg-stone-50 p-3 border border-stone-200/80 text-left">
+            <div class="size-14 shrink-0 overflow-hidden rounded-xl bg-white border border-stone-200/70 p-1 flex items-center justify-center">
+              ${currentItem.image ? `<img src="${currentItem.image}" alt="" class="max-h-full max-w-full object-contain" onerror="this.parentElement.innerHTML='<span class=\\'text-2xl\\'>${currentItem.emoji || '🛍️'}</span>';" />` : `<span class="text-2xl">${currentItem.emoji || '🛍️'}</span>`}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="rounded-md px-2 py-0.5 text-[9px] font-black uppercase" style="background:${theme.pillBg}; color:${theme.pillText}">
+                  Item ${safeIdx + 1} of ${cartItems.length}
+                </span>
+                <span class="rounded-lg bg-slate-900 px-2.5 py-0.5 text-[11px] font-black text-white">
+                  Qty &times;${currentItem.quantity}
+                </span>
+              </div>
+              <h3 class="mt-1 truncate text-sm font-black text-slate-900">${escapeHtml(currentItem.name)}</h3>
+              <p class="text-xs font-bold text-slate-500">${currentItem.weight || '1 unit'} &middot; <strong class="text-slate-900">${zar.format(currentItem.price * currentItem.quantity)}</strong></p>
+            </div>
+          </div>
+
+          <!-- Crisp 1D Scannable Barcode for This Single Product -->
+          <div class="mt-4 rounded-2xl border-2 border-slate-900/10 bg-white px-3 py-5 shadow-inner flex flex-col items-center justify-center">
+            <svg id="till-single-barcode" class="w-full max-w-[300px] h-auto"></svg>
+            ${currentItem.quantity > 1 ? `
+              <p class="mt-2 rounded-full bg-amber-100 px-3 py-1 text-[11px] font-black text-amber-900">
+                Scan ${currentItem.quantity} times (or tell cashier &times;${currentItem.quantity})
+              </p>
+            ` : `
+              <p class="mt-2 text-[11px] font-bold text-slate-400">Present barcode to cashier scanner, then tap Next above</p>
+            `}
+          </div>
+
+          <!-- Step Dots / Quick Jump -->
+          <div class="mt-4 flex items-center justify-center gap-1.5 flex-wrap">
+            ${cartItems.map((it, idx) => `
+              <button
+                type="button"
+                data-till-jump="${idx}"
+                class="h-7 min-w-7 rounded-lg px-2 text-[10px] font-black transition ${idx === safeIdx ? 'bg-slate-900 text-white shadow-xs' : idx < safeIdx ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-slate-500 hover:bg-stone-200'}"
+              >
+                ${idx < safeIdx ? '✓' : idx + 1}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Footer Total Summary -->
+        <div class="rounded-2xl bg-white/10 px-4 py-3 flex items-center justify-between text-xs font-bold text-white/90">
+          <span>${retailer.name} Basket Total (${getItemCount()} units)</span>
+          <strong class="text-base font-black text-white tabular-nums">${zar.format(getPayableTotal(targetRet))}</strong>
         </div>
       </section>
     </div>`;
 
-  // Bind mode switcher buttons
-  modalRoot.querySelectorAll('[data-stream-mode]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      openMasterBarcode(targetRet, btn.dataset.streamMode);
-    });
+  // Render crisp 1D barcode for the single active product
+  const barcodeSvg = modalRoot.querySelector('#till-single-barcode');
+  if (barcodeSvg) {
+    try {
+      JsBarcode(barcodeSvg, codeStr, {
+        format: isValidEan13(codeStr) ? 'EAN13' : 'CODE128',
+        lineColor: '#020617',
+        background: '#ffffff',
+        width: 2.3,
+        height: 98,
+        displayValue: true,
+        fontSize: 16,
+        fontOptions: 'bold',
+        margin: 8
+      });
+    } catch {
+      JsBarcode(barcodeSvg, codeStr, {
+        format: 'CODE128',
+        lineColor: '#020617',
+        background: '#ffffff',
+        width: 2.1,
+        height: 98,
+        displayValue: true,
+        fontSize: 15,
+        margin: 8
+      });
+    }
+  }
+
+  modalRoot.querySelector('#till-prev-btn')?.addEventListener('click', () => {
+    if (safeIdx > 0) {
+      playBeepSound();
+      openMasterBarcode(targetRet, safeIdx - 1);
+    }
   });
 
-  // Bind Simulated POS scanner tester
-  modalRoot.querySelector('#simulate-pos-scan-btn')?.addEventListener('click', async () => {
-    const outputEl = modalRoot.querySelector('#simulated-pos-output');
-    if (!outputEl) return;
-    outputEl.classList.remove('hidden');
-    outputEl.innerHTML = `<div class="text-white/70">▶ Connecting to ${retailer.name} Point-of-Sale (POS)...</div>`;
-    
-    const lines = payload.split(/[\r\n]+/).filter(Boolean);
-    let cumulative = 0;
-    
-    for (let i = 0; i < lines.length; i++) {
-      await new Promise(r => setTimeout(r, 450));
-      const code = lines[i];
-      const prod = PRODUCTS.get(code) || cartItems.find(it => it.barcode === code);
-      const itemPrice = prod ? prod.price : 19.99;
-      cumulative += itemPrice;
-      
-      playBeepSound();
-      if (navigator.vibrate) navigator.vibrate(35);
-      
-      const row = document.createElement('div');
-      row.className = 'flex items-center justify-between text-[11px] animate-in fade-in';
-      row.innerHTML = `
-        <span><strong class="text-white">${i + 1}. [WEDGE]</strong> ${code} &middot; ${prod ? prod.name.slice(0, 20) : 'Item'}</span>
-        <span class="text-white font-bold">${zar.format(itemPrice)}</span>
-      `;
-      outputEl.appendChild(row);
+  modalRoot.querySelector('#till-upper-next-btn')?.addEventListener('click', () => {
+    playBeepSound();
+    if (navigator.vibrate) navigator.vibrate(25);
+    if (!isLast) {
+      openMasterBarcode(targetRet, safeIdx + 1);
+    } else {
+      state.completedSavings += getCurrentSavings(targetRet);
+      state.loyaltyPoints += Math.floor(getPayableTotal(targetRet));
+      state.cart = [];
+      closeModal();
+      updateCartBadge();
+      render();
+      showToast(`✓ ${retailer.name} Till Checkout completed!`);
     }
-    
-    await new Promise(r => setTimeout(r, 300));
-    const summary = document.createElement('div');
-    summary.className = 'mt-2 border-t border-white/20 pt-2 flex items-center justify-between font-bold text-white text-xs';
-    summary.innerHTML = `
-      <span>✓ TILL TOTAL (${lines.length} Items):</span>
-      <span class="text-emerald-400 font-black text-sm">${zar.format(cumulative)}</span>
-    `;
-    outputEl.appendChild(summary);
-    showToast(`✓ POS Stream Verified: ${lines.length} barcodes scanned in sequence!`);
+  });
+
+  modalRoot.querySelectorAll('[data-till-jump]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      openMasterBarcode(targetRet, parseInt(btn.dataset.tillJump, 10));
+    });
   });
 
   bindModalClose();
@@ -4062,6 +3564,12 @@ function closeModal() {
   modalRoot.innerHTML = '';
 }
 
+function bindModalClose() {
+  modalRoot.querySelectorAll('[data-close-modal]').forEach((btn) => {
+    btn.addEventListener('click', closeModal);
+  });
+}
+
 function showToast(message) {
   toast.textContent = message;
   toast.classList.remove('hidden');
@@ -4085,13 +3593,16 @@ async function handleHardwareScan(rawScan) {
     for (const code of lines) {
       const product = await fetchProductFromFirestore(code);
       if (product) {
-        addToCart(product, state.retailerId);
+        addToCart(product, state.retailerId, { silent: true });
         matchedCount++;
       }
     }
     state.scanBusy = false;
-    routeTo('cartel');
-    showToast(`✓ Scanned QR Stream: Added ${matchedCount} items to ${getRetailer().name} Cartel!`);
+    if (matchedCount > 0) {
+      triggerFloatingTrolleyNotice({ name: `${matchedCount} scanned items`, emoji: '📷' }, state.retailerId, matchedCount);
+    }
+    routeTo('trolley');
+    showToast(`✓ Scanned QR Stream: Added ${matchedCount} items to ${getRetailer().name} Trolley!`);
     return;
   }
 
@@ -4099,31 +3610,35 @@ async function handleHardwareScan(rawScan) {
   const retailer = Object.values(RETAILERS).find((item) => item.entryBarcode === cleanBarcode);
   if (retailer) {
     state.retailerId = retailer.id;
-    routeTo('cartel');
+    routeTo('trolley');
     showToast(`Welcome to ${retailer.name} - scanner linked`);
     return;
   }
   if (!getRetailer()) {
     showToast('Scan a retailer entry code first.');
-    routeTo('cartel');
+    routeTo('trolley');
     return;
   }
   state.scanBusy = true;
-  if (state.route === 'cartel') {
+  if (state.route === 'trolley' || state.route === 'cartel') {
     const status = document.querySelector('#scan-status');
     if (status) status.textContent = `Looking up ${cleanBarcode}...`;
   }
   try {
     const product = await fetchProductFromFirestore(cleanBarcode);
     if (!product) {
-      // Trigger crowdsourced first-scan fallback interface
       openCrowdsourceModal(cleanBarcode);
       return;
     }
     addToCart(product, state.retailerId);
-    routeTo('cartel');
-    const status = document.querySelector('#scan-status');
-    if (status) status.textContent = `${product.name} added - ready for next scan`;
+    if (state.overlay === 'camera') closeCameraScanner();
+    if (state.route === 'trolley' || state.route === 'cartel') {
+      renderCartel();
+      const status = document.querySelector('#scan-status');
+      if (status) status.textContent = `${product.name || product.title} added - ready for next scan`;
+    } else if (state.route === 'market') {
+      renderMarket();
+    }
   } catch (error) {
     console.error('Hardware product scan failed:', error);
     openCrowdsourceModal(cleanBarcode);
@@ -4349,35 +3864,24 @@ window.addEventListener('message', (event) => {
     const scraped = event.data.product;
     const barcode = scraped.barcode;
     state.selectedCatalogBarcode = barcode;
-    
-    // Save to cache
     PRODUCTS.set(barcode, scraped);
     automationCore.selectProduct({ barcode, ...scraped });
 
+    addToCart(scraped, state.retailerId);
     playBeepSound();
     if (navigator.vibrate) navigator.vibrate(45);
-    showToast(`✓ Captured: ${scraped.name} (${zar.format(scraped.price)})`);
-    
-    // Re-render bottom dock immediately
-    const dockContainer = document.querySelector('#catalog-action-dock');
-    if (dockContainer) {
-      dockContainer.outerHTML = renderCatalogActionDock(getRetailer(), scraped, barcode);
-      bindDockActionButtons(getRetailer());
-    } else {
-      renderMarket();
-    }
+    if (state.route === 'market') renderMarket();
   }
 });
 
 window.addEventListener('keydown', hardwareScannerKeydown, { capture: true });
 window.addEventListener('hashchange', () => { state.route = getRouteFromHash(); render(); });
 document.querySelectorAll('.nav-item').forEach((button) => button.addEventListener('click', () => routeTo(button.dataset.route)));
-document.querySelector('#header-download-button')?.addEventListener('click', openInstallModal);
-document.querySelector('#header-cart-button')?.addEventListener('click', () => routeTo('cartel'));
+document.querySelector('#header-search-button')?.addEventListener('click', () => toggleGlobalSearchDrawer());
+document.querySelector('#header-cart-button')?.addEventListener('click', () => routeTo('trolley'));
 document.querySelector('#header-camera-button')?.addEventListener('click', openLiveCameraScanner);
 window.handleHardwareScan = handleHardwareScan;
 window.openLiveCameraScanner = openLiveCameraScanner;
-window.openInstallModal = openInstallModal;
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch((error) => console.warn('Service worker registration failed:', error)));

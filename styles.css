@@ -16,21 +16,49 @@
   .nav-item { @apply mx-auto flex h-16 w-full max-w-[5.5rem] flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-extrabold text-slate-400 transition; }
   .nav-icon { @apply grid size-8 place-items-center rounded-xl transition; }
   .nav-icon svg { @apply size-5 fill-none stroke-current stroke-[1.8]; }
-  .nav-item.active { @apply text-violet-700; }
-  .nav-item.active .nav-icon { @apply bg-violet-100; }
-  .section-kicker { @apply text-[10px] font-black uppercase tracking-[.2em] text-violet-600; }
+  .nav-item.active { @apply text-slate-900; }
+  .nav-item.active .nav-icon { @apply bg-stone-200/80 text-slate-900; }
+  .section-kicker { @apply text-[10px] font-black uppercase tracking-[.2em] text-[#2b5440]; }
   .card { @apply rounded-[1.75rem] bg-white shadow-[0_18px_45px_-30px_rgba(15,23,42,.35)] ring-1 ring-slate-900/5; }
-  .primary-button { @apply flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-black text-white shadow-lg shadow-slate-900/15 transition hover:bg-violet-700 active:scale-[.985] disabled:cursor-not-allowed disabled:opacity-35; }
-  .secondary-button { @apply flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-violet-100 px-5 text-sm font-black text-violet-800 transition hover:bg-violet-200 active:scale-[.985] disabled:cursor-not-allowed disabled:opacity-35; }
+  .primary-button { @apply flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-black text-white shadow-lg shadow-slate-900/15 transition hover:bg-slate-800 active:scale-[.985] disabled:cursor-not-allowed disabled:opacity-35; }
+  .secondary-button { @apply flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-stone-200/80 px-5 text-sm font-black text-slate-800 transition hover:bg-stone-300/70 active:scale-[.985] disabled:cursor-not-allowed disabled:opacity-35; }
   .product-row { will-change: transform, opacity; transition: transform 220ms cubic-bezier(.2,.8,.2,1), opacity 180ms ease; }
   .product-row.removing { transform: translateX(-110%) !important; opacity: 0; }
   .modal-enter { animation: modal-in 220ms cubic-bezier(.2,.8,.2,1) both; }
   .sheet-enter { animation: sheet-in 260ms cubic-bezier(.2,.8,.2,1) both; }
   .toast-visible { transform: translateY(0) !important; opacity: 1 !important; }
+  .store-rollout-item { animation: store-rollout 240ms cubic-bezier(.2,.8,.2,1) both; }
+  .cart-pop { animation: cart-pop 420ms cubic-bezier(.2,.9,.25,1) both; }
+  .cart-plus-float { animation: plus-one-rise 900ms cubic-bezier(.16,.84,.44,1) both; }
+  .trolley-float-in { animation: trolley-float-in 320ms cubic-bezier(.2,.85,.25,1) both; }
+  .trolley-float-out { animation: trolley-float-out 260ms ease forwards; }
 }
 
 @keyframes modal-in { from { opacity: 0; } }
 @keyframes sheet-in { from { transform: translateY(24px); opacity: 0; } }
+@keyframes store-rollout {
+  from { opacity: 0; transform: translateX(-12px) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes cart-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.22); }
+  70% { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
+@keyframes plus-one-rise {
+  0% { opacity: 0; transform: translateY(6px) scale(0.8); }
+  25% { opacity: 1; transform: translateY(-4px) scale(1.06); }
+  100% { opacity: 0; transform: translateY(-22px) scale(0.92); }
+}
+@keyframes trolley-float-in {
+  0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes trolley-float-out {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-8px) scale(0.97); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }

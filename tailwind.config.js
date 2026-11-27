@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './app.js', './automation-core.js'],
+  content: ['./index.html', './*.js'],
   theme: {
     extend: {
       colors: {

@@ -12,7 +12,8 @@ from rich.panel import Panel
 from backend.ingestion.catalog_ingester import CatalogIngester, DEFAULT_CATALOG
 from backend.router.transaction_router import TransactionRouter
 from backend.models import OrderStage
-from backend.ingestion.sync_catalog_images import sync_images, sync_vertex_packshots
+from backend.ingestion.sync_catalog_images import sync_images
+from backend.ingestion.packshot_sanitizer import batch_sanitize_directory
 from backend.ingestion.regional_sales_agent import RegionalSalesScraperAgent
 from backend.ingestion.shoprite_catalog_manager import ShopriteCatalogManager
 
@@ -20,23 +21,24 @@ console = Console(force_terminal=True, legacy_windows=False)
 
 
 def pull_shoprite_catalog():
-    print("=" * 70)
-    print("AUTOMATER SHOPRITE CATEGORY PULLER & MANAGER")
-    print("Pulling and categorizing 50 verified Shoprite products across 5 core departments...")
-    print("=" * 70)
+    print("=" * 72)
+    print("AUTOMATER PRODUCTION SHOPRITE CSE + 11-DEPARTMENT CATALOG MANAGER")
+    print("Verifying Shoprite products, GS1 barcodes, packshots & 9-province prices...")
+    print("=" * 72)
     manager = ShopriteCatalogManager()
     manager.export_catalog_json()
     manager.sync_to_app_js()
     grouped = manager.get_products_by_category()
 
-    print("\nShoprite Category Breakdown:")
+    print("\nShoprite 11-Department Retail Breakdown:")
     for dept in manager.departments:
         dept_id = dept["id"]
         items = grouped.get(dept_id, [])
         hb_count = sum(1 for it in items if it.get("isHouseBrand"))
-        print(f" * {dept['label']:<20} | Items: {len(items):<3} | House Brands (Ritebrand): {hb_count} items")
+        label = dept.get("label") or dept.get("shortLabel") or dept_id
+        print(f" * {label:<22} | Items: {len(items):<3} | House Brands: {hb_count} items")
 
-    print(f"\n[OK] Successfully synced {len(manager.products)} products into app.js and public/data/shoprite_catalog.json!\n")
+    print(f"\n[OK] Verified {len(manager.products)} Shoprite products across {len(manager.departments)} departments!\n")
 
 
 
@@ -145,10 +147,10 @@ def simulate_nedbank():
 
 def main():
     parser = argparse.ArgumentParser(description="Automater Backend Pipeline & Router CLI")
-    parser.add_argument("command", choices=["seed", "pull-shoprite", "simulate-qr", "simulate-delivery", "simulate-nedbank", "pull-cse-images", "vertex-packshots", "regional-sales"], help="Command to execute")
+    parser.add_argument("command", choices=["seed", "pull-shoprite", "simulate-qr", "simulate-delivery", "simulate-nedbank", "pull-cse-images", "sanitize-packshots", "regional-sales"], help="Command to execute")
     parser.add_argument("--gtin", type=str, default=None, help="Target specific product GTIN barcode")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of items to process")
-    parser.add_argument("--overwrite", action="store_true", help="Force regenerate existing images")
+    parser.add_argument("--overwrite", action="store_true", help="Force re-pull existing CSE images")
 
     if len(sys.argv) == 1:
         parser.print_help()
@@ -168,8 +170,8 @@ def main():
         simulate_nedbank()
     elif args.command == "pull-cse-images":
         sync_images(overwrite=args.overwrite)
-    elif args.command == "vertex-packshots":
-        sync_vertex_packshots(overwrite=args.overwrite, limit=args.limit, gtin_filter=args.gtin)
+    elif args.command == "sanitize-packshots":
+        batch_sanitize_directory()
     elif args.command == "regional-sales":
         agent = RegionalSalesScraperAgent()
         agent.run()

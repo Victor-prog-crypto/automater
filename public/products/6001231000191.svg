@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#ffffff" rx="32"/>
+  <rect x="68" y="44" width="264" height="312" rx="28" fill="#b45309"/>
+  <rect x="68" y="44" width="264" height="64" rx="28" fill="rgba(0,0,0,0.22)"/>
+  <text x="200" y="84" text-anchor="middle" fill="#ffffff" font-family="system-ui,sans-serif" font-size="18" font-weight="900">TASTIC</text>
+  <circle cx="200" cy="184" r="56" fill="rgba(255,255,255,0.95)"/>
+  <text x="200" y="204" text-anchor="middle" font-size="56">🍚</text>
+  <text x="200" y="268" text-anchor="middle" fill="#ffffff" font-family="system-ui,sans-serif" font-size="12.5" font-weight="800">Tastic Long Grain Parboiled </text>
+  <text x="200" y="330" text-anchor="middle" fill="#ffffff" font-family="monospace" font-size="13" font-weight="800">2 kg · 6001231000191</text>
+</svg>

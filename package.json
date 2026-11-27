@@ -8,13 +8,17 @@
     "@capacitor/cli": "^8.5.0",
     "@capacitor/core": "^8.5.0",
     "@capacitor/ios": "^8.5.0",
+    "@zxing/browser": "^0.2.1",
+    "@zxing/library": "^0.23.0",
     "jsbarcode": "3.12.1",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "tesseract.js": "^7.0.0"
   },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "cse:pull": "node scripts/cse_pull_shoprite_catalog.mjs",
     "build:android": "npm run build && npx cap sync android",
     "open:android": "npx cap open android",
     "build:ios": "npm run build && npx cap sync ios",

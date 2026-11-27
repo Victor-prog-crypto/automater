@@ -1,9 +1,41 @@
-import QRCode from 'qrcode';
-import JsBarcode from 'jsbarcode';
 import { automationCore, AUTOMATION_EVENTS, RetailDOMScraper } from './automation-core.js';
+import {
+  SHOPRITE_SA_STORES,
+  SHOPRITE_LIVE_PRODUCTS,
+  SHOPRITE_RETAIL_DEPARTMENTS,
+  SHOPRITE_PROVINCE_HUBS,
+  getShopriteStoresSortedByDistance,
+  getExactShopriteBranchDeal
+} from './shoprite-stores-sa.js';
+import {
+  openShopriteStoreLocator,
+  openContinuousPhoneScanner,
+  openSequentialTillCheckout,
+  openProductQuickViewModal,
+  openAllDepartmentsModal,
+  mountModalDialog,
+  renderTill1DBarcodeSvg
+} from './till-scanner-engine.js';
+import {
+  ensurePersistentCellphoneStorage,
+  saveLocalCustomProduct,
+  loadAllLocalCustomProducts,
+  saveLocalOrderRecord,
+  loadAllLocalOrders
+} from './local-vault.js';
+import {
+  computeGs1CheckDigit,
+  normalizeScannedBarcode,
+  decodeShopriteVariableWeightBarcode,
+  resolveOpenFoodFactsBarcode,
+  loadXtraSavingsCard,
+  openXtraSavingsCardModal,
+  openShopriteScalePluModal,
+  openDigitalTillSlipModal
+} from './shoprite-pos-engine.js';
 
 const ROUTES = Object.freeze(['market', 'trolley', 'cartel', 'tracker', 'savings']);
-const SCANNER_KEY_GAP_MS = 30;
+const STORAGE_KEY = 'automater_unified_v8';
 const MIN_BARCODE_LENGTH = 6;
 
 const RETAILERS = Object.freeze({
@@ -15,734 +47,36 @@ const RETAILERS = Object.freeze({
   boxer: { id: 'boxer', name: 'Boxer', url: 'https://www.boxer.co.za', host: 'boxer.co.za', tagline: 'Never pay more than the Boxer price', loyalty: 'Boxer Club', entryBarcode: '9000000000006', color: '#ea580c', soft: '#fff7ed', initials: 'BXR', accent: 'from-orange-600 to-amber-700', logoUrl: '/logos/boxer.svg' }
 });
 
-const MASTER_PRODUCTS = new Map([
-  ['6001007001001', {
-    gtin: '6001007001001',
-    retailerId: 'shoprite',
-    title: "Albany Superior Thick Slices White Bread 700g",
-    brand: "Albany",
-    imageUrl: '/products/6001007001001.jpg',
-    category: "Bakery & Fresh Produce",
-    weight: "700 g",
-    basePrice: 19.99,
-    promoPrice: 16.99,
-    emoji: '🍞',
-    isHouseBrand: false,
-    searchKeywords: ["albany", "bread", "white", "sliced", "superior", "bakery", "toast"]
-  }],
-  ['6001007001018', {
-    gtin: '6001007001018',
-    retailerId: 'shoprite',
-    title: "Albany Superior Sliced Brown Bread 700g",
-    brand: "Albany",
-    imageUrl: '/products/6001007001018.jpg',
-    category: "Bakery & Fresh Produce",
-    weight: "700 g",
-    basePrice: 18.49,
-    promoPrice: 15.99,
-    emoji: '🍞',
-    isHouseBrand: false,
-    searchKeywords: ["albany", "bread", "brown", "sliced", "superior", "bakery", "toast"]
-  }],
-  ['6001007002070', {
-    gtin: '6001007002070',
-    retailerId: 'shoprite',
-    title: "Mister Bread White Sliced Bread 700g",
-    brand: "Mister Bread",
-    imageUrl: '/products/6001007002070.svg',
-    category: "Bakery & Fresh Produce",
-    weight: "700 g",
-    basePrice: 16.49,
-    promoPrice: 13.99,
-    emoji: '🍞',
-    isHouseBrand: true,
-    searchKeywords: ["mister bread", "bread", "white", "sliced", "shoprite", "bakery", "budget"]
-  }],
-  ['6001007002087', {
-    gtin: '6001007002087',
-    retailerId: 'shoprite',
-    title: "Mister Bread Brown Sliced Bread 700g",
-    brand: "Mister Bread",
-    imageUrl: '/products/6001007002087.svg',
-    category: "Bakery & Fresh Produce",
-    weight: "700 g",
-    basePrice: 15.49,
-    promoPrice: 12.99,
-    emoji: '🍞',
-    isHouseBrand: true,
-    searchKeywords: ["mister bread", "bread", "brown", "sliced", "shoprite", "bakery", "budget"]
-  }],
-  ['6009510805536', {
-    gtin: '6009510805536',
-    retailerId: 'shoprite',
-    title: "Class 1 Crisp Red Gala Sweet Apples 1.5kg Bag",
-    brand: "Fresh Produce",
-    imageUrl: '/products/6009510805536.jpg',
-    category: "Bakery & Fresh Produce",
-    weight: "1.5 kg",
-    basePrice: 33.5,
-    promoPrice: 27.99,
-    emoji: '🍎',
-    isHouseBrand: false,
-    searchKeywords: ["apples", "gala", "red", "fruit", "fresh produce", "sweet", "crisp"]
-  }],
-  ['6001571002022', {
-    gtin: '6001571002022',
-    retailerId: 'shoprite',
-    title: "Ripe & Ready Creamy Hass Avocados 4pk",
-    brand: "Fresh Produce",
-    imageUrl: '/products/6001571002022.jpg',
-    category: "Bakery & Fresh Produce",
-    weight: "4 pk",
-    basePrice: 49.99,
-    promoPrice: 39.99,
-    emoji: '🥑',
-    isHouseBrand: false,
-    searchKeywords: ["avocado", "avo", "hass", "fresh produce", "fruit", "ripe"]
-  }],
-  ['6001007002124', {
-    gtin: '6001007002124',
-    retailerId: 'shoprite',
-    title: "Shoprite Farm Fresh Washed Potatoes 2kg Bag",
-    brand: "Shoprite Fresh",
-    imageUrl: '/products/6001007002124.svg',
-    category: "Bakery & Fresh Produce",
-    weight: "2 kg",
-    basePrice: 29.99,
-    promoPrice: 24.99,
-    emoji: '🥔',
-    isHouseBrand: true,
-    searchKeywords: ["potatoes", "washed", "farm fresh", "vegetables", "produce", "shoprite"]
-  }],
-  ['6001007002131', {
-    gtin: '6001007002131',
-    retailerId: 'shoprite',
-    title: "Shoprite Fresh Class 1 Brown Onions 2kg Bag",
-    brand: "Shoprite Fresh",
-    imageUrl: '/products/6001007002131.svg',
-    category: "Bakery & Fresh Produce",
-    weight: "2 kg",
-    basePrice: 27.99,
-    promoPrice: 21.99,
-    emoji: '🧅',
-    isHouseBrand: true,
-    searchKeywords: ["onions", "brown onions", "vegetables", "produce", "shoprite", "cooking"]
-  }],
-  ['6001299000270', {
-    gtin: '6001299000270',
-    retailerId: 'shoprite',
-    title: "Clover Full Cream Fresh Milk 2L",
-    brand: "Clover",
-    imageUrl: '/products/6001299000270.jpg',
-    category: "Dairy, Eggs & Fridge",
-    weight: "2 L",
-    basePrice: 39.99,
-    promoPrice: 33.99,
-    emoji: '🥛',
-    isHouseBrand: false,
-    searchKeywords: ["clover", "milk", "fresh", "full cream", "dairy", "2l"]
-  }],
-  ['6001299000287', {
-    gtin: '6001299000287',
-    retailerId: 'shoprite',
-    title: "Clover 2% Low Fat Fresh Milk 2L",
-    brand: "Clover",
-    imageUrl: '/products/6001299000287.jpg',
-    category: "Dairy, Eggs & Fridge",
-    weight: "2 L",
-    basePrice: 39.99,
-    promoPrice: 33.99,
-    emoji: '🥛',
-    isHouseBrand: false,
-    searchKeywords: ["clover", "milk", "low fat", "fresh", "dairy", "2l"]
-  }],
-  ['6001007002001', {
-    gtin: '6001007002001',
-    retailerId: 'shoprite',
-    title: "Ritebrand Long Life Full Cream Milk 6 x 1L",
-    brand: "Ritebrand",
-    imageUrl: '/products/6001007002001.svg',
-    category: "Dairy, Eggs & Fridge",
-    weight: "6 x 1 L",
-    basePrice: 99.99,
-    promoPrice: 84.99,
-    emoji: '🥛',
-    isHouseBrand: true,
-    searchKeywords: ["ritebrand", "uht", "long life", "milk", "full cream", "dairy", "shoprite", "case"]
-  }],
-  ['6001007002063', {
-    gtin: '6001007002063',
-    retailerId: 'shoprite',
-    title: "Ritebrand Large Fresh Eggs 18 Pack",
-    brand: "Ritebrand",
-    imageUrl: '/products/6001007002063.svg',
-    category: "Dairy, Eggs & Fridge",
-    weight: "18 pack",
-    basePrice: 54.99,
-    promoPrice: 46.99,
-    emoji: '🥚',
-    isHouseBrand: true,
-    searchKeywords: ["ritebrand", "eggs", "large", "fresh eggs", "breakfast", "shoprite", "dairy"]
-  }],
-  ['6001087009874', {
-    gtin: '6001087009874',
-    retailerId: 'shoprite',
-    title: "Rama Original 70% Fat Spread 500g Tub",
-    brand: "Rama",
-    imageUrl: '/products/6001087009874.jpg',
-    category: "Dairy, Eggs & Fridge",
-    weight: "500 g",
-    basePrice: 26.99,
-    promoPrice: 21.99,
-    emoji: '🧈',
-    isHouseBrand: false,
-    searchKeywords: ["rama", "margarine", "butter", "spread", "dairy", "fat spread"]
-  }],
-  ['6009510806120', {
-    gtin: '6009510806120',
-    retailerId: 'shoprite',
-    title: "First Choice Long Life Full Cream UHT Milk 1L",
-    brand: "First Choice",
-    imageUrl: '/products/6009510806120.jpg',
-    category: "Dairy, Eggs & Fridge",
-    weight: "1 L",
-    basePrice: 23.99,
-    promoPrice: 18.99,
-    emoji: '🥛',
-    isHouseBrand: false,
-    searchKeywords: ["first choice", "uht", "long life", "milk", "full cream", "dairy", "1l"]
-  }],
-  ['6001007002343', {
-    gtin: '6001007002343',
-    retailerId: 'shoprite',
-    title: "White Star Super Maize Meal 2.5kg",
-    brand: "White Star",
-    imageUrl: '/products/6001007002343.jpg',
-    category: "Pantry Staples & Grains",
-    weight: "2.5 kg",
-    basePrice: 37.99,
-    promoPrice: 31.99,
-    emoji: '🌽',
-    isHouseBrand: false,
-    searchKeywords: ["white star", "maize", "meal", "pap", "super maize", "grains", "2.5kg"]
-  }],
-  ['6001007000127', {
-    gtin: '6001007000127',
-    retailerId: 'shoprite',
-    title: "Tastic Long Grain Parboiled Rice 2kg",
-    brand: "Tastic",
-    imageUrl: '/products/6001007000127.jpg',
-    category: "Pantry Staples & Grains",
-    weight: "2 kg",
-    basePrice: 44.99,
-    promoPrice: 37.99,
-    emoji: '🍚',
-    isHouseBrand: false,
-    searchKeywords: ["tastic", "rice", "long grain", "parboiled", "pantry", "grains", "2kg"]
-  }],
-  ['6001007002018', {
-    gtin: '6001007002018',
-    retailerId: 'shoprite',
-    title: "Ritebrand Pure Sunflower Cooking Oil 2L",
-    brand: "Ritebrand",
-    imageUrl: '/products/6001007002018.svg',
-    category: "Pantry Staples & Grains",
-    weight: "2 L",
-    basePrice: 64.99,
-    promoPrice: 56.99,
-    emoji: '🛢️',
-    isHouseBrand: true,
-    searchKeywords: ["ritebrand", "oil", "sunflower oil", "cooking oil", "pantry", "shoprite", "2l"]
-  }],
-  ['6001007002025', {
-    gtin: '6001007002025',
-    retailerId: 'shoprite',
-    title: "Ritebrand Parboiled Rice 2kg",
-    brand: "Ritebrand",
-    imageUrl: '/products/6001007002025.svg',
-    category: "Pantry Staples & Grains",
-    weight: "2 kg",
-    basePrice: 36.99,
-    promoPrice: 29.99,
-    emoji: '🍚',
-    isHouseBrand: true,
-    searchKeywords: ["ritebrand", "rice", "parboiled", "pantry", "shoprite", "grains", "2kg"]
-  }],
-  ['6001007002032', {
-    gtin: '6001007002032',
-    retailerId: 'shoprite',
-    title: "Ritebrand White Sugar 2.5kg",
-    brand: "Ritebrand",
-    imageUrl: '/products/6001007002032.svg',
-    category: "Pantry Staples & Grains",
-    weight: "2.5 kg",
-    basePrice: 49.99,
-    promoPrice: 43.99,
-    emoji: '🍬',
-    isHouseBrand: true,
-    searchKeywords: ["ritebrand", "sugar", "white sugar", "baking", "sweetener", "shoprite"]
-  }],
-  ['6001007000899', {
-    gtin: '6001007000899',
-    retailerId: 'shoprite',
-    title: "Koo Baked Beans in Tomato Sauce 410g",
-    brand: "Koo",
-    imageUrl: '/products/6001007000899.jpg',
-    category: "Pantry Staples & Grains",
-    weight: "410 g",
-    basePrice: 18.49,
-    promoPrice: 14.99,
-    emoji: '🥫',
-    isHouseBrand: false,
-    searchKeywords: ["koo", "baked beans", "beans", "tomato sauce", "tin", "canned", "pantry"]
-  }],
-  ['6001007002056', {
-    gtin: '6001007002056',
-    retailerId: 'shoprite',
-    title: "Ritebrand Baked Beans in Tomato Sauce 410g",
-    brand: "Ritebrand",
-    imageUrl: '/products/6001007002056.svg',
-    category: "Pantry Staples & Grains",
-    weight: "410 g",
-    basePrice: 12.99,
-    promoPrice: 10.99,
-    emoji: '🥫',
-    isHouseBrand: true,
-    searchKeywords: ["ritebrand", "baked beans", "beans", "canned", "pantry", "shoprite", "budget"]
-  }],
-  ['6001007002094', {
-    gtin: '6001007002094',
-    retailerId: 'shoprite',
-    title: "Pot O' Gold Choice Grade Whole Kernel Sweetcorn 410g",
-    brand: "Pot O' Gold",
-    imageUrl: '/products/6001007002094.svg',
-    category: "Pantry Staples & Grains",
-    weight: "410 g",
-    basePrice: 18.99,
-    promoPrice: 14.99,
-    emoji: '🌽',
-    isHouseBrand: true,
-    searchKeywords: ["pot o gold", "sweetcorn", "corn", "canned", "vegetables", "shoprite"]
-  }],
-  ['6001053000027', {
-    gtin: '6001053000027',
-    retailerId: 'shoprite',
-    title: "Lucky Star Pilchards in Tomato Sauce 400g",
-    brand: "Lucky Star",
-    imageUrl: '/products/6001053000027.jpg',
-    category: "Pantry Staples & Grains",
-    weight: "400 g",
-    basePrice: 28.99,
-    promoPrice: 23.99,
-    emoji: '🐟',
-    isHouseBrand: false,
-    searchKeywords: ["lucky star", "pilchards", "fish", "tomato sauce", "tin", "canned", "pantry"]
-  }],
-  ['6001053001208', {
-    gtin: '6001053001208',
-    retailerId: 'shoprite',
-    title: "Lucky Star Shredded Tuna in Oil 170g",
-    brand: "Lucky Star",
-    imageUrl: '/products/6001053001208.jpg',
-    category: "Pantry Staples & Grains",
-    weight: "170 g",
-    basePrice: 29.99,
-    promoPrice: 24.99,
-    emoji: '🐟',
-    isHouseBrand: false,
-    searchKeywords: ["lucky star", "tuna", "shredded", "fish", "canned", "pantry"]
-  }],
-  ['6001007005436', {
-    gtin: '6001007005436',
-    retailerId: 'shoprite',
-    title: "All Gold Tomato Sauce 700ml Bottle",
-    brand: "All Gold",
-    imageUrl: '/products/6001007005436.jpg',
-    category: "Pantry Staples & Grains",
-    weight: "700 ml",
-    basePrice: 41.99,
-    promoPrice: 34.99,
-    emoji: '🍅',
-    isHouseBrand: false,
-    searchKeywords: ["all gold", "tomato", "sauce", "ketchup", "pantry", "bottle"]
-  }],
-  ['6001007004323', {
-    gtin: '6001007004323',
-    retailerId: 'shoprite',
-    title: "Black Cat Crunchy Peanut Butter 400g Jar",
-    brand: "Black Cat",
-    imageUrl: '/products/6001007004323.jpg',
-    category: "Pantry Staples & Grains",
-    weight: "400 g",
-    basePrice: 45.99,
-    promoPrice: 38.99,
-    emoji: '🥜',
-    isHouseBrand: false,
-    searchKeywords: ["black cat", "peanut butter", "crunchy", "spread", "pantry"]
-  }],
-  ['6001007003210', {
-    gtin: '6001007003210',
-    retailerId: 'shoprite',
-    title: "Golden Cloud Cake Wheat Flour 2.5kg Bag",
-    brand: "Golden Cloud",
-    imageUrl: '/products/6001007003210.jpg',
-    category: "Pantry Staples & Grains",
-    weight: "2.5 kg",
-    basePrice: 42.99,
-    promoPrice: 36.99,
-    emoji: '🌾',
-    isHouseBrand: false,
-    searchKeywords: ["golden cloud", "flour", "cake flour", "wheat", "baking", "pantry"]
-  }],
-  ['6001008000140', {
-    gtin: '6001008000140',
-    retailerId: 'shoprite',
-    title: "Goldi Frozen Mixed Chicken Portions 2kg Bag",
-    brand: "Goldi",
-    imageUrl: '/products/6001008000140.jpg',
-    category: "Pantry Staples & Grains",
-    weight: "2 kg",
-    basePrice: 99.99,
-    promoPrice: 84.99,
-    emoji: '🍗',
-    isHouseBrand: false,
-    searchKeywords: ["goldi", "chicken", "frozen", "poultry", "meat", "portions", "2kg"]
-  }],
-  ['6001007000301', {
-    gtin: '6001007000301',
-    retailerId: 'shoprite',
-    title: "Fatti's & Moni's Macaroni Pasta 500g",
-    brand: "Fatti's & Moni's",
-    imageUrl: '/products/6001007000301.jpg',
-    category: "Pantry Staples & Grains",
-    weight: "500 g",
-    basePrice: 21.99,
-    promoPrice: 16.99,
-    emoji: '🍝',
-    isHouseBrand: false,
-    searchKeywords: ["fattis", "monis", "macaroni", "pasta", "pantry", "dinner"]
-  }],
-  ['6001007006211', {
-    gtin: '6001007006211',
-    retailerId: 'shoprite',
-    title: "Jungle Oats The Energy Champion 1kg Box",
-    brand: "Jungle Oats",
-    imageUrl: '/products/6001007006211.jpg',
-    category: "Pantry Staples & Grains",
-    weight: "1 kg",
-    basePrice: 45.99,
-    promoPrice: 37.99,
-    emoji: '🥣',
-    isHouseBrand: false,
-    searchKeywords: ["jungle oats", "oats", "porridge", "breakfast", "energy", "grains"]
-  }],
-  ['6001007007553', {
-    gtin: '6001007007553',
-    retailerId: 'shoprite',
-    title: "Crosse & Blackwell Tangy Mayonnaise 750g Bottle",
-    brand: "Crosse & Blackwell",
-    imageUrl: '/products/6001007007553.jpg',
-    category: "Pantry Staples & Grains",
-    weight: "750 g",
-    basePrice: 46.99,
-    promoPrice: 39.99,
-    emoji: '🥗',
-    isHouseBrand: false,
-    searchKeywords: ["crosse blackwell", "mayo", "mayonnaise", "tangy", "condiment", "pantry"]
-  }],
-  ['6001068594504', {
-    gtin: '6001068594504',
-    retailerId: 'shoprite',
-    title: "Simba Smoked Beef Flavoured Potato Chips 120g",
-    brand: "Simba",
-    imageUrl: '/products/6001068594504.jpg',
-    category: "Drinks, Coffee & Snacks",
-    weight: "120 g",
-    basePrice: 22.49,
-    promoPrice: 18.99,
-    emoji: '🥔',
-    isHouseBrand: false,
-    searchKeywords: ["simba", "chips", "crisps", "smoked beef", "snacks", "potato", "treats"]
-  }],
-  ['6001068001002', {
-    gtin: '6001068001002',
-    retailerId: 'shoprite',
-    title: "Nescaf\u00e9 Ricoffy Instant Coffee 750g Tin",
-    brand: "Ricoffy",
-    imageUrl: '/products/6001068001002.jpg',
-    category: "Drinks, Coffee & Snacks",
-    weight: "750 g",
-    basePrice: 69.99,
-    promoPrice: 57.99,
-    emoji: '☕',
-    isHouseBrand: false,
-    searchKeywords: ["nescafe", "ricoffy", "coffee", "instant", "hot beverages", "tin", "warm"]
-  }],
-  ['6001007008871', {
-    gtin: '6001007008871',
-    retailerId: 'shoprite',
-    title: "Bakers Blue Label Marie Biscuits 200g",
-    brand: "Bakers",
-    imageUrl: '/products/6001007008871.jpg',
-    category: "Drinks, Coffee & Snacks",
-    weight: "200 g",
-    basePrice: 19.99,
-    promoPrice: 15.99,
-    emoji: '🍪',
-    isHouseBrand: false,
-    searchKeywords: ["bakers", "marie", "biscuits", "blue label", "tea biscuits", "snacks"]
-  }],
-  ['5449000000996', {
-    gtin: '5449000000996',
-    retailerId: 'shoprite',
-    title: "Coca-Cola Original Taste Less Sugar 2L Bottle",
-    brand: "Coca-Cola",
-    imageUrl: '/products/5449000000996.jpg',
-    category: "Drinks, Coffee & Snacks",
-    weight: "2 L",
-    basePrice: 29.99,
-    promoPrice: 24.99,
-    emoji: '🥤',
-    isHouseBrand: false,
-    searchKeywords: ["coca cola", "coke", "soft drink", "soda", "beverages", "2l"]
-  }],
-  ['6001056000109', {
-    gtin: '6001056000109',
-    retailerId: 'shoprite',
-    title: "Five Roses Ceylon Blend Tagged Teabags 102s",
-    brand: "Five Roses",
-    imageUrl: '/products/6001056000109.jpg',
-    category: "Drinks, Coffee & Snacks",
-    weight: "102 bags",
-    basePrice: 59.99,
-    promoPrice: 49.99,
-    emoji: '🫖',
-    isHouseBrand: false,
-    searchKeywords: ["five roses", "tea", "ceylon", "teabags", "hot beverages", "warm"]
-  }],
-  ['6001007001407', {
-    gtin: '6001007001407',
-    retailerId: 'shoprite',
-    title: "Bakers Choice Assorted Biscuits 200g",
-    brand: "Bakers",
-    imageUrl: '/products/6001007001407.jpg',
-    category: "Drinks, Coffee & Snacks",
-    weight: "200 g",
-    basePrice: 36.99,
-    promoPrice: 29.99,
-    emoji: '🍪',
-    isHouseBrand: false,
-    searchKeywords: ["bakers", "choice assorted", "biscuits", "cookies", "snacks", "treats"]
-  }],
-  ['6001299001444', {
-    gtin: '6001299001444',
-    retailerId: 'shoprite',
-    title: "Clover Tropika Orange Flavoured Dairy Fruit Mix 2L",
-    brand: "Tropika",
-    imageUrl: '/products/6001299001444.jpg',
-    category: "Drinks, Coffee & Snacks",
-    weight: "2 L",
-    basePrice: 38.99,
-    promoPrice: 31.99,
-    emoji: '🍹',
-    isHouseBrand: false,
-    searchKeywords: ["tropika", "clover", "orange", "fruit mix", "dairy juice", "beverages", "2l"]
-  }],
-  ['6001007002100', {
-    gtin: '6001007002100',
-    retailerId: 'shoprite',
-    title: "Ritebrand Rooibos Tagless Teabags 80s",
-    brand: "Ritebrand",
-    imageUrl: '/products/6001007002100.svg',
-    category: "Drinks, Coffee & Snacks",
-    weight: "80 bags",
-    basePrice: 29.99,
-    promoPrice: 23.99,
-    emoji: '🫖',
-    isHouseBrand: true,
-    searchKeywords: ["ritebrand", "rooibos", "tea", "tagless", "shoprite", "beverages"]
-  }],
-  ['6001007002117', {
-    gtin: '6001007002117',
-    retailerId: 'shoprite',
-    title: "Ritebrand 100% Apple Fruit Juice Blend 1L",
-    brand: "Ritebrand",
-    imageUrl: '/products/6001007002117.svg',
-    category: "Drinks, Coffee & Snacks",
-    weight: "1 L",
-    basePrice: 19.99,
-    promoPrice: 15.99,
-    emoji: '🧃',
-    isHouseBrand: true,
-    searchKeywords: ["ritebrand", "juice", "apple juice", "fruit juice", "shoprite", "drinks"]
-  }],
-  ['6001087002134', {
-    gtin: '6001087002134',
-    retailerId: 'shoprite',
-    title: "Sunlight Regular Dishwashing Liquid 750ml",
-    brand: "Sunlight",
-    imageUrl: '/products/6001087002134.jpg',
-    category: "Household & Personal Care",
-    weight: "750 ml",
-    basePrice: 36.99,
-    promoPrice: 28.99,
-    emoji: '🧴',
-    isHouseBrand: false,
-    searchKeywords: ["sunlight", "dishwashing", "liquid", "clean", "household", "green", "dishes"]
-  }],
-  ['6001087006781', {
-    gtin: '6001087006781',
-    retailerId: 'shoprite',
-    title: "Omo Auto Concentrated Washing Powder 2kg",
-    brand: "Omo",
-    imageUrl: '/products/6001087006781.jpg',
-    category: "Household & Personal Care",
-    weight: "2 kg",
-    basePrice: 92.99,
-    promoPrice: 76.99,
-    emoji: '🧺',
-    isHouseBrand: false,
-    searchKeywords: ["omo", "washing powder", "auto", "laundry", "clean", "household", "detergent"]
-  }],
-  ['6001087004565', {
-    gtin: '6001087004565',
-    retailerId: 'shoprite',
-    title: "Dettol Hygiene Soap Original 175g",
-    brand: "Dettol",
-    imageUrl: '/products/6001087004565.jpg',
-    category: "Household & Personal Care",
-    weight: "175 g",
-    basePrice: 18.99,
-    promoPrice: 13.99,
-    emoji: '🧼',
-    isHouseBrand: false,
-    searchKeywords: ["dettol", "soap", "hygiene", "original", "bath", "personal care", "wash"]
-  }],
-  ['6001087007788', {
-    gtin: '6001087007788',
-    retailerId: 'shoprite',
-    title: "Colgate Triple Action Fluoride Toothpaste 100ml",
-    brand: "Colgate",
-    imageUrl: '/products/6001087007788.jpg',
-    category: "Household & Personal Care",
-    weight: "100 ml",
-    basePrice: 22.99,
-    promoPrice: 17.99,
-    emoji: '🪥',
-    isHouseBrand: false,
-    searchKeywords: ["colgate", "toothpaste", "triple action", "dental", "personal care", "hygiene"]
-  }],
-  ['6001087005111', {
-    gtin: '6001087005111',
-    retailerId: 'shoprite',
-    title: "Domestos Thick Bleach Original 750ml",
-    brand: "Domestos",
-    imageUrl: '/products/6001087005111.jpg',
-    category: "Household & Personal Care",
-    weight: "750 ml",
-    basePrice: 39.99,
-    promoPrice: 32.99,
-    emoji: '🧴',
-    isHouseBrand: false,
-    searchKeywords: ["domestos", "bleach", "thick", "cleaning", "household", "disinfectant"]
-  }],
-  ['6001087003346', {
-    gtin: '6001087003346',
-    retailerId: 'shoprite',
-    title: "Handy Andy Multi-Purpose Cleaner Ammonia 750ml",
-    brand: "Handy Andy",
-    imageUrl: '/products/6001087003346.jpg',
-    category: "Household & Personal Care",
-    weight: "750 ml",
-    basePrice: 37.99,
-    promoPrice: 29.99,
-    emoji: '✨',
-    isHouseBrand: false,
-    searchKeywords: ["handy andy", "cleaner", "ammonia", "surface", "household", "shine"]
-  }],
-  ['6001087008129', {
-    gtin: '6001087008129',
-    retailerId: 'shoprite',
-    title: "Shield MotionSense Antiperspirant Roll-On 50ml",
-    brand: "Shield",
-    imageUrl: '/products/6001087008129.jpg',
-    category: "Household & Personal Care",
-    weight: "50 ml",
-    basePrice: 32.99,
-    promoPrice: 26.99,
-    emoji: '⚡',
-    isHouseBrand: false,
-    searchKeywords: ["shield", "roll on", "deodorant", "motionsense", "personal care", "fresh"]
-  }],
-  ['6001007002049', {
-    gtin: '6001007002049',
-    retailerId: 'shoprite',
-    title: "Ritebrand Thick Bleach Regular 750ml",
-    brand: "Ritebrand",
-    imageUrl: '/products/6001007002049.svg',
-    category: "Household & Personal Care",
-    weight: "750 ml",
-    basePrice: 24.99,
-    promoPrice: 18.99,
-    emoji: '🧴',
-    isHouseBrand: true,
-    searchKeywords: ["ritebrand", "bleach", "thick bleach", "cleaning", "household", "shoprite"]
-  }],
-  ['6001007002148', {
-    gtin: '6001007002148',
-    retailerId: 'shoprite',
-    title: "Ritebrand Toilet Paper 2-Ply 9 Rolls",
-    brand: "Ritebrand",
-    imageUrl: '/products/6001007002148.svg',
-    category: "Household & Personal Care",
-    weight: "9 rolls",
-    basePrice: 59.99,
-    promoPrice: 49.99,
-    emoji: '🧻',
-    isHouseBrand: true,
-    searchKeywords: ["ritebrand", "toilet paper", "2 ply", "bathroom", "household", "shoprite"]
-  }],
-  ['6001007002155', {
-    gtin: '6001007002155',
-    retailerId: 'shoprite',
-    title: "Ritebrand Washing Powder All-in-One 2kg",
-    brand: "Ritebrand",
-    imageUrl: '/products/6001007002155.svg',
-    category: "Household & Personal Care",
-    weight: "2 kg",
-    basePrice: 49.99,
-    promoPrice: 39.99,
-    emoji: '🧺',
-    isHouseBrand: true,
-    searchKeywords: ["ritebrand", "washing powder", "laundry", "clean", "household", "shoprite"]
-  }]
-]);
-
-// Initialize active in-memory products from master catalog
+// Production CSE + Shoprite JSON-LD verified catalog (317 authentic SKUs across all 12 retail departments, pure #FFFFFF packshots)
+const MASTER_PRODUCTS = new Map(SHOPRITE_LIVE_PRODUCTS.map((p) => [p.gtin, p]));
 const PRODUCTS = new Map(MASTER_PRODUCTS);
 
-// South African Pricing Zones:
-// - In regular towns, promotions & pricing apply uniformly across all branches of the same retailer in that town.
-// - In big metropolitan cities, promotions & pricing apply across a specific city area / section rather than an individual store branch.
+// South African Pricing Zones (Towns + Big City Metro Sections) mapped to SA Provinces & Shoprite Branches
 const PRICING_ZONES = [
-  // Towns (town-wide sales & pricing across all branches of each retailer)
-  { id: 'polokwane', kind: 'town', name: 'Polokwane', province: 'Limpopo', scopeLabel: 'Town-wide pricing', anchorHub: 'Polokwane Town Retailers', lat: -23.9045, lon: 29.4689, zoneMult: 0.99 },
-  { id: 'mbombela', kind: 'town', name: 'Mbombela (Nelspruit)', province: 'Mpumalanga', scopeLabel: 'Town-wide pricing', anchorHub: 'Mbombela Town Retailers', lat: -25.4753, lon: 30.9694, zoneMult: 1.0 },
-  { id: 'pietermaritzburg', kind: 'town', name: 'Pietermaritzburg', province: 'KwaZulu-Natal', scopeLabel: 'Town-wide pricing', anchorHub: 'Pietermaritzburg Town Retailers', lat: -29.6006, lon: 30.3794, zoneMult: 0.99 },
-  { id: 'bloemfontein', kind: 'town', name: 'Bloemfontein', province: 'Free State', scopeLabel: 'Town-wide pricing', anchorHub: 'Bloemfontein Town Retailers', lat: -29.0852, lon: 26.1596, zoneMult: 0.99 },
-  { id: 'stellenbosch', kind: 'town', name: 'Stellenbosch', province: 'Western Cape', scopeLabel: 'Town-wide pricing', anchorHub: 'Stellenbosch Town Retailers', lat: -33.9321, lon: 18.8602, zoneMult: 1.01 },
-  { id: 'richards_bay', kind: 'town', name: 'Richards Bay', province: 'KwaZulu-Natal', scopeLabel: 'Town-wide pricing', anchorHub: 'Richards Bay Town Retailers', lat: -28.7807, lon: 32.0383, zoneMult: 1.0 },
-  { id: 'rustenburg', kind: 'town', name: 'Rustenburg', province: 'North West', scopeLabel: 'Town-wide pricing', anchorHub: 'Rustenburg Town Retailers', lat: -25.6676, lon: 27.2421, zoneMult: 0.99 },
-  { id: 'george', kind: 'town', name: 'George', province: 'Western Cape', scopeLabel: 'Town-wide pricing', anchorHub: 'George Town Retailers', lat: -33.9630, lon: 22.4617, zoneMult: 1.0 },
+  { id: 'polokwane', kind: 'town', name: 'Polokwane', province: 'Limpopo', provinceCode: 'LP', scopeLabel: 'Town-wide pricing', anchorHub: 'Polokwane Town Retailers', lat: -23.9045, lon: 29.4689, zoneMult: 0.99 },
+  { id: 'mbombela', kind: 'town', name: 'Mbombela (Nelspruit)', province: 'Mpumalanga', provinceCode: 'MP', scopeLabel: 'Town-wide pricing', anchorHub: 'Mbombela Town Retailers', lat: -25.4753, lon: 30.9694, zoneMult: 1.0 },
+  { id: 'pietermaritzburg', kind: 'town', name: 'Pietermaritzburg', province: 'KwaZulu-Natal', provinceCode: 'KZN', scopeLabel: 'Town-wide pricing', anchorHub: 'Pietermaritzburg Town Retailers', lat: -29.6006, lon: 30.3794, zoneMult: 0.99 },
+  { id: 'bloemfontein', kind: 'town', name: 'Bloemfontein', province: 'Free State', provinceCode: 'FS', scopeLabel: 'Town-wide pricing', anchorHub: 'Bloemfontein Town Retailers', lat: -29.0852, lon: 26.1596, zoneMult: 0.99 },
+  { id: 'stellenbosch', kind: 'town', name: 'Stellenbosch', province: 'Western Cape', provinceCode: 'WC', scopeLabel: 'Town-wide pricing', anchorHub: 'Stellenbosch Town Retailers', lat: -33.9321, lon: 18.8602, zoneMult: 1.01 },
+  { id: 'richards_bay', kind: 'town', name: 'Richards Bay', province: 'KwaZulu-Natal', provinceCode: 'KZN', scopeLabel: 'Town-wide pricing', anchorHub: 'Richards Bay Town Retailers', lat: -28.7807, lon: 32.0383, zoneMult: 1.0 },
+  { id: 'rustenburg', kind: 'town', name: 'Rustenburg', province: 'North West', provinceCode: 'NW', scopeLabel: 'Town-wide pricing', anchorHub: 'Rustenburg Town Retailers', lat: -25.6676, lon: 27.2421, zoneMult: 0.99 },
+  { id: 'george', kind: 'town', name: 'George', province: 'Western Cape', provinceCode: 'WC', scopeLabel: 'Town-wide pricing', anchorHub: 'George Town Retailers', lat: -33.9630, lon: 22.4617, zoneMult: 1.0 },
 
-  // Big City Sections / Areas (metro section pricing where sales apply by city area)
-  { id: 'jhb_north', kind: 'metro', city: 'Johannesburg', section: 'Sandton, Rosebank & North', name: 'Johannesburg · Sandton & North', province: 'Gauteng', scopeLabel: 'City-area pricing', anchorHub: 'Sandton / Rosebank Area', lat: -26.1076, lon: 28.0567, zoneMult: 1.02 },
-  { id: 'jhb_south_soweto', kind: 'metro', city: 'Johannesburg', section: 'Soweto, Southgate & CBD', name: 'Johannesburg · Soweto & South', province: 'Gauteng', scopeLabel: 'City-area pricing', anchorHub: 'Soweto / Southgate Area', lat: -26.2485, lon: 27.8540, zoneMult: 0.98 },
-  { id: 'pta_east_central', kind: 'metro', city: 'Pretoria', section: 'Hatfield, Menlyn & Centurion', name: 'Pretoria · Hatfield & East', province: 'Gauteng', scopeLabel: 'City-area pricing', anchorHub: 'Hatfield / Menlyn Area', lat: -25.7479, lon: 28.2293, zoneMult: 1.01 },
-  { id: 'dbn_central', kind: 'metro', city: 'Durban', section: 'Central, Berea & Harbour', name: 'Durban · Central & Berea', province: 'KwaZulu-Natal', scopeLabel: 'City-area pricing', anchorHub: 'Durban Central / Berea Area', lat: -29.8587, lon: 31.0218, zoneMult: 0.99 },
-  { id: 'dbn_north_umhlanga', kind: 'metro', city: 'Durban', section: 'Umhlanga, Gateway & Phoenix', name: 'Durban · Umhlanga & North', province: 'KwaZulu-Natal', scopeLabel: 'City-area pricing', anchorHub: 'Umhlanga / North Coast Area', lat: -29.7257, lon: 31.0664, zoneMult: 1.01 },
-  { id: 'cpt_central', kind: 'metro', city: 'Cape Town', section: 'City Bowl, Sea Point & Woodstock', name: 'Cape Town · City Bowl & Atlantic', province: 'Western Cape', scopeLabel: 'City-area pricing', anchorHub: 'City Bowl / Gardens Area', lat: -33.9249, lon: 18.4241, zoneMult: 1.02 },
-  { id: 'cpt_north_flats', kind: 'metro', city: 'Cape Town', section: 'Bellville, Parow & Cape Flats', name: 'Cape Town · Bellville & Cape Flats', province: 'Western Cape', scopeLabel: 'City-area pricing', anchorHub: 'Bellville / Mitchells Plain Area', lat: -33.9000, lon: 18.6290, zoneMult: 0.98 }
+  { id: 'jhb_north', kind: 'metro', city: 'Johannesburg', section: 'Sandton, Rosebank & North', name: 'Johannesburg · Sandton & North', province: 'Gauteng', provinceCode: 'GP', scopeLabel: 'City-area pricing', anchorHub: 'Sandton / Rosebank Area', lat: -26.1076, lon: 28.0567, zoneMult: 1.02 },
+  { id: 'jhb_south_soweto', kind: 'metro', city: 'Johannesburg', section: 'Soweto, Southgate & CBD', name: 'Johannesburg · Soweto & South', province: 'Gauteng', provinceCode: 'GP', scopeLabel: 'City-area pricing', anchorHub: 'Soweto / Southgate Area', lat: -26.2485, lon: 27.8540, zoneMult: 0.98 },
+  { id: 'pta_east_central', kind: 'metro', city: 'Pretoria', section: 'Hatfield, Menlyn & Centurion', name: 'Pretoria · Hatfield & East', province: 'Gauteng', provinceCode: 'GP', scopeLabel: 'City-area pricing', anchorHub: 'Hatfield / Menlyn Area', lat: -25.7479, lon: 28.2293, zoneMult: 1.01 },
+  { id: 'dbn_central', kind: 'metro', city: 'Durban', section: 'Central, Berea & Harbour', name: 'Durban · Central & Berea', province: 'KwaZulu-Natal', provinceCode: 'KZN', scopeLabel: 'City-area pricing', anchorHub: 'Durban Central / Berea Area', lat: -29.8587, lon: 31.0218, zoneMult: 0.99 },
+  { id: 'dbn_north_umhlanga', kind: 'metro', city: 'Durban', section: 'Umhlanga, Gateway & Phoenix', name: 'Durban · Umhlanga & North', province: 'KwaZulu-Natal', provinceCode: 'KZN', scopeLabel: 'City-area pricing', anchorHub: 'Umhlanga / North Coast Area', lat: -29.7257, lon: 31.0664, zoneMult: 1.01 },
+  { id: 'cpt_central', kind: 'metro', city: 'Cape Town', section: 'City Bowl, Sea Point & Woodstock', name: 'Cape Town · City Bowl & Atlantic', province: 'Western Cape', provinceCode: 'WC', scopeLabel: 'City-area pricing', anchorHub: 'City Bowl / Gardens Area', lat: -33.9249, lon: 18.4241, zoneMult: 1.02 },
+  { id: 'cpt_north_flats', kind: 'metro', city: 'Cape Town', section: 'Bellville, Parow & Cape Flats', name: 'Cape Town · Bellville & Cape Flats', province: 'Western Cape', provinceCode: 'WC', scopeLabel: 'City-area pricing', anchorHub: 'Bellville / Mitchells Plain Area', lat: -33.9000, lon: 18.6290, zoneMult: 0.98 }
+];
+
+const OTHER_BENCHMARK_STORES = [
+  { id: 'checkers_sandton_0210', retailerId: 'checkers', retailer: 'Checkers', name: 'Checkers Hyper Sandton City', address: 'Sandton City Mall, Sandton', retailerStoreCode: '0210', color: '#004831', loyalty: 'Sixty60 / Xtra' },
+  { id: 'pnp_rosebank_0033', retailerId: 'pnp', retailer: 'Pick n Pay', name: 'Pick n Pay Rosebank Mall', address: 'Bath Ave, Rosebank', retailerStoreCode: '0033', color: '#005baa', loyalty: 'Smart Shopper' },
+  { id: 'spar_umhlanga_0045', retailerId: 'spar', retailer: 'SPAR', name: 'SUPERSPAR Umhlanga Rocks', address: 'Chartwell Dr, Umhlanga', retailerStoreCode: '0045', color: '#138a42', loyalty: 'SPAR Rewards' },
+  { id: 'woolworths_gateway_0019', retailerId: 'woolworths', retailer: 'Woolworths', name: 'Woolworths Gateway', address: 'Gateway Mall, Umhlanga', retailerStoreCode: '0019', color: '#18181b', loyalty: 'WRewards' },
+  { id: 'boxer_durban_0012', retailerId: 'boxer', retailer: 'Boxer', name: 'Boxer Superstores Durban', address: 'Dr Pixley KaSeme St, Durban', retailerStoreCode: '0012', color: '#ea580c', loyalty: 'Boxer Club' }
 ];
 
 const STORE_PRICES = new Map();
@@ -756,130 +90,78 @@ const STORE_PRICE_FACTORS = {
   boxer: { regMult: 0.94, promoMult: 0.92 }
 };
 
-function getActiveZone() {
-  return PRICING_ZONES.find(z => z.id === state.pricingZoneId) || PRICING_ZONES[0];
-}
-
-function haversineKm(lat1, lon1, lat2, lon2) {
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a = Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) ** 2;
-  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-function findClosestZone(latitude, longitude) {
-  let closest = PRICING_ZONES[0];
-  let minDistance = Infinity;
-  PRICING_ZONES.forEach((zone) => {
-    const dist = haversineKm(latitude, longitude, zone.lat, zone.lon);
-    if (dist < minDistance) {
-      minDistance = dist;
-      closest = zone;
-    }
-  });
-  return { zone: closest, distanceKm: Math.round(minDistance * 10) / 10 };
-}
-
-function formatUnitPrice(price, weightStr) {
-  if (!weightStr) return null;
-  const match = weightStr.match(/([\d.]+)\s*([a-zA-Z]+)/);
-  if (!match) return null;
-  const val = parseFloat(match[1]);
-  if (!val || isNaN(val)) return null;
-  const unit = match[2].toLowerCase();
-  if (unit === 'kg') {
-    return `${zar.format(price / val)} / kg`;
-  } else if (unit === 'g') {
-    return `${zar.format(price / (val / 1000))} / kg`;
-  } else if (unit === 'l' || unit === 'litre' || unit === 'litres') {
-    return `${zar.format(price / val)} / L`;
-  } else if (unit === 'ml') {
-    return `${zar.format(price / (val / 1000))} / L`;
-  }
-  return null;
-}
-
-function getZonePrice(zoneId, retailerId, gtin) {
-  const safeZoneId = zoneId || 'polokwane';
-  const safeRetId = retailerId || 'shoprite';
-  const compositeKey = `${safeZoneId}_${safeRetId}_${gtin}`;
-  if (STORE_PRICES.has(compositeKey)) {
-    return STORE_PRICES.get(compositeKey);
-  }
-  const master = MASTER_PRODUCTS.get(gtin);
-  if (!master) return { regularPrice: 19.99, promoPrice: 16.99, inStock: true };
-
-  const zone = PRICING_ZONES.find(z => z.id === safeZoneId) || PRICING_ZONES[0];
-  const factors = STORE_PRICE_FACTORS[safeRetId] || { regMult: 1.0, promoMult: 1.0 };
-  const zMult = zone.zoneMult || 1.0;
-
-  // Calculate authentic rounded South African retail prices (.99 or .49)
-  const calcReg = Math.round((master.basePrice * factors.regMult * zMult) * 2) / 2 - 0.01;
-  const calcPromo = master.promoPrice ? (Math.round((master.promoPrice * factors.promoMult * zMult) * 2) / 2 - 0.01) : null;
-
-  const priceObj = {
-    zoneId: safeZoneId,
-    retailerId: safeRetId,
-    gtin,
-    regularPrice: Math.max(1.99, calcReg),
-    promoPrice: calcPromo ? Math.max(1.49, calcPromo) : null,
-    inStock: true,
-    lastUpdatedAt: Date.now()
-  };
-  STORE_PRICES.set(compositeKey, priceObj);
-  return priceObj;
-}
-
-function getRetailerProducts(retailerId) {
-  return Array.from(MASTER_PRODUCTS.values()).filter(p => {
-    // Ritebrand, Mister Bread, Pot O' Gold are Shoprite exclusive house brands
-    if (retailerId !== 'shoprite' && p.isHouseBrand) {
-      return false;
-    }
-    if (retailerId === 'woolworths' && ['Goldi', 'First Choice'].includes(p.brand)) {
-      return false;
-    }
-    return true;
-  });
-}
-
-const CATEGORIES = [
-  { id: 'Bakery & Fresh Produce', label: 'Bakery & Fresh', emoji: '🥖' },
-  { id: 'Dairy, Eggs & Fridge', label: 'Dairy & Fridge', emoji: '🥛' },
-  { id: 'Pantry Staples & Grains', label: 'Pantry Staples', emoji: '🥫' },
-  { id: 'Drinks, Coffee & Snacks', label: 'Drinks & Snacks', emoji: '🥤' },
-  { id: 'Household & Personal Care', label: 'Household & Care', emoji: '🧼' }
-];
+const CATEGORIES = SHOPRITE_RETAIL_DEPARTMENTS.map((dept) => ({
+  ...dept,
+  label: dept.shortLabel || dept.id
+}));
 
 const COUPONS = [
   { id: 'basket10', label: 'R10 Basket Boost', detail: 'R10 off when your basket reaches R100', tone: 'from-slate-800 to-slate-950' },
-  { id: 'fresh5', label: 'Fresh Five', detail: '5% off all fruit and vegetables', tone: 'from-[#234e3b] to-[#1a3a2c]' }
+  { id: 'fresh5', label: 'Fresh Five', detail: '5% off all Fresh Fruit & Vegetables', tone: 'from-[#234e3b] to-[#1a3a2c]' }
 ];
+
+function getRouteFromHash() {
+  const candidate = location.hash.slice(1);
+  if (candidate === 'list') return 'trolley';
+  return ROUTES.includes(candidate) ? candidate : 'market';
+}
+
+function loadPersistedState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) || {}) : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+const persisted = loadPersistedState();
 
 const state = {
   route: getRouteFromHash(),
-  pricingZoneId: 'polokwane',
+  pricingZoneId: persisted.pricingZoneId || 'polokwane',
+  currentStoreId: persisted.currentStoreId || SHOPRITE_SA_STORES[0].id,
+  storeConfirmed: Boolean(persisted.storeConfirmed),
+  userCoords: persisted.userCoords || null,
   gpsStatus: 'idle',
   detectedDistanceKm: null,
-  retailerId: 'shoprite',
+  retailerId: persisted.retailerId || 'shoprite',
   globalSearchOpen: false,
   globalSearchQuery: '',
-  selectedCatalogBarcode: '6001007001001',
+  selectedCatalogBarcode: '6001253010178',
   catalogSearch: '',
   catalogCategory: 'all',
   catalogViewMode: 'grid',
   houseBrandOnly: false,
   catalogSort: 'default',
-  cart: [],
+  cart: Array.isArray(persisted.cart) ? persisted.cart : [],
+  instoreBudget: Number(persisted.instoreBudget) || 500,
   displayedCartTotal: 0,
-  coupons: new Set(),
-  completedSavings: 0,
-  loyaltyPoints: 680,
+  coupons: new Set(Array.isArray(persisted.coupons) ? persisted.coupons : []),
+  completedSavings: Number(persisted.completedSavings) || 0,
+  loyaltyPoints: Number(persisted.loyaltyPoints) || 680,
+  pastReceipts: [],
   overlay: null,
   order: null,
   scanBusy: false
 };
+
+function savePersistedState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      pricingZoneId: state.pricingZoneId,
+      currentStoreId: state.currentStoreId,
+      storeConfirmed: state.storeConfirmed,
+      userCoords: state.userCoords,
+      retailerId: state.retailerId,
+      cart: state.cart,
+      instoreBudget: state.instoreBudget,
+      coupons: Array.from(state.coupons),
+      completedSavings: state.completedSavings,
+      loyaltyPoints: state.loyaltyPoints
+    }));
+  } catch (_) {}
+}
 
 const screen = document.querySelector('#screen');
 const modalRoot = document.querySelector('#modal-root');
@@ -963,16 +245,331 @@ async function initializeFirebaseConnectivity() {
   return firestoreDb;
 }
 
-async function fetchProductFromFirestore(barcode) {
-  await Promise.resolve();
-  const product = PRODUCTS.get(String(barcode));
-  return product ? { barcode: String(barcode), ...product } : null;
+function getActiveZone() {
+  return PRICING_ZONES.find((z) => z.id === state.pricingZoneId) || PRICING_ZONES[0];
 }
 
-function getRouteFromHash() {
-  const candidate = location.hash.slice(1);
-  if (candidate === 'list') return 'trolley';
-  return ROUTES.includes(candidate) ? candidate : 'market';
+function getActiveStore(retailerId = state.retailerId) {
+  const targetRet = retailerId || state.retailerId || 'shoprite';
+  if (targetRet === 'shoprite') {
+    if (state.storeConfirmed && state.currentStoreId) {
+      const confirmed = SHOPRITE_SA_STORES.find((s) => s.id === state.currentStoreId);
+      if (confirmed) return confirmed;
+    }
+    const zone = getActiveZone();
+    const sorted = getShopriteStoresSortedByDistance(zone.lat, zone.lon, SHOPRITE_SA_STORES);
+    return sorted[0] || SHOPRITE_SA_STORES[0];
+  }
+  const bench = OTHER_BENCHMARK_STORES.find((s) => s.retailerId === targetRet);
+  const ret = RETAILERS[targetRet] || RETAILERS.shoprite;
+  const zone = getActiveZone();
+  return bench || {
+    id: `${targetRet}_${zone.id}`,
+    retailerId: targetRet,
+    retailer: ret.name,
+    name: `${ret.name} ${zone.name}`,
+    retailerStoreCode: '0101',
+    provinceCode: zone.provinceCode || 'GP',
+    color: ret.color,
+    loyalty: ret.loyalty
+  };
+}
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function findClosestZone(latitude, longitude) {
+  let closest = PRICING_ZONES[0];
+  let minDistance = Infinity;
+  PRICING_ZONES.forEach((zone) => {
+    const dist = haversineKm(latitude, longitude, zone.lat, zone.lon);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closest = zone;
+    }
+  });
+  return { zone: closest, distanceKm: Math.round(minDistance * 10) / 10 };
+}
+
+function formatUnitPrice(price, weightStr) {
+  if (!weightStr) return null;
+  const match = weightStr.match(/([\d.]+)\s*([a-zA-Z]+)/);
+  if (!match) return null;
+  const val = parseFloat(match[1]);
+  if (!val || isNaN(val)) return null;
+  const unit = match[2].toLowerCase();
+  if (unit === 'kg') return `${zar.format(price / val)} / kg`;
+  if (unit === 'g') return `${zar.format(price / (val / 1000))} / kg`;
+  if (unit === 'l' || unit === 'litre' || unit === 'litres') return `${zar.format(price / val)} / L`;
+  if (unit === 'ml') return `${zar.format(price / (val / 1000))} / L`;
+  return null;
+}
+
+function getZonePrice(zoneId, retailerId, gtin) {
+  const safeZoneId = zoneId || state.pricingZoneId || 'polokwane';
+  const safeRetId = retailerId || 'shoprite';
+  const branchTag = safeRetId === 'shoprite' && state.storeConfirmed ? state.currentStoreId : safeZoneId;
+  const compositeKey = `${branchTag}_${safeRetId}_${gtin}`;
+  if (STORE_PRICES.has(compositeKey)) {
+    return STORE_PRICES.get(compositeKey);
+  }
+
+  const master = MASTER_PRODUCTS.get(gtin);
+  if (safeRetId === 'shoprite' && master) {
+    const shopriteBranch = getActiveStore('shoprite');
+    const deal = getExactShopriteBranchDeal(shopriteBranch, master);
+    const priceObj = {
+      zoneId: safeZoneId,
+      retailerId: 'shoprite',
+      gtin,
+      ...deal,
+      lastUpdatedAt: Date.now()
+    };
+    STORE_PRICES.set(compositeKey, priceObj);
+    return priceObj;
+  }
+
+  if (!master) {
+    const customProd = PRODUCTS.get(gtin) || decodeShopriteVariableWeightBarcode(gtin, MASTER_PRODUCTS);
+    if (customProd) {
+      const factor = (STORE_PRICE_FACTORS[safeRetId]?.regMult) || 1.0;
+      const baseUnit = Number(customProd.price || customProd.rawPrice || 19.99);
+      const activePrice = safeRetId === 'shoprite'
+        ? baseUnit
+        : Math.max(1.49, Math.round((baseUnit * factor) * 2) / 2 - 0.01);
+      const regularPrice = Math.max(activePrice, Number(customProd.basePrice || activePrice));
+      return {
+        regularPrice,
+        promoPrice: activePrice < regularPrice ? activePrice : null,
+        activePrice,
+        hasPromo: activePrice < regularPrice,
+        savings: Math.max(0, Number((regularPrice - activePrice).toFixed(2))),
+        aisle: customProd.category || 'General Grocery',
+        inStock: true
+      };
+    }
+    return { regularPrice: 19.99, promoPrice: 16.99, activePrice: 16.99, hasPromo: true, savings: 3.0, inStock: true };
+  }
+
+  const zone = PRICING_ZONES.find((z) => z.id === safeZoneId) || PRICING_ZONES[0];
+  const factors = STORE_PRICE_FACTORS[safeRetId] || { regMult: 1.0, promoMult: 1.0 };
+  const zMult = zone.zoneMult || 1.0;
+  const calcReg = Math.max(1.99, Math.round((master.basePrice * factors.regMult * zMult) * 2) / 2 - 0.01);
+  const calcPromo = master.promoPrice ? Math.max(1.49, Math.round((master.promoPrice * factors.promoMult * zMult) * 2) / 2 - 0.01) : null;
+  const hasPromo = Boolean(calcPromo && calcPromo < calcReg);
+  const activePrice = hasPromo ? calcPromo : calcReg;
+
+  const priceObj = {
+    zoneId: safeZoneId,
+    retailerId: safeRetId,
+    gtin,
+    regularPrice: calcReg,
+    promoPrice: hasPromo ? calcPromo : null,
+    activePrice,
+    hasPromo,
+    savings: hasPromo ? Number((calcReg - activePrice).toFixed(2)) : 0,
+    aisle: master.category || 'General Grocery',
+    inStock: true,
+    lastUpdatedAt: Date.now()
+  };
+  STORE_PRICES.set(compositeKey, priceObj);
+  return priceObj;
+}
+
+function getStorePrice(storeId, gtin) {
+  const store = SHOPRITE_SA_STORES.find((s) => s.id === storeId) || OTHER_BENCHMARK_STORES.find((s) => s.id === storeId);
+  if (store && store.retailerId === 'shoprite' && MASTER_PRODUCTS.has(gtin)) {
+    return getExactShopriteBranchDeal(store, MASTER_PRODUCTS.get(gtin));
+  }
+  return getZonePrice(state.pricingZoneId, store?.retailerId || state.retailerId, gtin);
+}
+
+function normalizeProductForStore(raw, retailerId = state.retailerId) {
+  if (!raw) return null;
+  const barcode = String(raw.barcode || raw.gtin || '').trim();
+  const deal = getZonePrice(state.pricingZoneId, retailerId, barcode);
+  const activePrice = deal.activePrice ?? ((deal.promoPrice && deal.promoPrice < deal.regularPrice) ? deal.promoPrice : deal.regularPrice);
+  const regularPrice = deal.regularPrice || raw.basePrice || activePrice;
+  return {
+    barcode,
+    gtin: barcode,
+    sku: raw.sku || '',
+    barcodeFormat: raw.barcodeFormat || 'EAN13',
+    name: raw.name || raw.title || 'Grocery Item',
+    title: raw.title || raw.name || 'Grocery Item',
+    brand: raw.brand || 'Shoprite',
+    weight: raw.weight || '1 unit',
+    category: raw.category || 'Food Cupboard & Pantry',
+    subCategory: raw.subCategory || '',
+    regionalPrices: raw.regionalPrices || null,
+    price: Number(activePrice) || 19.99,
+    basePrice: Number(regularPrice) || Number(activePrice) || 19.99,
+    image: raw.image || raw.imageUrl || '',
+    imageUrl: raw.imageUrl || raw.image || '',
+    emoji: raw.emoji || '🛍️',
+    isHouseBrand: Boolean(raw.isHouseBrand),
+    retailerId: retailerId || 'shoprite',
+    deal
+  };
+}
+
+/**
+ * 5-Tier Universal Shoprite South Africa Barcode & PLU Resolver ($0 Cloud Cost)
+ */
+async function fetchProductFromFirestore(barcode) {
+  const code = normalizeScannedBarcode(barcode);
+  if (!code) return null;
+
+  const xtra = loadXtraSavingsCard();
+  if (xtra && xtra.cardNumber === code) {
+    showToast('💳 Xtra Savings Card recognized — linked for Till Mode!');
+    return '__XTRA_CARD__';
+  }
+
+  let raw = MASTER_PRODUCTS.get(code) || PRODUCTS.get(code);
+  if (!raw && /^\d{6,9}$/.test(code)) {
+    for (const prod of PRODUCTS.values()) {
+      if (String(prod.sku || '') === code) {
+        raw = prod;
+        break;
+      }
+    }
+  }
+  if (raw) {
+    return normalizeProductForStore(raw, state.retailerId);
+  }
+
+  const scaleItem = decodeShopriteVariableWeightBarcode(code, MASTER_PRODUCTS);
+  if (scaleItem) {
+    PRODUCTS.set(scaleItem.barcode, scaleItem);
+    return scaleItem;
+  }
+
+  const offItem = await resolveOpenFoodFactsBarcode(code);
+  if (offItem) {
+    PRODUCTS.set(offItem.barcode, offItem);
+    await saveLocalCustomProduct(offItem);
+    return offItem;
+  }
+
+  return null;
+}
+
+function searchCatalogProducts(rawQuery) {
+  const q = String(rawQuery || '').toLowerCase().trim();
+  if (!q) return [];
+  const tokens = q.split(/\s+/).filter(Boolean);
+  const results = [];
+
+  for (const prod of PRODUCTS.values()) {
+    const prodCode = String(prod.gtin || prod.barcode || '');
+    const prodTitle = String(prod.title || prod.name || '');
+    const hay = [
+      prodTitle,
+      prod.brand || '',
+      prodCode,
+      prod.sku || '',
+      prod.weight || '',
+      prod.category || '',
+      prod.subCategory || '',
+      ...(prod.searchKeywords || [])
+    ].join(' ').toLowerCase();
+
+    if (!tokens.every((tk) => hay.includes(tk))) continue;
+    const deal = getZonePrice(state.pricingZoneId, state.retailerId, prodCode);
+    let score = 0;
+    if (prodCode === q || prod.sku === q) score += 100;
+    else if (prodCode.startsWith(q)) score += 60;
+    if (prodTitle.toLowerCase().startsWith(q)) score += 45;
+    if (prod.isHouseBrand) score += 5;
+
+    results.push({ ...prod, gtin: prodCode, title: prodTitle, deal, _score: score });
+  }
+
+  return results.sort((a, b) => b._score - a._score || (a.deal.activePrice || 0) - (b.deal.activePrice || 0));
+}
+
+function openStoreBranchModal(autoRequestGps = false) {
+  openShopriteStoreLocator({
+    modalRoot,
+    state,
+    autoRequestGps,
+    playBeep: playBeepSound,
+    showToast,
+    onSelectStore: (store) => {
+      if (!store) return;
+      state.currentStoreId = store.id;
+      state.retailerId = 'shoprite';
+      state.storeConfirmed = true;
+      const matchedZone = findClosestZone(store.geoPoint.latitude, store.geoPoint.longitude);
+      if (matchedZone?.zone) state.pricingZoneId = matchedZone.zone.id;
+      STORE_PRICES.clear();
+      savePersistedState();
+      playBeepSound();
+      automationCore.vibrateProductAdded();
+      showToast(`📍 Checked into ${store.name} (#${store.retailerStoreCode})`);
+      render();
+    }
+  });
+}
+
+function openShopriteXtraCardHelper() {
+  openXtraSavingsCardModal({
+    modalRoot,
+    mountModalDialog,
+    renderTill1DBarcodeSvg,
+    onCardUpdated: () => render(),
+    showToast
+  });
+}
+
+function openLooseScalePluHelper() {
+  openShopriteScalePluModal({
+    modalRoot,
+    mountModalDialog,
+    zar,
+    onAddScaleProduct: (scaleProd, qty = 1) => {
+      PRODUCTS.set(scaleProd.barcode, scaleProd);
+      for (let i = 0; i < qty; i++) {
+        addToCart(scaleProd, state.retailerId, { silent: i > 0 });
+      }
+      automationCore.vibrateProductAdded();
+      playBeepSound();
+      render();
+    },
+    showToast
+  });
+}
+
+function openReceiptSlipHelper(receipt) {
+  openDigitalTillSlipModal({
+    modalRoot,
+    mountModalDialog,
+    receipt,
+    zar,
+    onReAddBasket: (items) => {
+      let count = 0;
+      for (const it of items) {
+        if (it.barcode && !MASTER_PRODUCTS.has(it.barcode) && !PRODUCTS.has(it.barcode)) {
+          PRODUCTS.set(it.barcode, it);
+        }
+        const qty = Math.max(1, Number(it.quantity) || 1);
+        for (let i = 0; i < qty; i++) {
+          addToCart(it, receipt.retailerId || 'shoprite', { silent: true });
+        }
+        count += qty;
+      }
+      automationCore.vibrateProductAdded();
+      playBeepSound();
+      routeTo('trolley');
+      showToast(`🛒 Restored ${count} item(s) from Till Slip into Trolley!`);
+    }
+  });
 }
 
 function routeTo(route) {
@@ -985,7 +582,7 @@ function routeTo(route) {
 }
 
 function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+  return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
 }
 
 function getRetailer() {
@@ -994,20 +591,21 @@ function getRetailer() {
 
 function getItemPricingForRetailer(item, retailerId = state.retailerId) {
   const gtin = item.barcode || item.gtin;
-  if (gtin && MASTER_PRODUCTS.has(gtin)) {
+  if (gtin && (MASTER_PRODUCTS.has(gtin) || PRODUCTS.has(gtin))) {
     const zp = getZonePrice(state.pricingZoneId, retailerId, gtin);
     const hasPromo = Boolean(zp.promoPrice && zp.promoPrice < zp.regularPrice);
-    const activePrice = hasPromo ? zp.promoPrice : zp.regularPrice;
-    return { activePrice, regularPrice: zp.regularPrice, hasPromo };
+    const activePrice = zp.activePrice ?? (hasPromo ? zp.promoPrice : zp.regularPrice);
+    return { activePrice, regularPrice: zp.regularPrice || activePrice, hasPromo };
   }
   const factor = (STORE_PRICE_FACTORS[retailerId]?.regMult) || 1.0;
   const baseUnit = item.rawPrice || item.price || 19.99;
-  const activePrice = Math.max(1.49, Math.round((baseUnit * factor) * 2) / 2 - 0.01);
+  const activePrice = retailerId === 'shoprite' && item.isScaleItem
+    ? Number(baseUnit)
+    : Math.max(1.49, Math.round((baseUnit * factor) * 2) / 2 - 0.01);
   const regularPrice = Math.max(activePrice, Math.round((activePrice * 1.12) * 2) / 2 - 0.01);
   return { activePrice, regularPrice, hasPromo: regularPrice > activePrice };
 }
 
-// Unified Trolley re-priced dynamically for whichever retailer is selected
 function getRetailerCart(retailerId = state.retailerId) {
   const target = retailerId || state.retailerId || 'shoprite';
   return state.cart.map((item) => {
@@ -1038,7 +636,9 @@ function getCouponSavings(retailerId = state.retailerId) {
   const merch = getMerchandiseTotal(retailerId);
   if (state.coupons.has('basket10') && merch >= 100) total += 10;
   if (state.coupons.has('fresh5')) {
-    total += getRetailerCart(retailerId).filter((item) => item.category === 'Bakery & Fresh Produce' || item.category === 'Vegetables & Fruit').reduce((sum, item) => sum + item.price * item.quantity * 0.05, 0);
+    total += getRetailerCart(retailerId)
+      .filter((item) => item.category === 'Fresh Fruit & Vegetables' || item.category === 'Bakery & Fresh Produce' || item.category === 'Vegetables & Fruit')
+      .reduce((sum, item) => sum + item.price * item.quantity * 0.05, 0);
   }
   return Math.min(total, merch);
 }
@@ -1150,7 +750,7 @@ function triggerFloatingTrolleyNotice(product, retailerId = state.retailerId, ad
 
 function addToCart(product, retailerId = state.retailerId, options = {}) {
   const targetRetailer = retailerId || state.retailerId || 'shoprite';
-  const barcode = String(product.barcode || product.gtin);
+  const barcode = String(product.barcode || product.gtin).trim();
   const normalizedName = product.name || product.title || 'Grocery Item';
   const normalizedImage = product.image || product.imageUrl || '';
   const { activePrice, regularPrice } = getItemPricingForRetailer({ ...product, barcode }, targetRetailer);
@@ -1158,28 +758,78 @@ function addToCart(product, retailerId = state.retailerId, options = {}) {
   const existing = state.cart.find((item) => item.barcode === barcode);
   if (existing) {
     existing.quantity += 1;
+    existing.price = activePrice;
+    existing.basePrice = regularPrice;
   } else {
-    state.cart.push({
+    state.cart.unshift({
       ...product,
       barcode,
+      sku: product.sku || '',
       name: normalizedName,
       image: normalizedImage,
       rawPrice: product.price || product.promoPrice || product.basePrice || activePrice,
       price: activePrice,
       basePrice: regularPrice,
-      checkedInStore: false,
+      checkedInStore: Boolean(product.checkedInStore),
       quantity: 1,
       retailerId: targetRetailer
     });
   }
+  savePersistedState();
   updateCartBadge();
   if (!options.silent) {
     triggerFloatingTrolleyNotice({ ...product, name: normalizedName, image: normalizedImage }, targetRetailer, 1);
   }
+  return state.cart.find((item) => item.barcode === barcode);
+}
+
+function addProductToTrolley(productOrGtin, qtyDelta = 1, retailerId = state.retailerId, showFeedbackToast = false) {
+  const targetRetailer = retailerId || state.retailerId || 'shoprite';
+  const raw = typeof productOrGtin === 'string'
+    ? (MASTER_PRODUCTS.get(productOrGtin) || PRODUCTS.get(productOrGtin))
+    : productOrGtin;
+  if (!raw) return null;
+
+  let addedRow = null;
+  const count = Math.max(1, qtyDelta);
+  for (let i = 0; i < count; i++) {
+    addedRow = addToCart(raw, targetRetailer, { silent: i > 0 });
+  }
+  if (!addedRow) return null;
+
+  automationCore.addToCartel(addedRow, targetRetailer);
+  automationCore.vibrateProductAdded();
+  playBeepSound();
+  if (showFeedbackToast) {
+    showToast(`📳 Added (${addedRow.quantity}×): ${addedRow.name.slice(0, 28)} · ${zar.format(addedRow.price)}`);
+  }
+  return addedRow;
+}
+
+function changeCartItemQty(barcode, delta, retailerId = state.retailerId) {
+  const code = String(barcode).trim();
+  const existing = state.cart.find((item) => item.barcode === code);
+  if (!existing) {
+    return delta > 0 ? addProductToTrolley(code, delta, retailerId, true) : null;
+  }
+  const nextQty = existing.quantity + delta;
+  if (nextQty <= 0) {
+    removeCartItem(code);
+    return null;
+  }
+  existing.quantity = nextQty;
+  savePersistedState();
+  updateCartBadge();
+  if (delta > 0) {
+    automationCore.vibrateProductAdded();
+    playBeepSound();
+  }
+  return existing;
 }
 
 function removeCartItem(barcode) {
   state.cart = state.cart.filter((item) => item.barcode !== String(barcode));
+  savePersistedState();
   updateCartBadge();
   render();
 }
@@ -1227,13 +877,10 @@ function renderGlobalSearchDrawer(shouldFocus = false) {
     return;
   }
   globalSearchDrawer.classList.remove('hidden');
-  const q = (state.globalSearchQuery || '').trim().toLowerCase();
+  const q = (state.globalSearchQuery || '').trim();
   const matches = q
-    ? Array.from(MASTER_PRODUCTS.values()).filter((p) => {
-        const kw = p.searchKeywords && p.searchKeywords.some((k) => k.toLowerCase().includes(q));
-        return kw || p.title.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.gtin.includes(q);
-      }).slice(0, 8)
-    : Array.from(MASTER_PRODUCTS.values()).slice(0, 5);
+    ? searchCatalogProducts(q).slice(0, 8)
+    : Array.from(MASTER_PRODUCTS.values()).slice(0, 6);
 
   globalSearchDrawer.innerHTML = `
     <div class="rounded-2xl border border-stone-200 bg-white p-2.5 shadow-lg">
@@ -1243,7 +890,7 @@ function renderGlobalSearchDrawer(shouldFocus = false) {
           id="global-header-search-input"
           type="text"
           value="${escapeHtml(state.globalSearchQuery)}"
-          placeholder="Search products across Market & Trolley (e.g. Milk, Bread, Rice, 600...)..."
+          placeholder="Search 317+ Shoprite & Market items (Milk, Bread, Rice, Nappies, 600...)..."
           class="h-9 flex-1 bg-transparent text-xs font-bold text-slate-900 outline-none"
         />
         ${state.globalSearchQuery ? `<button id="clear-global-search" type="button" class="rounded-lg px-2 py-1 text-[10px] font-black text-slate-400 hover:text-slate-700">Clear</button>` : ''}
@@ -1253,29 +900,33 @@ function renderGlobalSearchDrawer(shouldFocus = false) {
       <div class="mt-2 max-h-64 space-y-1.5 overflow-y-auto border-t border-stone-100 pt-2">
         <p class="px-1 text-[9.5px] font-black uppercase tracking-wider text-slate-400">${q ? `Matching Products (${matches.length})` : 'Quick Add Popular Staples'}</p>
         ${matches.length ? matches.map((p) => {
-          const zp = getZonePrice(state.pricingZoneId, state.retailerId, p.gtin);
-          const price = (zp.promoPrice && zp.promoPrice < zp.regularPrice) ? zp.promoPrice : zp.regularPrice;
-          const inCart = state.cart.find((c) => c.barcode === p.gtin);
+          const gtin = p.gtin || p.barcode;
+          const zp = p.deal || getZonePrice(state.pricingZoneId, state.retailerId, gtin);
+          const price = zp.activePrice ?? ((zp.promoPrice && zp.promoPrice < zp.regularPrice) ? zp.promoPrice : zp.regularPrice);
+          const inCart = state.cart.find((c) => c.barcode === gtin);
           return `
             <div class="flex items-center justify-between gap-2.5 rounded-xl bg-stone-50/80 p-2 hover:bg-stone-100/80 transition">
               <div class="flex items-center gap-2.5 min-w-0">
                 <div class="size-9 shrink-0 rounded-lg bg-white border border-stone-200/70 p-0.5 flex items-center justify-center overflow-hidden">
-                  <img src="${p.imageUrl}" alt="" class="max-h-full max-w-full object-contain" onerror="this.parentElement.innerHTML='<span class=\\'text-base\\'>${p.emoji || '🛍️'}</span>';" />
+                  <img src="${p.imageUrl || p.image}" alt="" class="max-h-full max-w-full object-contain" onerror="this.parentElement.innerHTML='<span class=\\'text-base\\'>${p.emoji || '🛍️'}</span>';" />
                 </div>
                 <div class="min-w-0">
-                  <p class="truncate text-xs font-black text-slate-900">${escapeHtml(p.title)}</p>
-                  <p class="text-[10px] font-semibold text-slate-500">${p.weight} &middot; <strong class="text-slate-800">${zar.format(price)}</strong></p>
+                  <p class="truncate text-xs font-black text-slate-900">${escapeHtml(p.title || p.name)}</p>
+                  <p class="text-[10px] font-semibold text-slate-500">${escapeHtml(p.weight || '1 unit')} &middot; <strong class="text-slate-800">${zar.format(price)}</strong></p>
                 </div>
               </div>
-              <button type="button" data-global-search-add="${p.gtin}" class="shrink-0 rounded-xl bg-[#234e3b] px-3 py-1.5 text-[10px] font-black text-white shadow-2xs hover:bg-[#1b3d2e] active:scale-95 transition">
+              <button type="button" data-global-search-add="${gtin}" class="shrink-0 rounded-xl bg-[#234e3b] px-3 py-1.5 text-[10px] font-black text-white shadow-2xs hover:bg-[#1b3d2e] active:scale-95 transition">
                 ${inCart ? `🛒 ${inCart.quantity} (+1)` : '+ Trolley'}
               </button>
             </div>
           `;
         }).join('') : `
-          <div class="flex items-center justify-between rounded-xl bg-stone-50 p-2.5 text-xs">
-            <span class="text-slate-500">Add custom item "<strong>${escapeHtml(state.globalSearchQuery)}</strong>"?</span>
-            <button id="global-add-custom-btn" type="button" class="rounded-xl bg-slate-900 px-3 py-1.5 text-[10px] font-black text-white">+ Add to Trolley</button>
+          <div class="flex items-center justify-between rounded-xl bg-stone-50 p-2.5 text-xs gap-2">
+            <span class="text-slate-500 truncate">Not listed? Add "<strong>${escapeHtml(state.globalSearchQuery)}</strong>" or scan shelf tag</span>
+            <div class="flex shrink-0 gap-1.5">
+              <button id="global-ocr-tag-btn" type="button" class="rounded-xl bg-emerald-600 px-2.5 py-1.5 text-[10px] font-black text-white">🏷️ OCR Tag</button>
+              <button id="global-add-custom-btn" type="button" class="rounded-xl bg-slate-900 px-2.5 py-1.5 text-[10px] font-black text-white">+ Custom</button>
+            </div>
           </div>
         `}
       </div>
@@ -1313,14 +964,15 @@ function renderGlobalSearchDrawer(shouldFocus = false) {
   globalSearchDrawer.querySelectorAll('[data-global-search-add]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const gtin = btn.dataset.globalSearchAdd;
-      const prod = MASTER_PRODUCTS.get(gtin);
+      const prod = MASTER_PRODUCTS.get(gtin) || PRODUCTS.get(gtin);
       if (!prod) return;
       addToCart({
-        barcode: prod.gtin,
-        name: prod.title,
+        barcode: gtin,
+        sku: prod.sku || '',
+        name: prod.title || prod.name,
         weight: prod.weight,
         category: prod.category,
-        image: prod.imageUrl,
+        image: prod.imageUrl || prod.image,
         emoji: prod.emoji
       }, state.retailerId);
       playBeepSound();
@@ -1330,18 +982,29 @@ function renderGlobalSearchDrawer(shouldFocus = false) {
     });
   });
 
+  globalSearchDrawer.querySelector('#global-ocr-tag-btn')?.addEventListener('click', () => {
+    toggleGlobalSearchDrawer(false);
+    openCrowdsourceModal('');
+  });
+
   globalSearchDrawer.querySelector('#global-add-custom-btn')?.addEventListener('click', () => {
     const customName = state.globalSearchQuery.trim();
     if (!customName) return;
-    addToCart({
-      barcode: `600${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+    const prefix12 = `20${String(Date.now()).slice(-5)}01999`;
+    const validEan13 = `${prefix12}${computeGs1CheckDigit(prefix12)}`;
+    const customProd = {
+      barcode: validEan13,
+      gtin: validEan13,
       name: customName,
+      title: customName,
       weight: '1 unit',
-      category: 'Pantry Staples & Grains',
+      category: 'Food Cupboard & Pantry',
       price: 19.99,
       basePrice: 22.99,
       emoji: '🛍️'
-    }, state.retailerId);
+    };
+    PRODUCTS.set(validEan13, customProd);
+    addToCart(customProd, state.retailerId);
     state.globalSearchQuery = '';
     playBeepSound();
     render();
@@ -1360,8 +1023,12 @@ function render() {
     headerSubtitle.textContent = `${getRetailer().name} · Trolley Comparison`;
   } else if (state.route === 'tracker' && state.order) {
     headerSubtitle.textContent = `Order #${state.order.id} · Live`;
+  } else if (state.route === 'tracker' && (state.pastReceipts || []).length) {
+    headerSubtitle.textContent = `Digital POS Slips (${state.pastReceipts.length})`;
   } else if (state.route === 'market') {
-    headerSubtitle.textContent = `Open Market · ${zone.kind === 'town' ? zone.name : zone.city}`;
+    headerSubtitle.textContent = state.storeConfirmed
+      ? `${getActiveStore('shoprite').name}`
+      : `Open Market · ${zone.kind === 'town' ? zone.name : zone.city}`;
   } else if (state.route === 'savings') {
     headerSubtitle.textContent = 'Savings & Coupons';
   } else {
@@ -1403,36 +1070,36 @@ function calculateTrolleyComparison() {
 }
 
 // ==========================================
-// NATIVE MARKET CATALOG (ZERO WEBVIEWS, BASH-STYLE)
+// UNIFIED OPEN MARKET CATALOG (317 VERIFIED SKUs · 12 AISLES · PURE #FFFFFF PACKSHOTS)
 // ==========================================
 
 const SA_STAPLE_BARGAINS = [
-  { gtin: '6001007002343', name: 'White Star Super Maize 2.5kg', store: 'Boxer', price: 31.99, tag: 'Lowest Maize' },
-  { gtin: '6001299000270', name: 'Clover Full Cream Milk 2L', store: 'Shoprite', price: 33.99, tag: 'Best Milk Deal' },
-  { gtin: '6001007001001', name: 'Albany Superior White Bread 700g', store: 'Shoprite', price: 16.99, tag: 'Lowest Bread' },
-  { gtin: '6001068594504', name: 'Simba Smoked Beef Chips 120g', store: 'Shoprite', price: 18.99, tag: 'Best Snacks' },
-  { gtin: '6001087002134', name: 'Sunlight Liquid 750ml', store: 'Boxer', price: 28.99, tag: 'Top Cleaning' }
+  { gtin: '6001707771105', name: 'White Star Maize 2.5kg', store: 'Shoprite', price: 35.49 },
+  { gtin: '6001001271110', name: 'Ritebrand Milk 1L', store: 'Shoprite', price: 18.99 },
+  { gtin: '6001253010178', name: 'Albany White Bread 700g', store: 'Shoprite', price: 14.99 },
+  { gtin: '6001231000191', name: 'Tastic Rice 2kg', store: 'Shoprite', price: 41.99 },
+  { gtin: '6001582051095', name: 'Excella Oil 5L', store: 'Shoprite', price: 160.49 }
 ];
-
 
 function renderProductCard(product, zone) {
   const priceData = getZonePrice(zone.id, state.retailerId, product.gtin);
-  const hasPromo = priceData.promoPrice && priceData.promoPrice < priceData.regularPrice;
-  const activePrice = hasPromo ? priceData.promoPrice : priceData.regularPrice;
-  const savings = hasPromo ? (priceData.regularPrice - priceData.promoPrice) : 0;
+  const hasPromo = Boolean(priceData.promoPrice && priceData.promoPrice < priceData.regularPrice);
+  const activePrice = priceData.activePrice ?? (hasPromo ? priceData.promoPrice : priceData.regularPrice);
+  const savings = hasPromo ? (priceData.regularPrice - activePrice) : 0;
   const unitPrice = formatUnitPrice(activePrice, product.weight);
 
   const inCartItem = state.cart.find((i) => i.barcode === product.gtin);
   const inCartQty = inCartItem ? inCartItem.quantity : 0;
 
   return `
-    <div class="group relative flex flex-col justify-between rounded-3xl border border-stone-200/90 bg-white p-3 shadow-2xs transition-all duration-200 hover:border-stone-300 hover:shadow-sm">
+    <div data-select-catalog-product="${product.gtin}" class="market-product-card cursor-pointer group relative flex flex-col justify-between rounded-3xl border border-stone-200/90 bg-white p-3 shadow-2xs transition-all duration-200 hover:border-stone-300 hover:shadow-sm">
       <div>
-        <!-- Product Packshot Container with Direct 1-Tap Trolley Control -->
+        <!-- Pure #FFFFFF Studio Packshot Container with Direct 1-Tap Trolley Control -->
         <div class="relative w-full aspect-square overflow-hidden rounded-2xl bg-white border border-stone-100 p-2 pb-10 flex items-center justify-center">
-          <img 
-            src="${product.imageUrl}" 
-            alt="${escapeHtml(product.title)}" 
+          <img
+            src="${product.imageUrl}"
+            alt="${escapeHtml(product.title)}"
+            loading="lazy"
             class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300"
             onerror="this.onerror=null;this.parentElement.querySelector('img')?.remove();this.parentElement.insertAdjacentHTML('afterbegin','<span class=\\'grid size-full place-items-center text-3xl\\'>${product.emoji || '🛍️'}</span>');"
           />
@@ -1447,9 +1114,9 @@ function renderProductCard(product, zone) {
           <div class="absolute inset-x-2 bottom-2 z-10 flex items-center justify-center">
             ${inCartQty > 0 ? `
               <div class="flex w-full items-center justify-between rounded-xl bg-[#234e3b] px-1.5 py-1 text-white shadow-md">
-                <button type="button" data-card-dec-trolley="${product.gtin}" class="grid size-6 place-items-center rounded-lg bg-white/15 text-xs font-black hover:bg-white/25 active:scale-90 transition">&minus;</button>
+                <button type="button" data-card-dec-trolley="${product.gtin}" class="grid size-6 place-items-center rounded-lg bg-white/15 text-xs font-black hover:bg-white/25 active:scale-90 transition" aria-label="Remove one ${escapeHtml(product.title)}">&minus;</button>
                 <span class="text-[10px] font-black tabular-nums">🛒 ${inCartQty} in Trolley</span>
-                <button type="button" data-card-add-trolley="${product.gtin}" class="grid size-6 place-items-center rounded-lg bg-white text-xs font-black text-[#234e3b] hover:bg-stone-100 active:scale-90 transition">+</button>
+                <button type="button" data-card-add-trolley="${product.gtin}" class="grid size-6 place-items-center rounded-lg bg-white text-xs font-black text-[#234e3b] hover:bg-stone-100 active:scale-90 transition" aria-label="Add one more ${escapeHtml(product.title)}">+</button>
               </div>
             ` : `
               <button
@@ -1468,11 +1135,11 @@ function renderProductCard(product, zone) {
         <div class="mt-2.5">
           <div class="flex items-center justify-between gap-1">
             <span class="truncate text-[9px] font-black uppercase tracking-wider text-slate-400">${escapeHtml(product.brand)}</span>
-            <span class="shrink-0 rounded bg-stone-100 px-1.5 py-0.2 text-[8px] font-bold text-slate-500">${escapeHtml(product.category.split(' ')[0])}</span>
+            <span class="shrink-0 rounded bg-stone-100 px-1.5 py-0.2 text-[8px] font-bold text-slate-500">${escapeHtml((product.subCategory || product.category || '').split(' ')[0])}</span>
           </div>
           <h4 class="text-xs font-black text-slate-900 line-clamp-2 leading-snug mt-0.5">${escapeHtml(product.title)}</h4>
           <div class="flex items-center justify-between mt-0.5">
-            <p class="text-[10px] text-slate-400 font-semibold">${product.weight || '1 unit'}</p>
+            <p class="text-[10px] text-slate-400 font-semibold">${escapeHtml(product.weight || '1 unit')}</p>
             ${unitPrice ? `<span class="text-[8.5px] font-bold text-slate-400 font-mono">${unitPrice}</span>` : ''}
           </div>
         </div>
@@ -1496,49 +1163,53 @@ function renderProductCard(product, zone) {
 
 function renderMarket() {
   const zone = getActiveZone();
+  const activeShoprite = getActiveStore('shoprite');
+  const linkedXtra = loadXtraSavingsCard();
   const searchQuery = (state.catalogSearch || '').toLowerCase().trim();
   const selectedCat = state.catalogCategory || 'all';
-  const allProducts = Array.from(MASTER_PRODUCTS.values());
+  const allProducts = Array.from(PRODUCTS.values());
 
   let filteredProducts = allProducts.filter((product) => {
     const matchesCategory = selectedCat === 'all' || product.category === selectedCat;
     if (!matchesCategory) return false;
     if (!searchQuery) return true;
 
-    const inKeywords = product.searchKeywords && product.searchKeywords.some(k => k.toLowerCase().includes(searchQuery));
-    const inTitle = product.title.toLowerCase().includes(searchQuery);
-    const inBrand = product.brand.toLowerCase().includes(searchQuery);
-    const inGtin = product.gtin.includes(searchQuery);
-    return inKeywords || inTitle || inBrand || inGtin;
+    const hay = [
+      product.title || product.name || '',
+      product.brand || '',
+      product.gtin || product.barcode || '',
+      product.sku || '',
+      product.subCategory || '',
+      ...(product.searchKeywords || [])
+    ].join(' ').toLowerCase();
+    return searchQuery.split(/\s+/).every((tk) => hay.includes(tk));
   });
 
   if (state.catalogSort === 'price-asc') {
     filteredProducts.sort((a, b) => {
-      const pA = getZonePrice(zone.id, state.retailerId, a.gtin);
-      const pB = getZonePrice(zone.id, state.retailerId, b.gtin);
-      return (pA.promoPrice || pA.regularPrice) - (pB.promoPrice || pB.regularPrice);
+      const pA = getZonePrice(zone.id, state.retailerId, a.gtin || a.barcode);
+      const pB = getZonePrice(zone.id, state.retailerId, b.gtin || b.barcode);
+      return (pA.activePrice || pA.regularPrice) - (pB.activePrice || pB.regularPrice);
     });
   } else if (state.catalogSort === 'savings-desc') {
     filteredProducts.sort((a, b) => {
-      const pA = getZonePrice(zone.id, state.retailerId, a.gtin);
-      const pB = getZonePrice(zone.id, state.retailerId, b.gtin);
-      const savA = (pA.promoPrice && pA.promoPrice < pA.regularPrice) ? (pA.regularPrice - pA.promoPrice) : 0;
-      const savB = (pB.promoPrice && pB.promoPrice < pB.regularPrice) ? (pB.regularPrice - pB.promoPrice) : 0;
-      return savB - savA;
+      const pA = getZonePrice(zone.id, state.retailerId, a.gtin || a.barcode);
+      const pB = getZonePrice(zone.id, state.retailerId, b.gtin || b.barcode);
+      return (pB.savings || 0) - (pA.savings || 0);
     });
   } else if (state.catalogSort === 'name-asc') {
-    filteredProducts.sort((a, b) => a.title.localeCompare(b.title));
+    filteredProducts.sort((a, b) => (a.title || a.name).localeCompare(b.title || b.name));
   }
 
   const totalItemsInCart = getItemCount();
 
   screen.innerHTML = `
     <section class="overflow-hidden pb-28">
-      <!-- Open Grocery Market Top Header (Softly Blended, Retailer-Agnostic) -->
+      <!-- Unified Open Grocery Market Top Header -->
       <div class="px-5 pt-4 pb-3 border-b border-stone-200/60" style="background: linear-gradient(180deg, #eff4f0 0%, #f8faf8 58%, #fafaf9 100%)">
         <div class="flex items-center justify-between gap-2">
           <div>
-            <p class="text-[9.5px] font-black uppercase tracking-widest text-[#3b5e4c]/80">Central Grocery Catalog</p>
+            <p class="text-[9.5px] font-black uppercase tracking-widest text-[#3b5e4c]/80">Central Grocery Catalog · 12 Aisles</p>
             <h1 class="text-2xl font-black text-slate-900 tracking-tight mt-0.5">Open Market</h1>
           </div>
           ${totalItemsInCart > 0 ? `
@@ -1548,7 +1219,7 @@ function renderMarket() {
             </button>
           ` : `
             <span class="rounded-2xl bg-[#e7efe9] px-3 py-1.5 text-[10px] font-black text-[#234e3b]">
-              ${allProducts.length} Staples
+              ${allProducts.length} Items Ready
             </span>
           `}
         </div>
@@ -1559,14 +1230,14 @@ function renderMarket() {
             <span class="grid size-8 shrink-0 place-items-center rounded-xl bg-[#eaf2ec] text-sm text-[#234e3b]">📍</span>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-xs font-black text-slate-900 truncate">${escapeHtml(zone.name)}</span>
+                <span class="text-xs font-black text-slate-900 truncate">${escapeHtml(state.storeConfirmed ? activeShoprite.name : zone.name)}</span>
                 <span class="rounded-md bg-[#eaf2ec] px-1.5 py-0.2 text-[8.5px] font-bold text-[#2b5440]">
-                  ${zone.kind === 'town' ? 'Town-wide pricing' : 'City-area pricing'}
+                  ${state.storeConfirmed ? `Branch #${escapeHtml(activeShoprite.retailerStoreCode)}` : (zone.kind === 'town' ? 'Town-wide pricing' : 'City-area pricing')}
                 </span>
                 ${state.detectedDistanceKm !== null ? `<span class="text-[8.5px] font-mono font-bold text-slate-400">${state.detectedDistanceKm} km</span>` : ''}
               </div>
               <p class="text-[10px] text-slate-500 truncate mt-0.5">
-                Pick items freely — compare total across all 6 retailers inside your Trolley
+                Pick items freely — compare total across all 6 retailers or scan at Shoprite POS till
               </p>
             </div>
           </div>
@@ -1574,6 +1245,22 @@ function renderMarket() {
             ${zone.kind === 'town' ? 'Town ▾' : 'Area ▾'}
           </span>
         </button>
+
+        <!-- In-Store Shoprite POS Quick Action Strip (Scale PLU · 80 Branches · Xtra Card · On-Device OCR) -->
+        <div class="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none]">
+          <button id="market-open-shoprite-branches" type="button" class="shrink-0 flex items-center gap-1 rounded-xl border border-rose-200 bg-white px-2.5 py-1.5 text-[10.5px] font-black text-[#e11d2e] shadow-2xs hover:bg-rose-50 active:scale-95 transition">
+            <span>🏪</span><span>80 Shoprite Stores</span>
+          </button>
+          <button id="market-open-scale-plu" type="button" class="shrink-0 flex items-center gap-1 rounded-xl border border-amber-200 bg-amber-50/90 px-2.5 py-1.5 text-[10.5px] font-black text-amber-950 shadow-2xs hover:bg-amber-100 active:scale-95 transition">
+            <span>⚖️</span><span>Loose / Scale PLU</span>
+          </button>
+          <button id="market-open-xtra-card" type="button" class="shrink-0 flex items-center gap-1 rounded-xl border ${linkedXtra ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-stone-200 bg-white text-slate-700'} px-2.5 py-1.5 text-[10.5px] font-black shadow-2xs active:scale-95 transition">
+            <span>💳</span><span>${linkedXtra ? 'Xtra Card ✓' : 'Link Xtra Card'}</span>
+          </button>
+          <button id="market-open-tag-ocr" type="button" class="shrink-0 flex items-center gap-1 rounded-xl border border-stone-200 bg-white px-2.5 py-1.5 text-[10.5px] font-black text-slate-700 shadow-2xs hover:bg-stone-100 active:scale-95 transition">
+            <span>🏷️</span><span>Shelf Tag OCR</span>
+          </button>
+        </div>
       </div>
 
       <!-- Softly Blended SA Staples Deal Ticker -->
@@ -1583,13 +1270,13 @@ function renderMarket() {
             <span class="shrink-0 rounded-lg bg-[#2b5440]/12 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-[#234e3b]">
               Popular
             </span>
-            ${SA_STAPLE_BARGAINS.map(b => `
-              <button 
-                type="button" 
+            ${SA_STAPLE_BARGAINS.map((b) => `
+              <button
+                type="button"
                 data-staple-search="${b.name.split(' ')[0]}"
                 class="shrink-0 flex items-center gap-1.5 rounded-xl bg-white/90 border border-stone-200/70 px-2.5 py-1 text-[9.5px] font-bold text-slate-700 hover:bg-white transition active:scale-95"
               >
-                <span>${b.name.split(' ').slice(0, 2).join(' ')}</span>
+                <span>${escapeHtml(b.name)}</span>
                 <span class="font-black text-[#234e3b]">${zar.format(b.price)}</span>
               </button>
             `).join('')}
@@ -1601,28 +1288,28 @@ function renderMarket() {
       <div class="px-5 pt-3">
         ${state.catalogSearch ? `
           <div class="mb-3 flex items-center justify-between rounded-2xl border border-[#cfe0d5] bg-[#edf3ee]/80 px-3.5 py-2 text-xs">
-            <span class="font-bold text-slate-700">Showing results for "<strong>${escapeHtml(state.catalogSearch)}</strong>"</span>
+            <span class="font-bold text-slate-700">Showing ${filteredProducts.length} result(s) for "<strong>${escapeHtml(state.catalogSearch)}</strong>"</span>
             <button id="clear-search-btn" type="button" class="rounded-lg bg-white px-2.5 py-1 text-[10px] font-black text-slate-700 shadow-2xs">Clear ✕</button>
           </div>
         ` : ''}
 
-        <!-- 5 Core Circular Department Icons -->
-        <div class="flex items-center justify-between gap-1 overflow-x-auto pb-1 [scrollbar-width:none]">
+        <!-- 12 Supermarket Department Icons -->
+        <div class="flex items-center gap-2.5 overflow-x-auto pb-1.5 [scrollbar-width:none]">
           <button type="button" data-catalog-cat="all" class="flex flex-col items-center shrink-0 group">
-            <div class="size-13 rounded-2xl grid place-items-center text-xl transition shadow-2xs ${selectedCat === 'all' ? 'bg-slate-900 text-white scale-105 ring-2 ring-slate-900/15' : 'bg-white text-slate-700 border border-stone-200/90 hover:border-slate-400'}">
+            <div class="size-12 rounded-2xl grid place-items-center text-xl transition shadow-2xs ${selectedCat === 'all' ? 'bg-slate-900 text-white scale-105 ring-2 ring-slate-900/15' : 'bg-white text-slate-700 border border-stone-200/90 hover:border-slate-400'}">
               🛍️
             </div>
             <span class="mt-1 text-[9.5px] font-black truncate max-w-[4.8rem] text-center ${selectedCat === 'all' ? 'text-slate-900' : 'text-slate-500'}">All (${allProducts.length})</span>
           </button>
-          ${CATEGORIES.map(cat => {
+          ${CATEGORIES.map((cat) => {
             const isCatActive = selectedCat === cat.id;
-            const count = allProducts.filter(p => p.category === cat.id).length;
+            const count = allProducts.filter((p) => p.category === cat.id).length;
             return `
-              <button type="button" data-catalog-cat="${cat.id}" class="flex flex-col items-center shrink-0 group">
-                <div class="size-13 rounded-2xl grid place-items-center text-xl transition shadow-2xs ${isCatActive ? 'bg-slate-900 text-white scale-105 ring-2 ring-slate-900/15' : 'bg-white text-slate-700 border border-stone-200/90 hover:border-slate-400'}">
+              <button type="button" data-catalog-cat="${escapeHtml(cat.id)}" class="flex flex-col items-center shrink-0 group">
+                <div class="size-12 rounded-2xl grid place-items-center text-xl transition shadow-2xs ${isCatActive ? 'bg-slate-900 text-white scale-105 ring-2 ring-slate-900/15' : 'bg-white text-slate-700 border border-stone-200/90 hover:border-slate-400'}">
                   ${cat.emoji}
                 </div>
-                <span class="mt-1 text-[9.5px] font-black truncate max-w-[4.8rem] text-center ${isCatActive ? 'text-slate-900' : 'text-slate-500'}">${cat.label.split(' ')[0]} (${count})</span>
+                <span class="mt-1 text-[9.5px] font-black truncate max-w-[4.8rem] text-center ${isCatActive ? 'text-slate-900' : 'text-slate-500'}">${escapeHtml(cat.label)} (${count})</span>
               </button>
             `;
           }).join('')}
@@ -1631,12 +1318,12 @@ function renderMarket() {
         <!-- Shared Top Brand Filter Chips -->
         <div class="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
           <span class="shrink-0 text-[10px] font-black text-slate-400 uppercase tracking-wider pl-0.5">Brands:</span>
-          ${['White Star', 'Albany', 'Clover', 'Tastic', 'Koo', 'Sunlight', 'Rama', 'All Gold'].map(b => {
+          ${['Ritebrand', 'Freshmark', 'White Star', 'Albany', 'Clover', 'Tastic', 'Koo', 'Sunlight', 'Rama', 'Huggies'].map((b) => {
             const isBrandActive = (state.catalogSearch || '').toLowerCase() === b.toLowerCase();
             return `
-              <button 
-                type="button" 
-                data-brand-filter="${b}" 
+              <button
+                type="button"
+                data-brand-filter="${b}"
                 class="shrink-0 rounded-lg px-2.5 py-1 text-[10px] font-bold border transition ${isBrandActive ? 'bg-slate-900 text-white border-slate-900 shadow-2xs' : 'bg-white text-slate-600 border-stone-200 hover:border-stone-300'}"
               >
                 ${b}
@@ -1648,16 +1335,16 @@ function renderMarket() {
         <!-- View Mode & Sort Toolbar -->
         <div class="mt-3 flex items-center justify-between gap-1.5 pt-2 border-t border-stone-200/70">
           <div class="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
-            <button 
-              type="button" 
+            <button
+              type="button"
               data-toggle-view-mode
               class="shrink-0 flex items-center gap-1 rounded-xl px-2.5 py-1 text-[10px] font-bold border border-stone-200 bg-white text-slate-700 hover:border-stone-300 transition active:scale-95"
             >
               <span>${state.catalogViewMode === 'aisles' ? '🏬 Aisle Mode' : '▦ Grid Mode'}</span>
             </button>
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               data-cycle-sort
               class="shrink-0 flex items-center gap-1 rounded-xl px-2.5 py-1 text-[10px] font-bold border border-stone-200 bg-white text-slate-700 hover:border-stone-300 transition active:scale-95"
             >
@@ -1666,13 +1353,13 @@ function renderMarket() {
             </button>
           </div>
 
-          <button 
-            type="button" 
+          <button
+            type="button"
             id="open-category-manager-btn"
             class="shrink-0 flex items-center gap-1 rounded-xl bg-slate-900 px-2.5 py-1 text-[10px] font-black text-white hover:bg-slate-800 active:scale-95 transition shadow-2xs"
           >
             <span>🏷️</span>
-            <span>Departments</span>
+            <span>All 12 Aisles</span>
           </button>
         </div>
       </div>
@@ -1683,13 +1370,16 @@ function renderMarket() {
           <div class="rounded-3xl border border-stone-200 bg-white p-8 text-center shadow-2xs">
             <span class="text-3xl">🔍</span>
             <h4 class="mt-2 text-sm font-black text-slate-900">No items found for "${escapeHtml(state.catalogSearch)}"</h4>
-            <p class="mt-1 text-xs text-slate-400">Try searching for White Star, bread, milk, chips, rice, or tap the top search button.</p>
-            <button id="reset-catalog-btn" type="button" class="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-xs font-black text-white">Reset Search</button>
+            <p class="mt-1 text-xs text-slate-400">Try searching another brand, open Loose Scale PLU, or snap the shelf price tag.</p>
+            <div class="mt-4 flex flex-wrap justify-center gap-2">
+              <button id="reset-catalog-btn" type="button" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-black text-white">Reset Search</button>
+              <button id="empty-ocr-tag-btn" type="button" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white">🏷️ Scan Shelf Tag</button>
+            </div>
           </div>
         ` : (state.catalogViewMode === 'aisles' && selectedCat === 'all' && !searchQuery) ? `
           <div class="space-y-5">
-            ${CATEGORIES.map(cat => {
-              const deptProducts = filteredProducts.filter(p => p.category === cat.id);
+            ${CATEGORIES.map((cat) => {
+              const deptProducts = filteredProducts.filter((p) => p.category === cat.id);
               if (!deptProducts.length) return '';
               return `
                 <div class="rounded-3xl bg-stone-100/70 p-3.5 border border-stone-200/80 shadow-2xs">
@@ -1697,24 +1387,24 @@ function renderMarket() {
                     <div class="flex items-center gap-2">
                       <span class="grid size-8 place-items-center rounded-xl bg-white text-base shadow-2xs">${cat.emoji}</span>
                       <div>
-                        <h3 class="text-xs font-black text-slate-900">${cat.id}</h3>
-                        <p class="text-[9.5px] text-slate-400 font-bold">${deptProducts.length} items in this department</p>
+                        <h3 class="text-xs font-black text-slate-900">${escapeHtml(cat.id)}</h3>
+                        <p class="text-[9.5px] text-slate-400 font-bold">${deptProducts.length} items · ${escapeHtml(cat.aisle || '')}</p>
                       </div>
                     </div>
-                    <button type="button" data-catalog-cat="${cat.id}" class="rounded-lg bg-white px-2.5 py-1 text-[9.5px] font-black text-slate-800 border border-stone-200 hover:border-slate-400 active:scale-95 transition">
+                    <button type="button" data-catalog-cat="${escapeHtml(cat.id)}" class="rounded-lg bg-white px-2.5 py-1 text-[9.5px] font-black text-slate-800 border border-stone-200 hover:border-slate-400 active:scale-95 transition">
                       Filter Aisle ▾
                     </button>
                   </div>
-                  <div class="mt-3 grid grid-cols-2 gap-3">
-                    ${deptProducts.map(product => renderProductCard(product, zone)).join('')}
+                  <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    ${deptProducts.map((product) => renderProductCard(product, zone)).join('')}
                   </div>
                 </div>
               `;
             }).join('')}
           </div>
         ` : `
-          <div class="grid grid-cols-2 gap-3">
-            ${filteredProducts.map(product => renderProductCard(product, zone)).join('')}
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            ${filteredProducts.map((product) => renderProductCard(product, zone)).join('')}
           </div>
         `}
       </div>
@@ -1725,6 +1415,11 @@ function renderMarket() {
 
 function bindCatalogInteractions(zone) {
   screen.querySelector('#market-compare-cta')?.addEventListener('click', () => routeTo('trolley'));
+  screen.querySelector('#market-open-shoprite-branches')?.addEventListener('click', () => openStoreBranchModal(false));
+  screen.querySelector('#market-open-scale-plu')?.addEventListener('click', openLooseScalePluHelper);
+  screen.querySelector('#market-open-xtra-card')?.addEventListener('click', openShopriteXtraCardHelper);
+  screen.querySelector('#market-open-tag-ocr')?.addEventListener('click', () => openCrowdsourceModal(''));
+  screen.querySelector('#empty-ocr-tag-btn')?.addEventListener('click', () => openCrowdsourceModal(''));
 
   screen.querySelector('#open-zone-selector-btn')?.addEventListener('click', () => {
     playBeepSound();
@@ -1769,7 +1464,21 @@ function bindCatalogInteractions(zone) {
   });
 
   screen.querySelector('#open-category-manager-btn')?.addEventListener('click', () => {
-    openCategoryManagerModal(zone);
+    const activeShoprite = getActiveStore('shoprite');
+    openAllDepartmentsModal({
+      modalRoot,
+      departments: SHOPRITE_RETAIL_DEPARTMENTS,
+      allProducts: Array.from(PRODUCTS.values()),
+      selectedCategory: state.catalogCategory,
+      activeStore: activeShoprite,
+      zar,
+      getStorePrice: (p, sId) => getStorePrice(sId, p.gtin || p.barcode),
+      onSelectCategory: (catId) => {
+        state.catalogCategory = catId;
+        playBeepSound();
+        renderMarket();
+      }
+    });
     playBeepSound();
   });
 
@@ -1791,30 +1500,29 @@ function bindCatalogInteractions(zone) {
     });
   });
 
-  // 1-Tap Add to Trolley directly on Product Image
   screen.querySelectorAll('[data-card-add-trolley]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const gtin = btn.dataset.cardAddTrolley;
-      const product = MASTER_PRODUCTS.get(gtin);
+      const product = MASTER_PRODUCTS.get(gtin) || PRODUCTS.get(gtin);
       if (!product) return;
 
       addToCart({
         barcode: gtin,
-        name: product.title,
+        sku: product.sku || '',
+        name: product.title || product.name,
         weight: product.weight || '1 unit',
-        category: product.category || 'Pantry Staples & Grains',
-        image: product.imageUrl,
+        category: product.category || 'Food Cupboard & Pantry',
+        image: product.imageUrl || product.image,
         emoji: product.emoji || '🛍️'
       }, state.retailerId);
-      automationCore.addToCartel({ barcode: gtin, name: product.title }, state.retailerId);
+      automationCore.addToCartel({ barcode: gtin, name: product.title || product.name }, state.retailerId);
       playBeepSound();
       if (navigator.vibrate) navigator.vibrate([35, 20, 35]);
       renderMarket();
     });
   });
 
-  // 1-Tap Decrement right on Product Image
   screen.querySelectorAll('[data-card-dec-trolley]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1825,9 +1533,46 @@ function bindCatalogInteractions(zone) {
         removeCartItem(gtin);
       } else {
         existing.quantity -= 1;
+        savePersistedState();
         updateCartBadge();
         renderMarket();
       }
+    });
+  });
+
+  // Tap card -> opens Product Quick-View, Scannable GS1 Barcode & 9-Province Regional Price Sheet
+  screen.querySelectorAll('[data-select-catalog-product]').forEach((card) => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      const gtin = card.dataset.selectCatalogProduct;
+      const product = MASTER_PRODUCTS.get(gtin) || PRODUCTS.get(gtin);
+      if (!product) return;
+      const activeShoprite = getActiveStore('shoprite');
+      const normalized = normalizeProductForStore(product, state.retailerId);
+      openProductQuickViewModal({
+        modalRoot,
+        state,
+        product: normalized,
+        activeStore: activeShoprite,
+        zar,
+        getStorePrice: (p, sId) => getStorePrice(sId, p.gtin || p.barcode),
+        onAddToTrolley: (code) => {
+          addProductToTrolley(code, 1, state.retailerId, false);
+          renderMarket();
+        },
+        onChangeQty: (code, delta) => {
+          changeCartItemQty(code, delta, state.retailerId);
+          renderMarket();
+        },
+        onAddToList: (normProd) => {
+          addProductToTrolley(normProd, 1, state.retailerId, false);
+          renderMarket();
+        },
+        getCartQty: (code) => {
+          const row = state.cart.find((c) => c.barcode === code);
+          return row ? row.quantity : 0;
+        }
+      });
     });
   });
 }
@@ -1845,10 +1590,13 @@ function triggerLiveZoneGpsMatch({ onComplete } = {}) {
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       const { latitude, longitude } = pos.coords;
+      state.userCoords = { latitude, longitude };
       const { zone, distanceKm } = findClosestZone(latitude, longitude);
       state.pricingZoneId = zone.id;
       state.detectedDistanceKm = distanceKm;
       state.gpsStatus = 'matched';
+      STORE_PRICES.clear();
+      savePersistedState();
       playBeepSound();
       if (navigator.vibrate) navigator.vibrate([35, 20, 35]);
       showToast(`📍 Matched to ${zone.name} (${distanceKm} km)`);
@@ -1863,69 +1611,6 @@ function triggerLiveZoneGpsMatch({ onComplete } = {}) {
   );
 }
 
-function openCategoryManagerModal(zone) {
-  const allProducts = Array.from(MASTER_PRODUCTS.values());
-
-  modalRoot.innerHTML = `
-    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/65 p-4 backdrop-blur-md animate-in fade-in">
-      <div class="relative max-h-[85vh] w-full max-w-lg overflow-hidden rounded-[2.25rem] bg-white p-6 shadow-2xl animate-in slide-in-from-bottom-5">
-        <div class="flex items-center justify-between pb-3 border-b border-stone-100">
-          <div>
-            <h3 class="text-base font-black text-slate-900">Market Departments</h3>
-            <p class="text-xs text-slate-400">Browse ${allProducts.length} grocery staples by aisle</p>
-          </div>
-          <button id="close-cat-modal-btn" type="button" class="grid size-8 place-items-center rounded-xl bg-stone-100 text-xs font-bold text-slate-500 hover:bg-stone-200">✕</button>
-        </div>
-
-        <div class="mt-4 space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
-          <button type="button" data-pick-dept="all" class="w-full flex items-center justify-between rounded-2xl border-2 p-3 text-left transition active:scale-98 ${state.catalogCategory === 'all' ? 'border-slate-900 bg-stone-50' : 'border-stone-100 bg-white hover:border-stone-200'}">
-            <div class="flex items-center gap-3">
-              <span class="grid size-11 place-items-center rounded-2xl bg-slate-900 text-white text-xl shadow-2xs">🛍️</span>
-              <div>
-                <h4 class="text-xs font-black text-slate-900">All Market Departments</h4>
-                <p class="text-[10px] text-slate-400">Complete catalog of ${allProducts.length} grocery items</p>
-              </div>
-            </div>
-            <span class="rounded-full bg-stone-200 px-2.5 py-0.5 text-[9px] font-black text-slate-700">${allProducts.length} items</span>
-          </button>
-
-          ${CATEGORIES.map(cat => {
-            const items = allProducts.filter(p => p.category === cat.id);
-            const minPrice = items.length ? Math.min(...items.map(p => {
-              const pd = getZonePrice(zone.id, state.retailerId, p.gtin);
-              return pd.promoPrice || pd.regularPrice;
-            })) : 0;
-            const isSelected = state.catalogCategory === cat.id;
-
-            return `
-              <button type="button" data-pick-dept="${cat.id}" class="w-full flex items-center justify-between rounded-2xl border-2 p-3 text-left transition active:scale-98 ${isSelected ? 'border-slate-900 bg-stone-50' : 'border-stone-100 bg-white hover:border-stone-200'}">
-                <div class="flex items-center gap-3">
-                  <span class="grid size-11 place-items-center rounded-2xl bg-stone-100 text-xl shadow-2xs">${cat.emoji}</span>
-                  <div>
-                    <h4 class="text-xs font-black text-slate-900">${cat.id}</h4>
-                    <p class="text-[10px] text-slate-400 font-bold">${items.length} items &bull; From ${zar.format(minPrice)}</p>
-                  </div>
-                </div>
-                <span class="rounded-full bg-[#edf3ee] px-2 py-0.5 text-[8.5px] font-black text-[#234e3b]">Browse Aisle</span>
-              </button>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    </div>
-  `;
-
-  modalRoot.querySelector('#close-cat-modal-btn')?.addEventListener('click', () => { modalRoot.innerHTML = ''; });
-  modalRoot.querySelectorAll('[data-pick-dept]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.catalogCategory = btn.dataset.pickDept;
-      modalRoot.innerHTML = '';
-      playBeepSound();
-      renderMarket();
-    });
-  });
-}
-
 function openPricingZoneModal() {
   state.overlay = 'pricing-zone';
   const currentZone = getActiveZone();
@@ -1934,29 +1619,32 @@ function openPricingZoneModal() {
 
   modalRoot.innerHTML = `
     <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/65 p-4 backdrop-blur-md animate-in fade-in">
-      <div class="relative max-h-[86vh] w-full max-w-lg overflow-hidden rounded-[2.25rem] bg-stone-50 p-6 shadow-2xl border border-stone-200/90">
+      <div class="relative max-h-[88vh] w-full max-w-lg overflow-hidden rounded-[2.25rem] bg-stone-50 p-6 shadow-2xl border border-stone-200/90">
         <div class="flex items-center justify-between pb-3 border-b border-stone-200/80">
           <div>
-            <h3 class="text-base font-black text-slate-900">Select Town or City Area</h3>
-            <p class="text-xs text-slate-500">Retailer sales apply town-wide, or by area in big cities</p>
+            <h3 class="text-base font-black text-slate-900">Select Town, City Area or Branch</h3>
+            <p class="text-xs text-slate-500">Retailer sales apply town-wide, by city area, or exact Shoprite branch</p>
           </div>
           <button id="close-zone-modal-btn" type="button" class="grid size-8 place-items-center rounded-xl bg-stone-200/80 text-xs font-bold text-slate-600 hover:bg-stone-300/70">✕</button>
         </div>
 
-        <button id="auto-gps-zone-btn" type="button" class="mt-4 flex w-full items-center justify-between rounded-2xl bg-[#234e3b] px-4 py-3 text-xs font-black text-white shadow-sm hover:bg-[#1b3d2e] active:scale-98 transition">
-          <span class="flex items-center gap-2">
-            <span>📍</span>
-            <span>Match Live Location to Closest Town / Area</span>
-          </span>
-          <span class="text-[9.5px] font-bold uppercase tracking-wider bg-white/15 px-2 py-0.5 rounded-lg">Live GPS</span>
-        </button>
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button id="auto-gps-zone-btn" type="button" class="flex items-center justify-between rounded-2xl bg-[#234e3b] px-3.5 py-2.5 text-xs font-black text-white shadow-sm hover:bg-[#1b3d2e] active:scale-98 transition">
+            <span>📍 Match Live GPS Area</span>
+            <span class="text-[9px] uppercase bg-white/15 px-1.5 py-0.5 rounded">GPS</span>
+          </button>
+          <button id="zone-pick-shoprite-branch-btn" type="button" class="flex items-center justify-between rounded-2xl bg-[#e11d2e] px-3.5 py-2.5 text-xs font-black text-white shadow-sm hover:bg-red-700 active:scale-98 transition">
+            <span>🏪 Pick Exact Shoprite (80)</span>
+            <span class="text-[9px] uppercase bg-white/15 px-1.5 py-0.5 rounded">SA</span>
+          </button>
+        </div>
 
         <div class="mt-4 space-y-4 max-h-[54vh] overflow-y-auto pr-1">
           <div>
             <p class="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">🏘️ Towns (Shared across all town branches)</p>
             <div class="grid grid-cols-2 gap-2">
               ${townZones.map((z) => {
-                const isCurrent = z.id === currentZone.id;
+                const isCurrent = z.id === currentZone.id && !state.storeConfirmed;
                 return `
                   <button type="button" data-pick-zone="${z.id}" class="rounded-2xl border-2 p-3 text-left transition active:scale-98 ${isCurrent ? 'border-[#234e3b] bg-[#eaf2ec]' : 'border-stone-200/90 bg-white hover:border-stone-300'}">
                     <div class="flex items-center justify-between gap-1">
@@ -1974,7 +1662,7 @@ function openPricingZoneModal() {
             <p class="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">🏙️ Big Cities (Shared across metro area / section)</p>
             <div class="space-y-2">
               ${metroZones.map((z) => {
-                const isCurrent = z.id === currentZone.id;
+                const isCurrent = z.id === currentZone.id && !state.storeConfirmed;
                 return `
                   <button type="button" data-pick-zone="${z.id}" class="w-full flex items-center justify-between rounded-2xl border-2 p-3 text-left transition active:scale-98 ${isCurrent ? 'border-[#234e3b] bg-[#eaf2ec]' : 'border-stone-200/90 bg-white hover:border-stone-300'}">
                     <div class="min-w-0">
@@ -1995,12 +1683,19 @@ function openPricingZoneModal() {
   `;
 
   modalRoot.querySelector('#close-zone-modal-btn')?.addEventListener('click', closeModal);
+  modalRoot.querySelector('#zone-pick-shoprite-branch-btn')?.addEventListener('click', () => {
+    closeModal();
+    openStoreBranchModal(false);
+  });
 
   modalRoot.querySelectorAll('[data-pick-zone]').forEach((btn) => {
     btn.addEventListener('click', () => {
       state.pricingZoneId = btn.dataset.pickZone;
+      state.storeConfirmed = false;
       state.detectedDistanceKm = null;
       state.gpsStatus = 'manual';
+      STORE_PRICES.clear();
+      savePersistedState();
       closeModal();
       playBeepSound();
       showToast(`📍 Pricing set to ${getActiveZone().name}`);
@@ -2021,13 +1716,15 @@ function openPricingZoneModal() {
 }
 
 // ==========================================
-// MERGED UNIFIED TROLLEY + ENGAGED THEMED STORE COMPARISON BAROMETER
+// MERGED UNIFIED TROLLEY + 6-STORE COMPARISON BAROMETER + SHOPRITE POS READY
 // ==========================================
 
 function renderCartel() {
   const retailer = getRetailer();
   const theme = RETAILER_THEMES[retailer.id] || RETAILER_THEMES.shoprite;
   const zone = getActiveZone();
+  const activeShoprite = getActiveStore('shoprite');
+  const linkedXtra = loadXtraSavingsCard();
   const activeRetailerCart = getRetailerCart(state.retailerId);
   const activeItemCount = getItemCount();
   const activeTotal = getPayableTotal(state.retailerId);
@@ -2036,6 +1733,10 @@ function renderCartel() {
   const cheapestStore = comparison.cheapest;
   const isCheapestSelected = cheapestStore && cheapestStore.retailerId === retailer.id;
   const switchPotential = cheapestStore ? Math.max(0, Math.round((activeTotal - cheapestStore.total) * 100) / 100) : 0;
+
+  const budgetCap = Math.max(50, Number(state.instoreBudget) || 500);
+  const budgetPct = Math.min(100, Math.round((activeTotal / budgetCap) * 100));
+  const isOverBudget = activeTotal > budgetCap;
 
   screen.innerHTML = `
     <section class="pb-44">
@@ -2046,8 +1747,8 @@ function renderCartel() {
           <button id="trolley-back-market-btn" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5 text-xs font-black text-white backdrop-blur-md hover:bg-white/25 active:scale-95 transition">
             <span>←</span><span>Market</span>
           </button>
-          <button id="trolley-zone-btn" type="button" class="inline-flex items-center gap-1 rounded-xl bg-black/25 px-2.5 py-1.5 text-[10px] font-bold text-white/90 backdrop-blur-md hover:bg-black/35 transition">
-            <span>📍</span><span>${escapeHtml(zone.name)} ▾</span>
+          <button id="trolley-zone-btn" type="button" class="inline-flex items-center gap-1 rounded-xl bg-black/25 px-2.5 py-1.5 text-[10px] font-bold text-white/90 backdrop-blur-md hover:bg-black/35 transition max-w-[11rem] truncate">
+            <span>📍</span><span class="truncate">${escapeHtml(retailer.id === 'shoprite' && state.storeConfirmed ? activeShoprite.name : zone.name)} ▾</span>
           </button>
           <button id="trolley-search-add-btn" type="button" class="inline-flex items-center gap-1 rounded-xl bg-white/15 px-3 py-1.5 text-xs font-black text-white backdrop-blur-md hover:bg-white/25 active:scale-95 transition">
             <span>+ Add Item</span>
@@ -2078,9 +1779,43 @@ function renderCartel() {
           </div>
         </div>
 
+        <!-- In-Store POS Quick Strip (Scale PLU · Xtra Savings Card · Shelf Tag OCR · Budget Guardrail) -->
+        <div class="mt-3.5 flex items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none]">
+          <button id="trolley-open-scale-plu" type="button" class="shrink-0 rounded-xl bg-amber-400/95 px-2.5 py-1.5 text-[10.5px] font-black text-slate-950 shadow-xs active:scale-95 transition">
+            ⚖️ Loose / Scale PLU
+          </button>
+          ${retailer.id === 'shoprite' ? `
+            <button id="trolley-open-xtra-card" type="button" class="shrink-0 rounded-xl ${linkedXtra ? 'bg-emerald-400/25 border border-emerald-300/40 text-emerald-50' : 'bg-white/15 border border-white/25 text-white'} px-2.5 py-1.5 text-[10.5px] font-black active:scale-95 transition">
+              💳 ${linkedXtra ? 'Xtra Card Linked ✓' : 'Link Xtra Card'}
+            </button>
+          ` : ''}
+          <button id="trolley-open-tag-ocr" type="button" class="shrink-0 rounded-xl bg-white/15 border border-white/20 px-2.5 py-1.5 text-[10.5px] font-black text-white active:scale-95 transition">
+            🏷️ Shelf Tag OCR
+          </button>
+          ${activeRetailerCart.length > 0 ? `
+            <button id="trolley-clear-all-btn" type="button" class="shrink-0 rounded-xl bg-black/25 px-2.5 py-1.5 text-[10px] font-black text-white/80 hover:text-white active:scale-95 transition">
+              Clear
+            </button>
+          ` : ''}
+        </div>
+
+        <!-- Live In-Store Budget Guardrail -->
+        <div class="mt-2.5 rounded-2xl bg-black/20 px-3 py-2 text-white">
+          <div class="flex items-center justify-between text-[10.5px] font-bold">
+            <span>
+              🎯 Trolley Budget: <strong class="font-black">${zar.format(activeTotal)}</strong> / ${zar.format(budgetCap)}
+              ${isOverBudget ? `<span class="ml-1 rounded bg-red-500 px-1.5 py-0.5 text-[9px] font-black text-white">Over by ${zar.format(activeTotal - budgetCap)}</span>` : ''}
+            </span>
+            <button id="trolley-edit-budget-btn" type="button" class="rounded-md bg-white/15 px-2 py-0.5 text-[9.5px] font-black text-white hover:bg-white/25">Set Limit</button>
+          </div>
+          <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/15">
+            <div class="h-full rounded-full transition-all duration-300 ${isOverBudget ? 'bg-amber-300' : 'bg-emerald-400'}" style="width:${budgetPct}%"></div>
+          </div>
+        </div>
+
         <!-- Engaged 6-Store Comparison Barometer Integrated Into Hero -->
         ${activeRetailerCart.length > 0 ? `
-          <div class="mt-5 rounded-3xl p-3.5 backdrop-blur-md border border-white/15" style="background: ${theme.barometerBg}">
+          <div class="mt-4 rounded-3xl p-3.5 backdrop-blur-md border border-white/15" style="background: ${theme.barometerBg}">
             <div class="flex items-center justify-between gap-2 mb-2.5">
               <div class="flex items-center gap-1.5">
                 <span class="text-xs">⚖️</span>
@@ -2091,7 +1826,7 @@ function renderCartel() {
                   Save ${zar.format(switchPotential)} at ${cheapestStore.retailer.name} ➔
                 </button>
               ` : `
-                <span class="text-[10px] font-bold text-emerald-200">Best store active · Max spread ${zar.format(comparison.maxSavings)}</span>
+                <span class="text-[10px] font-bold text-emerald-200">Best store active · Spread ${zar.format(comparison.maxSavings)}</span>
               `}
             </div>
 
@@ -2141,21 +1876,21 @@ function renderCartel() {
       <!-- Grocery Items Under Active Retailer -->
       ${activeRetailerCart.length ? cartelItems(activeRetailerCart, retailer, theme) : emptyCartel(retailer)}
 
-      <!-- Bottom Checkout Bar (User Chooses Delivery or Single-Code Till Checkout) -->
+      <!-- Bottom Checkout Bar (Delivery OR Sequential/Single-Code POS Till Checkout) -->
       <div class="fixed inset-x-0 bottom-[5rem] z-30 mx-auto max-w-3xl border-t border-stone-200 bg-white/95 px-5 py-3 shadow-[0_-16px_40px_-28px_rgba(15,23,42,.4)] backdrop-blur-xl">
         <div class="mb-2.5 flex items-end justify-between">
           <div>
-            <p class="text-[10px] font-black uppercase tracking-[.16em] text-slate-400">${activeItemCount} item${activeItemCount === 1 ? '' : 's'} under ${retailer.name} &middot; saved ${zar.format(activeSavings)}</p>
-            <p class="mt-0.5 text-xs font-bold text-slate-600">${retailer.name} Checkout Total</p>
+            <p class="text-[10px] font-black uppercase tracking-[.16em] text-slate-400">${activeItemCount} unit${activeItemCount === 1 ? '' : 's'} under ${retailer.name} &middot; saved ${zar.format(activeSavings)}</p>
+            <p class="mt-0.5 text-xs font-bold text-slate-600">Press <strong class="text-slate-900">Top Volume (+)</strong> or <strong class="text-slate-900">Next Barcode</strong> at Till</p>
           </div>
           <p class="text-2xl font-black tracking-tight tabular-nums" style="color:${retailer.color}">${zar.format(activeTotal)}</p>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <button id="delivery-checkout" class="secondary-button min-h-12 text-xs" ${activeRetailerCart.length ? '' : 'disabled'}>
+          <button id="delivery-checkout" type="button" class="secondary-button min-h-12 text-xs" ${activeRetailerCart.length ? '' : 'disabled'}>
             <span>🚚 Order Delivery</span>
           </button>
-          <button id="store-checkout" class="primary-button min-h-12 text-xs text-white shadow-md active:scale-95 transition" style="background:${retailer.color}" ${activeRetailerCart.length ? '' : 'disabled'}>
-            <span>🏪 ${retailer.name} Till Checkout</span>
+          <button id="store-checkout" type="button" class="primary-button min-h-12 text-xs text-white shadow-md active:scale-95 transition" style="background:${retailer.color}" ${activeRetailerCart.length ? '' : 'disabled'}>
+            <span>⚡ ${retailer.name} Till (${activeItemCount}${retailer.id === 'shoprite' && linkedXtra ? '+Xtra' : ''})</span>
           </button>
         </div>
       </div>
@@ -2165,30 +1900,33 @@ function renderCartel() {
 }
 
 function emptyCartel(retailer) {
-  const quickStaples = Array.from(MASTER_PRODUCTS.values()).slice(0, 4);
+  const quickStaples = SA_STAPLE_BARGAINS.slice(0, 4).map((b) => MASTER_PRODUCTS.get(b.gtin)).filter(Boolean);
   return `
     <div class="mx-5 mt-5 rounded-[2rem] border border-dashed border-stone-300 bg-white/80 p-6 text-center">
       <span class="mx-auto grid size-14 place-items-center rounded-2xl text-3xl" style="background:${retailer.soft}">&#128722;</span>
       <h2 class="mt-3 text-base font-black text-slate-900">Your Trolley is empty</h2>
-      <p class="mt-1 text-xs leading-5 text-slate-500">Add groceries from the Open Market or tap below to start comparing all 6 retailers live.</p>
+      <p class="mt-1 text-xs leading-5 text-slate-500">Add groceries from the Open Market, scan barcodes with your phone camera, or weigh loose produce to compare all 6 retailers live.</p>
 
       <div class="mt-4 flex flex-wrap justify-center gap-2">
-        <button data-go-market-empty class="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black text-white shadow-sm">
+        <button data-go-market-empty type="button" class="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black text-white shadow-sm">
           Browse Open Market
         </button>
-        <button data-open-camera class="rounded-xl bg-[#234e3b] px-4 py-2.5 text-xs font-black text-white shadow-sm flex items-center gap-1.5">
+        <button data-open-camera type="button" class="rounded-xl bg-[#234e3b] px-4 py-2.5 text-xs font-black text-white shadow-sm flex items-center gap-1.5">
           <span>📷 Scan Barcode</span>
+        </button>
+        <button id="empty-open-scale-plu" type="button" class="rounded-xl bg-amber-500 px-3.5 py-2.5 text-xs font-black text-slate-950 shadow-sm">
+          ⚖️ Loose / Scale PLU
         </button>
       </div>
 
       <div class="mt-5 border-t border-stone-200/70 pt-4 text-left">
-        <p class="text-[10px] font-black uppercase tracking-wider text-slate-400 text-center">Quick Add Staples to Test Comparison</p>
+        <p class="text-[10px] font-black uppercase tracking-wider text-slate-400 text-center">Quick Add Staples to Test Comparison &amp; POS Till</p>
         <div class="mt-2.5 grid grid-cols-2 gap-2">
           ${quickStaples.map((p) => `
             <button type="button" data-empty-quick-add="${p.gtin}" class="flex items-center gap-2 rounded-2xl border border-stone-200 bg-stone-50/70 p-2 text-left hover:bg-white transition active:scale-95">
               <img src="${p.imageUrl}" alt="" class="size-8 rounded-lg object-contain bg-white p-0.5 border border-stone-100" />
               <div class="min-w-0 flex-1">
-                <p class="truncate text-[10.5px] font-black text-slate-800">${escapeHtml(p.title.split(' ').slice(0, 2).join(' '))}</p>
+                <p class="truncate text-[10.5px] font-black text-slate-800">${escapeHtml(p.title.split(' ').slice(0, 3).join(' '))}</p>
                 <p class="text-[9.5px] font-bold text-[#234e3b]">+ Add</p>
               </div>
             </button>
@@ -2205,10 +1943,10 @@ function cartelItems(items, retailer, theme) {
       <div class="mb-3 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="size-2.5 rounded-full" style="background:${retailer.color}"></span>
-          <h2 class="text-xs font-black uppercase tracking-wider text-slate-700">${retailer.name} Priced List</h2>
+          <h2 class="text-xs font-black uppercase tracking-wider text-slate-700">${retailer.name} Priced Trolley</h2>
         </div>
-        <span class="rounded-full px-2.5 py-0.5 text-[10px] font-black" style="background:${theme.pillBg}; color:${theme.pillText}">
-          ${checkedCount}/${items.length} picked &middot; Swipe left to remove
+        <span id="scan-status" class="rounded-full px-2.5 py-0.5 text-[10px] font-black" style="background:${theme.pillBg}; color:${theme.pillText}">
+          ${checkedCount}/${items.length} picked &middot; 1D EAN-13 Ready
         </span>
       </div>
 
@@ -2224,11 +1962,12 @@ function cartelItems(items, retailer, theme) {
                 class="grid size-6 shrink-0 place-items-center rounded-full border-2 transition"
                 style="${item.checkedInStore ? `background:${retailer.color}; border-color:${retailer.color}; color:#fff` : 'border-color:#cbd5e1'}"
                 title="Mark picked off shelf"
+                aria-label="Mark ${escapeHtml(item.name)} picked off shelf"
               >
                 ${item.checkedInStore ? '<svg viewBox="0 0 24 24" class="size-3.5 fill-none stroke-current stroke-[3]"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
               </button>
 
-              <div class="relative size-14 shrink-0 overflow-hidden rounded-2xl bg-stone-50 border border-stone-100 p-1 flex items-center justify-center">
+              <div class="relative size-14 shrink-0 overflow-hidden rounded-2xl bg-white border border-stone-100 p-1 flex items-center justify-center">
                 ${item.image ? `<img src="${item.image}" alt="${escapeHtml(item.name)}" class="max-h-full max-w-full object-contain" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\\'grid size-full place-items-center text-2xl\\'>${item.emoji || '🛍️'}</span>';" />` : `<span class="grid size-full place-items-center text-2xl">${item.emoji || '🛍️'}</span>`}
               </div>
 
@@ -2238,7 +1977,12 @@ function cartelItems(items, retailer, theme) {
                   <strong class="shrink-0 text-sm font-black text-slate-900 tabular-nums">${zar.format(item.price * item.quantity)}</strong>
                 </div>
 
-                <div class="mt-1 flex items-center justify-between gap-2">
+                <div class="mt-0.5 flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[10px] font-semibold text-slate-400">${escapeHtml(item.weight || '1 unit')}</span>
+                  <span class="rounded bg-stone-100 px-1.5 py-0.2 font-mono text-[8.5px] text-slate-500">${escapeHtml(item.barcode)}</span>
+                </div>
+
+                <div class="mt-1.5 flex items-center justify-between gap-2">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="text-[10.5px] font-bold text-slate-500">${zar.format(item.price)} ea</span>
                     ${item.basePrice > item.price ? `
@@ -2250,9 +1994,10 @@ function cartelItems(items, retailer, theme) {
                   </div>
 
                   <div class="flex items-center gap-1">
-                    <button type="button" data-cart-qty-dec="${item.barcode}" class="grid size-6 place-items-center rounded-lg bg-stone-100 text-xs font-black text-slate-700 hover:bg-stone-200">&minus;</button>
+                    <button type="button" data-cart-qty-dec="${item.barcode}" class="grid size-7 place-items-center rounded-lg bg-stone-100 text-xs font-black text-slate-700 hover:bg-stone-200" aria-label="Decrease ${escapeHtml(item.name)}">&minus;</button>
                     <span class="min-w-5 text-center text-xs font-black text-slate-900 tabular-nums">${item.quantity}</span>
-                    <button type="button" data-cart-qty-inc="${item.barcode}" class="grid size-6 place-items-center rounded-lg text-xs font-black text-white" style="background:${retailer.color}">+</button>
+                    <button type="button" data-cart-qty-inc="${item.barcode}" class="grid size-7 place-items-center rounded-lg text-xs font-black text-white" style="background:${retailer.color}" aria-label="Increase ${escapeHtml(item.name)}">+</button>
+                    <button type="button" data-remove-cart-item="${item.barcode}" class="grid size-7 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition" aria-label="Delete ${escapeHtml(item.name)} from trolley" title="Remove item">✕</button>
                   </div>
                 </div>
               </div>
@@ -2268,6 +2013,30 @@ function bindCartelInteractions() {
   screen.querySelector('#trolley-zone-btn')?.addEventListener('click', openPricingZoneModal);
   screen.querySelector('#trolley-search-add-btn')?.addEventListener('click', () => toggleGlobalSearchDrawer(true));
   screen.querySelector('[data-go-market-empty]')?.addEventListener('click', () => routeTo('market'));
+  screen.querySelector('#trolley-open-scale-plu')?.addEventListener('click', openLooseScalePluHelper);
+  screen.querySelector('#empty-open-scale-plu')?.addEventListener('click', openLooseScalePluHelper);
+  screen.querySelector('#trolley-open-xtra-card')?.addEventListener('click', openShopriteXtraCardHelper);
+  screen.querySelector('#trolley-open-tag-ocr')?.addEventListener('click', () => openCrowdsourceModal(''));
+
+  screen.querySelector('#trolley-clear-all-btn')?.addEventListener('click', () => {
+    state.cart = [];
+    savePersistedState();
+    updateCartBadge();
+    renderCartel();
+    showToast('Cleared Trolley');
+  });
+
+  screen.querySelector('#trolley-edit-budget-btn')?.addEventListener('click', () => {
+    const raw = window.prompt('Set your in-store Trolley budget limit (ZAR):', String(state.instoreBudget || 500));
+    if (raw === null) return;
+    const parsed = parseFloat(raw.replace(/[^0-9.]/g, ''));
+    if (Number.isFinite(parsed) && parsed >= 20) {
+      state.instoreBudget = Math.round(parsed);
+      savePersistedState();
+      renderCartel();
+      showToast(`🎯 Trolley budget set to ${zar.format(state.instoreBudget)}`);
+    }
+  });
 
   screen.querySelectorAll('[data-empty-quick-add]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -2275,6 +2044,7 @@ function bindCartelInteractions() {
       if (!prod) return;
       addToCart({
         barcode: prod.gtin,
+        sku: prod.sku || '',
         name: prod.title,
         weight: prod.weight,
         category: prod.category,
@@ -2286,12 +2056,12 @@ function bindCartelInteractions() {
     });
   });
 
-  // Tap any retailer in Store Comparison Barometer -> Reprices entire list under that retailer & switches theme!
   screen.querySelectorAll('[data-switch-cartel-retailer]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const retId = btn.dataset.switchCartelRetailer;
       if (!RETAILERS[retId]) return;
       state.retailerId = retId;
+      savePersistedState();
       playBeepSound();
       if (navigator.vibrate) navigator.vibrate(25);
       render();
@@ -2304,6 +2074,7 @@ function bindCartelInteractions() {
       const item = state.cart.find((i) => i.barcode === btn.dataset.toggleCartPicked);
       if (item) {
         item.checkedInStore = !item.checkedInStore;
+        savePersistedState();
         playBeepSound();
         renderCartel();
       }
@@ -2319,6 +2090,7 @@ function bindCartelInteractions() {
         removeCartItem(code);
       } else {
         existing.quantity -= 1;
+        savePersistedState();
         updateCartBadge();
         renderCartel();
       }
@@ -2333,6 +2105,13 @@ function bindCartelInteractions() {
         addToCart(existing, state.retailerId);
         renderCartel();
       }
+    });
+  });
+
+  screen.querySelectorAll('[data-remove-cart-item]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      removeCartItem(btn.dataset.removeCartItem);
+      showToast('Item removed from Trolley');
     });
   });
 
@@ -2363,9 +2142,7 @@ function bindSwipeRow(row) {
     const deltaX = event.touches[0].clientX - startX;
     const deltaY = event.touches[0].clientY - startY;
 
-    if (!isSwiping && Math.abs(deltaY) > Math.abs(deltaX)) {
-      return;
-    }
+    if (!isSwiping && Math.abs(deltaY) > Math.abs(deltaX)) return;
 
     if (deltaX < 0) {
       isSwiping = true;
@@ -2392,21 +2169,102 @@ function bindSwipeRow(row) {
 
 function renderTracker() {
   const order = state.order;
-  if (!order) {
-    screen.innerHTML = `<section class="px-5 py-8"><p class="section-kicker">Tracker</p><h1 class="mt-2 text-4xl font-black tracking-[-.04em]">Nothing on the road.</h1><div class="card mt-7 px-7 py-12 text-center"><span class="mx-auto grid size-16 place-items-center rounded-3xl bg-stone-100 text-3xl">&#128205;</span><h2 class="mt-4 font-black">Your deliveries live here</h2><p class="mt-2 text-sm leading-6 text-slate-500">Place a delivery order from your top-right Trolley to follow every step in real time.</p><button data-go-market class="secondary-button mx-auto mt-6">Browse Market</button></div></section>`;
-    screen.querySelector('[data-go-market]').addEventListener('click', () => routeTo('market'));
-    return;
-  }
+  const tillSlips = (state.pastReceipts || []).filter((r) => r && (r.type === 'instore_pos_till' || Array.isArray(r.items)));
   const steps = ['Order confirmed', 'Picking your items', 'Driver on the way', 'Delivered'];
+
   screen.innerHTML = `
-    <section class="px-5 py-8"><p class="section-kicker">Live delivery</p><div class="mt-2 flex items-end justify-between"><div><h1 class="text-4xl font-black tracking-[-.04em]">On its way.</h1><p class="mt-2 text-sm text-slate-500">Order #${order.id}</p></div><span class="rounded-full bg-[#edf3ee] px-3 py-1.5 text-[10px] font-black text-[#234e3b]">LIVE</span></div>
-      <div class="card mt-7 overflow-hidden"><div class="relative h-48 bg-[#e8eee9]"><div class="absolute inset-0 opacity-40" style="background-image:linear-gradient(35deg,transparent 45%,#fff 46%,#fff 51%,transparent 52%),linear-gradient(145deg,transparent 35%,#d1d5db 36%,#d1d5db 39%,transparent 40%);background-size:90px 70px"></div><div class="absolute left-[58%] top-[42%] grid size-12 place-items-center rounded-full bg-slate-950 text-xl text-white shadow-xl ring-4 ring-white">&#128757;</div><div class="absolute bottom-3 left-3 rounded-xl bg-white/95 px-3 py-2 text-[10px] font-black shadow">About ${Math.max(4, 18 - order.step * 5)} min away</div></div>
-        <div class="p-5"><div class="flex items-center gap-3"><div class="grid size-12 place-items-center rounded-2xl bg-amber-100 text-2xl">&#128104;</div><div><h2 class="font-black">Thabo is your driver</h2><p class="text-xs font-semibold text-slate-400">Toyota Starlet &middot; CA 482-991</p></div><button class="ml-auto grid size-10 place-items-center rounded-xl bg-stone-100">Call</button></div>
-        <div class="my-5 border-t border-stone-100"></div><div class="space-y-4">${steps.map((label, index) => `<div class="flex items-center gap-3 ${index > order.step ? 'opacity-35' : ''}"><span class="grid size-7 place-items-center rounded-full ${index <= order.step ? 'bg-[#234e3b] text-white' : 'bg-stone-200'} text-xs font-black">${index < order.step ? '&check;' : index + 1}</span><span class="text-sm font-bold">${label}</span></div>`).join('')}</div></div></div>
-      <div class="mt-5 rounded-[1.75rem] bg-slate-950 p-5 text-white"><p class="text-[10px] font-black uppercase tracking-[.18em] text-white/50">Give this code to your driver</p><div class="mt-2 flex items-center justify-between"><p class="text-4xl font-black tracking-[.2em]">${order.code}</p><span class="text-xs font-bold text-[#b7e2cb]">Payout locked &#128274;</span></div><p class="mt-3 text-xs leading-5 text-white/55">Funds unlock only after the driver enters your secure code.</p></div>
-      ${order.step < 3 ? '<button id="advance-order" class="secondary-button mt-4 w-full">Demo: advance delivery</button>' : ''}
+    <section class="px-5 py-8 pb-32">
+      <p class="section-kicker">Receipts &amp; Tracker</p>
+      <h1 class="mt-2 text-3xl sm:text-4xl font-black tracking-[-.04em]">${order ? 'On its way.' : tillSlips.length ? 'Digital POS Till Slips' : 'Nothing on the road.'}</h1>
+
+      ${order ? `
+        <div class="mt-6">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-bold text-slate-500">Order #${escapeHtml(order.id)}</p>
+            <span class="rounded-full bg-[#edf3ee] px-3 py-1.5 text-[10px] font-black text-[#234e3b]">LIVE</span>
+          </div>
+          <div class="card mt-3 overflow-hidden">
+            <div class="relative h-48 bg-[#e8eee9]">
+              <div class="absolute inset-0 opacity-40" style="background-image:linear-gradient(35deg,transparent 45%,#fff 46%,#fff 51%,transparent 52%),linear-gradient(145deg,transparent 35%,#d1d5db 36%,#d1d5db 39%,transparent 40%);background-size:90px 70px"></div>
+              <div class="absolute left-[58%] top-[42%] grid size-12 place-items-center rounded-full bg-slate-950 text-xl text-white shadow-xl ring-4 ring-white">&#128757;</div>
+              <div class="absolute bottom-3 left-3 rounded-xl bg-white/95 px-3 py-2 text-[10px] font-black shadow">About ${Math.max(4, 18 - order.step * 5)} min away</div>
+            </div>
+            <div class="p-5">
+              <div class="flex items-center gap-3">
+                <div class="grid size-12 place-items-center rounded-2xl bg-amber-100 text-2xl">&#128104;</div>
+                <div><h2 class="font-black">Thabo is your driver</h2><p class="text-xs font-semibold text-slate-400">Toyota Starlet &middot; CA 482-991</p></div>
+                <button type="button" class="ml-auto grid size-10 place-items-center rounded-xl bg-stone-100 text-xs font-black">Call</button>
+              </div>
+              <div class="my-5 border-t border-stone-100"></div>
+              <div class="space-y-4">${steps.map((label, index) => `<div class="flex items-center gap-3 ${index > order.step ? 'opacity-35' : ''}"><span class="grid size-7 place-items-center rounded-full ${index <= order.step ? 'bg-[#234e3b] text-white' : 'bg-stone-200'} text-xs font-black">${index < order.step ? '&check;' : index + 1}</span><span class="text-sm font-bold">${label}</span></div>`).join('')}</div>
+            </div>
+          </div>
+          <div class="mt-5 rounded-[1.75rem] bg-slate-950 p-5 text-white">
+            <p class="text-[10px] font-black uppercase tracking-[.18em] text-white/50">Give this code to your driver</p>
+            <div class="mt-2 flex items-center justify-between"><p class="text-4xl font-black tracking-[.2em]">${escapeHtml(order.code)}</p><span class="text-xs font-bold text-[#b7e2cb]">Payout locked &#128274;</span></div>
+            <p class="mt-3 text-xs leading-5 text-white/55">Funds unlock only after the driver enters your secure code.</p>
+          </div>
+          ${order.step < 3 ? '<button id="advance-order" type="button" class="secondary-button mt-4 w-full">Demo: advance delivery</button>' : ''}
+        </div>
+      ` : ''}
+
+      ${tillSlips.length ? `
+        <div class="mt-7">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="text-lg font-black text-slate-950">Past POS Till Slips &amp; Orders</h2>
+              <p class="text-xs text-slate-500">Stored 100% locally on your phone with SARS 0% / 15% VAT breakdown</p>
+            </div>
+            <span class="rounded-xl bg-[#edf3ee] px-2.5 py-1 text-[10.5px] font-black text-[#234e3b]">${tillSlips.length} Slip${tillSlips.length === 1 ? '' : 's'}</span>
+          </div>
+
+          <div class="space-y-3">
+            ${tillSlips.map((slip, idx) => {
+              const unitTotal = (slip.items || []).reduce((s, i) => s + (Number(i.quantity) || 1), 0);
+              const dt = new Date(slip.createdAt || slip._lastModified || Date.now()).toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' });
+              return `
+                <article data-open-slip-idx="${idx}" class="card cursor-pointer p-4 transition hover:ring-2 hover:ring-[#234e3b]/30 active:scale-[.99]">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <span class="grid size-11 shrink-0 place-items-center rounded-2xl bg-stone-100 text-xl border border-stone-200">🧾</span>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-1.5">
+                          <span class="rounded bg-[#e11d2e] px-1.5 py-0.5 text-[8.5px] font-black uppercase text-white">${slip.type === 'instore_pos_till' ? 'POS TILL SLIP' : 'DELIVERY'}</span>
+                          <span class="font-mono text-[10px] font-bold text-slate-400">#${escapeHtml(slip.id)}</span>
+                        </div>
+                        <h3 class="mt-0.5 truncate text-sm font-black text-slate-950">${escapeHtml(slip.storeName || 'Shoprite South Africa')}</h3>
+                        <p class="text-[11px] font-semibold text-slate-500">${escapeHtml(dt)} &middot; ${unitTotal} unit${unitTotal === 1 ? '' : 's'}</p>
+                      </div>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <p class="text-base font-black text-slate-950">${zar.format(slip.total || 0)}</p>
+                      ${(slip.savings || 0) > 0 ? `<p class="text-[10px] font-black text-[#234e3b]">Saved ${zar.format(slip.savings)}</p>` : ''}
+                      <span class="mt-1 inline-block text-[10px] font-black text-[#e11d2e]">Open Slip ➔</span>
+                    </div>
+                  </div>
+                </article>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      ` : !order ? `
+        <div class="card mt-7 px-7 py-12 text-center">
+          <span class="mx-auto grid size-16 place-items-center rounded-3xl bg-stone-100 text-3xl">🧾</span>
+          <h2 class="mt-4 font-black">Digital POS Till Slips &amp; Deliveries live here</h2>
+          <p class="mt-2 text-sm leading-6 text-slate-500">Complete an in-store Till Checkout or place a delivery order from your top-right Trolley to view itemized SARS VAT receipts and re-add items in 1 tap.</p>
+          <button data-go-market type="button" class="secondary-button mx-auto mt-6">Browse Market</button>
+        </div>
+      ` : ''}
     </section>`;
+
+  screen.querySelector('[data-go-market]')?.addEventListener('click', () => routeTo('market'));
   screen.querySelector('#advance-order')?.addEventListener('click', () => { state.order.step += 1; renderTracker(); });
+  screen.querySelectorAll('[data-open-slip-idx]').forEach((card) => {
+    card.addEventListener('click', () => {
+      const slip = tillSlips[Number(card.dataset.openSlipIdx)];
+      if (slip) openReceiptSlipHelper(slip);
+    });
+  });
 }
 
 function renderSavings() {
@@ -2416,7 +2274,7 @@ function renderSavings() {
   const cartTotal = getMerchandiseTotal();
   const basketBoostTarget = 100;
   const basketBoostProgress = Math.min(100, Math.round((cartTotal / basketBoostTarget) * 100));
-  const cartProduceItems = state.cart.filter((item) => item.category === 'Bakery & Fresh Produce' || item.category === 'Vegetables & Fruit');
+  const cartProduceItems = state.cart.filter((item) => item.category === 'Fresh Fruit & Vegetables' || item.category === 'Bakery & Fresh Produce' || item.category === 'Vegetables & Fruit');
   const projectedPoints = Math.floor(getPayableTotal());
 
   screen.innerHTML = `
@@ -2660,6 +2518,7 @@ function renderSavings() {
 
     playBeepSound();
     if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+    savePersistedState();
     showToast(`✓ Trolley transferred to ${RETAILERS[targetRetailerId]?.name}!`);
     renderSavings();
   });
@@ -2757,6 +2616,7 @@ function openStorePriceBreakdownModal(retailer, zone) {
 
   modalRoot.querySelector('#modal-select-this-store-btn')?.addEventListener('click', () => {
     state.retailerId = retailer.id;
+    savePersistedState();
     modalRoot.innerHTML = '';
     playBeepSound();
     if (navigator.vibrate) navigator.vibrate(30);
@@ -2974,15 +2834,18 @@ function openApproveItModal(reference, amount) {
   });
 }
 
-function openCrowdsourceModal(barcode) {
+function openCrowdsourceModal(barcode = '', initialShelfImageBlob = null) {
   state.overlay = 'crowdsource';
-  const emojis = ['🍞', '🥛', '🥔', '🍎', '🥑', '🧼', '🍋', '🍫', '🥤', '🥩', '🧀', '🧃', '🍪'];
+  let capturedThumbnailDataUrl = '';
+  const _seed12 = `20${String(Date.now()).slice(-5)}01999`;
+  const initialCode = String(barcode || '').trim() || `${_seed12}${computeGs1CheckDigit(_seed12)}`;
+  const emojis = ['🍞', '🥛', '🥬', '🥩', '🧊', '🥫', '🥤', '🍪', '🍼', '🪥', '🧼', '🍎', '🥚'];
   const regionalPresets = [
-    { name: 'Mister Bread White Sliced', weight: '700 g', category: 'Snacks & Drinks', price: 16.49, basePrice: 18.99, emoji: '🍞' },
-    { name: 'Ritebrand Long Life Milk', weight: '6 x 1 L', category: 'Snacks & Drinks', price: 89.99, basePrice: 99.99, emoji: '🥛' },
-    { name: 'No Name Sunflower Oil', weight: '2 L', category: 'Snacks & Drinks', price: 64.99, basePrice: 74.99, emoji: '🛢️' },
-    { name: 'SPAR Fresh Brown Eggs', weight: '18 pack', category: 'Snacks & Drinks', price: 49.99, basePrice: 59.99, emoji: '🥚' },
-    { name: 'Albany Superior White Bread', weight: '700 g', category: 'Snacks & Drinks', price: 18.99, basePrice: 22.99, emoji: '🍞' }
+    { name: 'Mister Bread White Sliced', weight: '700 g', category: 'Bakery', price: 16.49, basePrice: 18.99, emoji: '🍞' },
+    { name: 'Ritebrand Long Life Milk', weight: '6 x 1 L', category: 'Dairy, Eggs & Milk', price: 89.99, basePrice: 99.99, emoji: '🥛' },
+    { name: 'No Name Sunflower Oil', weight: '2 L', category: 'Food Cupboard & Pantry', price: 64.99, basePrice: 74.99, emoji: '🥫' },
+    { name: 'SPAR Fresh Brown Eggs', weight: '18 pack', category: 'Dairy, Eggs & Milk', price: 49.99, basePrice: 59.99, emoji: '🥚' },
+    { name: 'Albany Superior White Bread', weight: '700 g', category: 'Bakery', price: 18.99, basePrice: 22.99, emoji: '🍞' }
   ];
 
   modalRoot.innerHTML = `
@@ -2991,25 +2854,26 @@ function openCrowdsourceModal(barcode) {
         <div class="mx-auto mb-4 h-1.5 w-10 rounded-full bg-slate-200 sm:hidden"></div>
         <div class="flex items-start justify-between">
           <div>
-            <p class="section-kicker text-emerald-600">Crowdsourced First Scan</p>
-            <h2 id="crowdsource-title" class="mt-1 text-2xl font-black">Register New Item</h2>
+            <div class="flex items-center gap-1.5">
+              <p class="section-kicker text-emerald-600">On-Device Cellphone OCR</p>
+              <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black text-emerald-800">100% LOCAL · $0 CLOUD</span>
+            </div>
+            <h2 id="crowdsource-title" class="mt-1 text-2xl font-black">Scan Shelf Tag</h2>
           </div>
           <button data-close-modal class="grid size-10 place-items-center rounded-xl bg-slate-100 text-lg transition active:scale-95">&times;</button>
         </div>
 
-        <p class="mt-2 text-xs leading-5 text-slate-500">Barcode <strong class="font-mono text-slate-900">${escapeHtml(barcode)}</strong> is new. Snap the shelf tag or select a regional brand to register it for all shoppers.</p>
+        <p class="mt-2 text-xs leading-5 text-slate-500">Snap the physical shelf price label — text, ZAR promo/was prices, weight, and barcode are extracted <strong>directly on your cellphone</strong> offline.</p>
 
-        <!-- Shelf Tag Snap Upload -->
+        <!-- On-Device Shelf Tag Snap Upload -->
         <div class="mt-4 rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 p-4 text-center">
           <input type="file" id="shelf-tag-camera" accept="image/*" capture="environment" class="hidden">
           <label for="shelf-tag-camera" class="cursor-pointer flex flex-col items-center justify-center gap-1.5">
             <span class="grid size-11 place-items-center rounded-full bg-emerald-600 text-lg text-white shadow-md shadow-emerald-600/30">📷</span>
-            <strong class="text-xs font-black text-emerald-950">Snap Shelf Price Tag</strong>
-            <span class="text-[10px] text-emerald-700/80">Take a quick photo of the physical price label</span>
+            <strong class="text-xs font-black text-emerald-950">Snap Shelf Price Tag (On-Device OCR)</strong>
+            <span class="text-[10px] text-emerald-700/80">Runs locally via phone NPU / WebAssembly — zero Cloud Vision fees</span>
           </label>
-          <div id="shelf-tag-preview" class="mt-2 hidden rounded-xl bg-white p-2 text-xs font-bold text-slate-700 shadow-sm border border-emerald-200">
-            ✓ Shelf price tag attached
-          </div>
+          <div id="shelf-tag-preview" class="mt-2.5 hidden rounded-xl bg-white p-2.5 text-left text-xs font-bold text-slate-700 shadow-sm border border-emerald-200"></div>
         </div>
 
         <!-- Regional Brand Quick Presets -->
@@ -3025,16 +2889,21 @@ function openCrowdsourceModal(barcode) {
         </div>
 
         <form id="crowdsource-form" class="mt-4 space-y-3" novalidate>
-          <label class="block text-xs font-black text-slate-700">Product Name
-            <input id="cs-name" name="name" required class="mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" placeholder="e.g. Mister Bread White Sliced">
-          </label>
+          <div class="grid grid-cols-3 gap-3">
+            <label class="col-span-2 block text-xs font-black text-slate-700">Product Name
+              <input id="cs-name" name="name" required class="mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" placeholder="e.g. Mister Bread White Sliced">
+            </label>
+            <label class="block text-xs font-black text-slate-700">Barcode
+              <input id="cs-barcode" name="barcode" required value="${escapeHtml(initialCode)}" class="mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 font-mono text-xs font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+            </label>
+          </div>
 
           <div class="grid grid-cols-2 gap-3">
-            <label class="block text-xs font-black text-slate-700">Category
+            <label class="block text-xs font-black text-slate-700">Department
               <select id="cs-category" name="category" class="mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
-                <option value="Snacks & Drinks">Snacks & Drinks</option>
-                <option value="Vegetables & Fruit">Vegetables & Fruit</option>
-                <option value="Bath & Body">Bath & Body</option>
+                ${SHOPRITE_RETAIL_DEPARTMENTS.map((dept) => `
+                  <option value="${escapeHtml(dept.id)}">${escapeHtml(dept.emoji)} ${escapeHtml(dept.shortLabel || dept.id)}</option>
+                `).join('')}
               </select>
             </label>
 
@@ -3065,7 +2934,7 @@ function openCrowdsourceModal(barcode) {
           </div>
 
           <button class="primary-button mt-4 w-full bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/25" type="submit">
-            <span>Index & Add to Cartel</span>
+            <span>Save Forever on Phone &amp; Add to Trolley</span>
           </button>
         </form>
       </section>
@@ -3073,43 +2942,88 @@ function openCrowdsourceModal(barcode) {
 
   bindModalClose();
 
-  // Handle Shelf Tag Camera Snap & Cloud Vision OCR Text Extraction Loop
-  modalRoot.querySelector('#shelf-tag-camera')?.addEventListener('change', (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const preview = modalRoot.querySelector('#shelf-tag-preview');
+  const runOnDeviceShelfScan = async (fileOrBlob) => {
+    if (!fileOrBlob) return;
+    const preview = modalRoot.querySelector('#shelf-tag-preview');
+    const barcodeInput = modalRoot.querySelector('#cs-barcode');
+    if (preview) {
+      preview.classList.remove('hidden');
+      preview.innerHTML = `
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-[11px] font-extrabold text-emerald-800">
+            <span id="ocr-status-label">📱 Initializing on-device phone OCR...</span>
+            <span id="ocr-pct-label">10%</span>
+          </div>
+          <div class="h-1.5 w-full overflow-hidden rounded-full bg-emerald-100">
+            <div id="ocr-progress-bar" class="h-full rounded-full bg-emerald-600 transition-all duration-200" style="width: 10%"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    try {
+      const { scanShelfTagOnCellphone } = await import('./local-vision-ocr.js');
+      const scanRes = await scanShelfTagOnCellphone(fileOrBlob, {
+        fallbackBarcode: barcodeInput?.value || initialCode,
+        onProgress: ({ status, progress }) => {
+          const pct = Math.max(10, Math.min(99, Math.round((progress || 0) * 100)));
+          const statusEl = modalRoot.querySelector('#ocr-status-label');
+          const pctEl = modalRoot.querySelector('#ocr-pct-label');
+          const barEl = modalRoot.querySelector('#ocr-progress-bar');
+          if (statusEl) statusEl.textContent = `📱 ${status}`;
+          if (pctEl) pctEl.textContent = `${pct}%`;
+          if (barEl) barEl.style.width = `${pct}%`;
+        }
+      });
+
+      capturedThumbnailDataUrl = scanRes.thumbnailDataUrl || '';
+
+      const nameInput = modalRoot.querySelector('#cs-name');
+      const weightInput = modalRoot.querySelector('#cs-weight');
+      const categorySelect = modalRoot.querySelector('#cs-category');
+      const priceInput = modalRoot.querySelector('#cs-price');
+      const basePriceInput = modalRoot.querySelector('#cs-base-price');
+
+      if (nameInput) nameInput.value = scanRes.name;
+      if (barcodeInput && scanRes.barcode) barcodeInput.value = scanRes.barcode;
+      if (weightInput) weightInput.value = scanRes.weight;
+      if (categorySelect && scanRes.category) categorySelect.value = scanRes.category;
+      if (priceInput) priceInput.value = scanRes.price.toFixed(2);
+      if (basePriceInput) basePriceInput.value = scanRes.basePrice.toFixed(2);
+
+      const emojiRadio = modalRoot.querySelector(`input[name="emoji"][value="${scanRes.emoji}"]`);
+      if (emojiRadio) emojiRadio.checked = true;
+
       if (preview) {
-        preview.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold"><span class="size-2 animate-ping rounded-full bg-emerald-500"></span>🔍 Cloud Vision OCR: Extracting title & currency digits...</span>`;
-        preview.classList.remove('hidden');
+        preview.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            ${capturedThumbnailDataUrl ? `<img src="${capturedThumbnailDataUrl}" alt="Shelf tag preview" class="size-12 shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-0.5" />` : ''}
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-xs font-black text-emerald-900">✓ Extracted on Phone (${escapeHtml(scanRes.engine)})</p>
+              <p class="truncate text-[11px] font-bold text-slate-700">${escapeHtml(scanRes.name)} · ${escapeHtml(scanRes.weight)}</p>
+              <p class="text-[11px] font-black text-emerald-700">R ${scanRes.price.toFixed(2)} ${scanRes.basePrice > scanRes.price ? `<span class="text-slate-400 line-through font-normal">Was R ${scanRes.basePrice.toFixed(2)}</span>` : ''}</p>
+            </div>
+          </div>
+        `;
       }
 
-      // OCR Extraction Loop (Simulated Cloud Vision API Text & Price Parser)
-      window.setTimeout(() => {
-        // Parse regional bakery / grocery item heuristics
-        const simulatedOcrText = 'MISTER BREAD WHITE SLICED 700G R 16.49 WAS R 18.99';
-        const priceMatches = simulatedOcrText.match(/R\s*([0-9]+(?:\.[0-9]{2})?)/gi) || [];
-        const parsedPrices = priceMatches.map(p => parseFloat(p.replace(/[^0-9.]/g, ''))).filter(p => !isNaN(p));
-        
-        const extractedPrice = parsedPrices[0] || 16.49;
-        const extractedBase = parsedPrices[1] || 18.99;
-
-        const nameInput = modalRoot.querySelector('#cs-name');
-        const weightInput = modalRoot.querySelector('#cs-weight');
-        const priceInput = modalRoot.querySelector('#cs-price');
-        const basePriceInput = modalRoot.querySelector('#cs-base-price');
-
-        if (nameInput) nameInput.value = 'Mister Bread White Sliced';
-        if (weightInput) weightInput.value = '700 g';
-        if (priceInput) priceInput.value = extractedPrice;
-        if (basePriceInput) basePriceInput.value = extractedBase;
-
-        if (preview) {
-          preview.innerHTML = `✓ <strong class="text-emerald-900">OCR Extracted:</strong> Mister Bread (700g) · <strong>R ${extractedPrice.toFixed(2)}</strong> (Was R ${extractedBase.toFixed(2)})`;
-        }
-        showToast('OCR extracted: Mister Bread R16.49');
-      }, 750);
+      automationCore.triggerHaptic?.('success');
+      showToast(`📱 Phone OCR: ${scanRes.name} (R${scanRes.price.toFixed(2)})`);
+    } catch (err) {
+      if (preview) {
+        preview.innerHTML = `<span class="text-amber-700">Could not auto-read label (${escapeHtml(err?.message || 'blurry photo')}) — type details below or tap a preset.</span>`;
+      }
     }
+  };
+
+  modalRoot.querySelector('#shelf-tag-camera')?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (file) runOnDeviceShelfScan(file);
   });
+
+  if (initialShelfImageBlob) {
+    runOnDeviceShelfScan(initialShelfImageBlob);
+  }
 
   // Handle Quick Regional Brand Presets
   modalRoot.querySelectorAll('[data-preset]').forEach((btn) => {
@@ -3126,33 +3040,44 @@ function openCrowdsourceModal(barcode) {
     });
   });
 
-  modalRoot.querySelector('#crowdsource-form')?.addEventListener('submit', (event) => {
+  modalRoot.querySelector('#crowdsource-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     if (!form.reportValidity()) return;
 
     const formData = new FormData(form);
+    const cleanBarcode = String(formData.get('barcode') || initialCode).trim();
     const price = parseFloat(formData.get('price')) || 19.99;
-    const basePrice = parseFloat(formData.get('basePrice')) || price * 1.15;
+    const basePrice = Math.max(price, parseFloat(formData.get('basePrice')) || price);
+    const cleanName = String(formData.get('name') || '').trim();
 
     const newProduct = {
-      barcode: String(barcode).trim(),
-      name: formData.get('name').trim(),
+      barcode: cleanBarcode,
+      gtin: cleanBarcode,
+      name: cleanName,
+      title: cleanName,
+      brand: 'Shoprite',
       category: formData.get('category'),
-      weight: formData.get('weight').trim(),
-      price: price,
-      basePrice: basePrice,
-      emoji: formData.get('emoji') || '🛍️'
+      weight: String(formData.get('weight') || '1 unit').trim(),
+      price,
+      promoPrice: price < basePrice ? price : null,
+      basePrice,
+      image: capturedThumbnailDataUrl || '',
+      imageUrl: capturedThumbnailDataUrl || '',
+      emoji: formData.get('emoji') || '🛍️',
+      retailerId: state.retailerId || 'shoprite',
+      indexedVia: 'on_device_cellphone_ocr'
     };
 
-    // Save to in-memory map
-    PRODUCTS.set(newProduct.barcode, newProduct);
+    // Save to active catalog AND persist forever on cellphone in IndexedDB
+    PRODUCTS.set(cleanBarcode, newProduct);
+    STORE_PRICES.delete(`${state.currentStoreId}_${cleanBarcode}`);
+    await saveLocalCustomProduct(newProduct);
 
-    // Add to cart
-    addToCart(newProduct);
+    addProductToTrolley(newProduct, 1, state.retailerId, false);
     closeModal();
-    routeTo('cartel');
-    showToast(`${newProduct.name} registered & added to Cartel!`);
+    routeTo('trolley');
+    showToast(`📳 ${newProduct.name} saved forever on phone & added!`);
   });
 }
 
@@ -3161,402 +3086,219 @@ function completeDeliveryPayment(event) {
   if (event.currentTarget && typeof event.currentTarget.reportValidity === 'function') {
     if (!event.currentTarget.reportValidity()) return;
   }
+  const activeStore = getActiveStore(state.retailerId);
   const code = String(crypto.getRandomValues(new Uint16Array(1))[0] % 10000).padStart(4, '0');
-  state.order = { id: Date.now().toString(36).slice(-6).toUpperCase(), code, step: 0, items: structuredClone(state.cart), total: getPayableTotal(), retailerId: state.retailerId };
+  state.order = {
+    id: Date.now().toString(36).slice(-6).toUpperCase(),
+    type: 'delivery',
+    code,
+    step: 0,
+    items: structuredClone(state.cart),
+    total: getPayableTotal(),
+    savings: getCurrentSavings(),
+    storeName: activeStore.name,
+    storeCode: activeStore.retailerStoreCode,
+    retailerId: state.retailerId,
+    createdAt: Date.now()
+  };
+  saveLocalOrderRecord(state.order);
+  state.pastReceipts = [state.order, ...(state.pastReceipts || [])];
   state.completedSavings += getCurrentSavings();
   state.loyaltyPoints += Math.floor(getPayableTotal());
   state.cart = [];
+  savePersistedState();
   closeModal();
   routeTo('tracker');
   showToast('Payment approved - delivery created');
 }
 
-function isValidEan13(code) {
-  if (!/^\d{13}$/.test(code)) return false;
-  let sum = 0;
-  for (let i = 0; i < 12; i++) {
-    sum += parseInt(code[i], 10) * (i % 2 === 0 ? 1 : 3);
-  }
-  const check = (10 - (sum % 10)) % 10;
-  return check === parseInt(code[12], 10);
-}
+// ============================================================================
+// PILLAR 3: AT THE TILL — SEQUENTIAL 1-BY-1 BARCODE CHECKOUT (TOP VOLUME +)
+// ============================================================================
 
-function openMasterBarcode(retailerId = state.retailerId, stepIndex = 0) {
+async function openMasterBarcode(retailerId = state.retailerId, stepIndex = 0) {
   const targetRet = retailerId || state.retailerId || 'shoprite';
   const retailer = RETAILERS[targetRet] || RETAILERS.shoprite;
-  const theme = RETAILER_THEMES[targetRet] || RETAILER_THEMES.shoprite;
+  const activeStore = getActiveStore(targetRet);
   const cartItems = getRetailerCart(targetRet);
+
   if (!cartItems.length) {
-    showToast(`Your ${retailer.name} Trolley is empty`);
+    showToast(`Your ${retailer.name} Trolley is empty — search or scan products first!`);
     return;
   }
 
-  const safeIdx = Math.max(0, Math.min(cartItems.length - 1, Number(stepIndex) || 0));
-  const currentItem = cartItems[safeIdx];
-  const isLast = safeIdx >= cartItems.length - 1;
-  const progressPct = Math.round(((safeIdx + 1) / cartItems.length) * 100);
-  const codeStr = String(currentItem.barcode).trim();
-
-  state.overlay = 'barcode';
-
-  modalRoot.innerHTML = `
-    <div class="modal-enter fixed inset-0 z-[60] overflow-y-auto bg-slate-950/90 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="till-checkout-title">
-      <section class="mx-auto flex min-h-dvh max-w-lg flex-col justify-between p-5 pb-safe pt-5 text-white">
-        <!-- Header & Upper Next-Product Controls -->
-        <div>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <div class="grid size-10 shrink-0 place-items-center rounded-2xl bg-white p-1 shadow-md overflow-hidden">
-                <img src="${retailer.logoUrl}" alt="${retailer.name}" class="h-full w-full object-contain" onerror="this.parentElement.style.background='${retailer.color}';this.parentElement.innerHTML='<span class=\\'font-black text-white text-xs\\'>${retailer.initials}</span>';" />
-              </div>
-              <div>
-                <p class="text-[10px] font-black uppercase tracking-[.18em] text-white/70">${retailer.name} Till Scanner</p>
-                <h2 id="till-checkout-title" class="text-lg font-black">Product ${safeIdx + 1} of ${cartItems.length}</h2>
-              </div>
-            </div>
-            <button data-close-modal class="grid size-10 place-items-center rounded-2xl bg-white/10 text-xl font-bold text-white transition active:scale-95">&times;</button>
-          </div>
-
-          <!-- Progress Bar -->
-          <div class="mt-3.5 h-2 w-full overflow-hidden rounded-full bg-white/15">
-            <div class="h-full rounded-full transition-all duration-300" style="width:${progressPct}%; background:${retailer.color}"></div>
-          </div>
-
-          <!-- UPPER BUTTON BAR TO CHANGE TO NEXT PRODUCT -->
-          <div class="mt-3.5 flex items-center gap-2">
-            <button
-              id="till-prev-btn"
-              type="button"
-              ${safeIdx === 0 ? 'disabled' : ''}
-              class="rounded-2xl bg-white/12 px-4 py-3.5 text-xs font-black text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              ← Prev
-            </button>
-
-            <button
-              id="till-upper-next-btn"
-              type="button"
-              class="flex-1 rounded-2xl py-3.5 px-4 text-sm font-black text-white shadow-lg transition active:scale-98 flex items-center justify-center gap-2"
-              style="background: ${isLast ? '#16a34a' : retailer.color}"
-            >
-              <span>${isLast ? `✓ Finish Checkout (${cartItems.length}/${cartItems.length})` : `Next Product (${safeIdx + 2} of ${cartItems.length}) ➔`}</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Single Product Scannable Barcode Card -->
-        <div class="my-5 rounded-[2rem] bg-white p-5 text-center text-slate-950 shadow-2xl">
-          <div class="flex items-center gap-3 rounded-2xl bg-stone-50 p-3 border border-stone-200/80 text-left">
-            <div class="size-14 shrink-0 overflow-hidden rounded-xl bg-white border border-stone-200/70 p-1 flex items-center justify-center">
-              ${currentItem.image ? `<img src="${currentItem.image}" alt="" class="max-h-full max-w-full object-contain" onerror="this.parentElement.innerHTML='<span class=\\'text-2xl\\'>${currentItem.emoji || '🛍️'}</span>';" />` : `<span class="text-2xl">${currentItem.emoji || '🛍️'}</span>`}
-            </div>
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center justify-between gap-2">
-                <span class="rounded-md px-2 py-0.5 text-[9px] font-black uppercase" style="background:${theme.pillBg}; color:${theme.pillText}">
-                  Item ${safeIdx + 1} of ${cartItems.length}
-                </span>
-                <span class="rounded-lg bg-slate-900 px-2.5 py-0.5 text-[11px] font-black text-white">
-                  Qty &times;${currentItem.quantity}
-                </span>
-              </div>
-              <h3 class="mt-1 truncate text-sm font-black text-slate-900">${escapeHtml(currentItem.name)}</h3>
-              <p class="text-xs font-bold text-slate-500">${currentItem.weight || '1 unit'} &middot; <strong class="text-slate-900">${zar.format(currentItem.price * currentItem.quantity)}</strong></p>
-            </div>
-          </div>
-
-          <!-- Crisp 1D Scannable Barcode for This Single Product -->
-          <div class="mt-4 rounded-2xl border-2 border-slate-900/10 bg-white px-3 py-5 shadow-inner flex flex-col items-center justify-center">
-            <svg id="till-single-barcode" class="w-full max-w-[300px] h-auto"></svg>
-            ${currentItem.quantity > 1 ? `
-              <p class="mt-2 rounded-full bg-amber-100 px-3 py-1 text-[11px] font-black text-amber-900">
-                Scan ${currentItem.quantity} times (or tell cashier &times;${currentItem.quantity})
-              </p>
-            ` : `
-              <p class="mt-2 text-[11px] font-bold text-slate-400">Present barcode to cashier scanner, then tap Next above</p>
-            `}
-          </div>
-
-          <!-- Step Dots / Quick Jump -->
-          <div class="mt-4 flex items-center justify-center gap-1.5 flex-wrap">
-            ${cartItems.map((it, idx) => `
-              <button
-                type="button"
-                data-till-jump="${idx}"
-                class="h-7 min-w-7 rounded-lg px-2 text-[10px] font-black transition ${idx === safeIdx ? 'bg-slate-900 text-white shadow-xs' : idx < safeIdx ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-slate-500 hover:bg-stone-200'}"
-              >
-                ${idx < safeIdx ? '✓' : idx + 1}
-              </button>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- Footer Total Summary -->
-        <div class="rounded-2xl bg-white/10 px-4 py-3 flex items-center justify-between text-xs font-bold text-white/90">
-          <span>${retailer.name} Basket Total (${getItemCount()} units)</span>
-          <strong class="text-base font-black text-white tabular-nums">${zar.format(getPayableTotal(targetRet))}</strong>
-        </div>
-      </section>
-    </div>`;
-
-  // Render crisp 1D barcode for the single active product
-  const barcodeSvg = modalRoot.querySelector('#till-single-barcode');
-  if (barcodeSvg) {
-    try {
-      JsBarcode(barcodeSvg, codeStr, {
-        format: isValidEan13(codeStr) ? 'EAN13' : 'CODE128',
-        lineColor: '#020617',
-        background: '#ffffff',
-        width: 2.3,
-        height: 98,
-        displayValue: true,
-        fontSize: 16,
-        fontOptions: 'bold',
-        margin: 8
-      });
-    } catch {
-      JsBarcode(barcodeSvg, codeStr, {
-        format: 'CODE128',
-        lineColor: '#020617',
-        background: '#ffffff',
-        width: 2.1,
-        height: 98,
-        displayValue: true,
-        fontSize: 15,
-        margin: 8
-      });
-    }
-  }
-
-  modalRoot.querySelector('#till-prev-btn')?.addEventListener('click', () => {
-    if (safeIdx > 0) {
-      playBeepSound();
-      openMasterBarcode(targetRet, safeIdx - 1);
-    }
-  });
-
-  modalRoot.querySelector('#till-upper-next-btn')?.addEventListener('click', () => {
-    playBeepSound();
-    if (navigator.vibrate) navigator.vibrate(25);
-    if (!isLast) {
-      openMasterBarcode(targetRet, safeIdx + 1);
-    } else {
-      state.completedSavings += getCurrentSavings(targetRet);
-      state.loyaltyPoints += Math.floor(getPayableTotal(targetRet));
-      state.cart = [];
-      closeModal();
+  await openSequentialTillCheckout({
+    modalRoot,
+    state,
+    retailer,
+    activeStore,
+    cartItems,
+    zar,
+    payableTotal: getPayableTotal(targetRet),
+    totalSavings: getCurrentSavings(targetRet),
+    automationCore,
+    playAdvanceSound,
+    initialIndex: stepIndex,
+    onVoidCartItem: (origBarcode) => {
+      state.cart = state.cart.filter((c) => c.barcode !== origBarcode);
+      savePersistedState();
       updateCartBadge();
-      render();
-      showToast(`✓ ${retailer.name} Till Checkout completed!`);
-    }
+    },
+    onCompleteCheckout: async (summary) => {
+      const savedNow = summary?.totalSavings ?? getCurrentSavings(targetRet);
+      const paidNow = summary?.payableTotal ?? getPayableTotal(targetRet);
+      const earnedPts = Math.floor(paidNow);
+      const slipRecord = {
+        id: `SR-${Date.now().toString(36).slice(-6).toUpperCase()}`,
+        type: 'instore_pos_till',
+        retailerId: targetRet,
+        retailerName: retailer.name,
+        storeId: activeStore.id,
+        storeName: activeStore.name,
+        storeCode: activeStore.retailerStoreCode,
+        items: summary?.items || structuredClone(cartItems),
+        total: paidNow,
+        savings: savedNow,
+        xtraCardNumber: summary?.xtraCardNumber || null,
+        createdAt: Date.now()
+      };
+      await saveLocalOrderRecord(slipRecord);
+      state.pastReceipts = [slipRecord, ...(state.pastReceipts || [])];
+      state.completedSavings += savedNow;
+      state.loyaltyPoints += earnedPts;
+      state.cart = [];
+      savePersistedState();
+      updateCartBadge();
+      routeTo('tracker');
+      showToast(`🎉 Till checkout complete! Digital Slip #${slipRecord.id} saved (+${earnedPts} pts)`);
+    },
+    showToast
   });
-
-  modalRoot.querySelectorAll('[data-till-jump]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      openMasterBarcode(targetRet, parseInt(btn.dataset.tillJump, 10));
-    });
-  });
-
-  bindModalClose();
 }
 
-let activeCameraStream = null;
-let cameraScanLoopActive = false;
-let lastDetectedBarcode = null;
-let lastDetectedTime = 0;
+// Shared Web Audio Context (avoids browser max-6 AudioContext limit during rapid scanning)
+let sharedAudioCtx = null;
+function getSharedAudioContext() {
+  try {
+    if (!sharedAudioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) sharedAudioCtx = new Ctx();
+    }
+    if (sharedAudioCtx && sharedAudioCtx.state === 'suspended') {
+      sharedAudioCtx.resume().catch(() => {});
+    }
+    return sharedAudioCtx;
+  } catch (_) {
+    return null;
+  }
+}
 
 function playBeepSound() {
+  const ctx = getSharedAudioContext();
+  if (!ctx) return;
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime); // 880Hz A5 note
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+    osc.frequency.setValueAtTime(1046.5, now); // Crisp POS C6 beep
+    osc.frequency.setValueAtTime(1318.5, now + 0.055); // E6 confirmation chime
+    gain.gain.setValueAtTime(0.14, now);
+    gain.gain.exponentialRampToValueAtTime(0.008, now + 0.13);
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.12);
-  } catch (e) {
-    // Audio context not allowed or unsupported
-  }
+    osc.start(now);
+    osc.stop(now + 0.13);
+  } catch (_) {}
 }
+
+function playAdvanceSound(isComplete = false) {
+  const ctx = getSharedAudioContext();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    if (isComplete) {
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.setValueAtTime(1174.66, now + 0.07);
+      osc.frequency.setValueAtTime(1567.98, now + 0.14);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.008, now + 0.28);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.28);
+    } else {
+      osc.frequency.setValueAtTime(1244.5, now);
+      gain.gain.setValueAtTime(0.13, now);
+      gain.gain.exponentialRampToValueAtTime(0.008, now + 0.09);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    }
+  } catch (_) {}
+}
+
+// ============================================================================
+// PILLAR 2: CONTINUOUS PHONE CAMERA BARCODE SCANNER + VIBRATION
+// ============================================================================
 
 async function openLiveCameraScanner() {
-  state.overlay = 'camera';
+  const activeStore = getActiveStore(state.retailerId);
 
-  modalRoot.innerHTML = `
-    <div class="modal-enter fixed inset-0 z-[70] flex flex-col justify-between bg-slate-950 text-white" role="dialog" aria-modal="true" aria-labelledby="camera-title">
-      <!-- Camera Header -->
-      <div class="flex items-center justify-between p-4 pt-safe z-10 bg-gradient-to-b from-black/80 to-transparent">
-        <div class="flex items-center gap-2.5">
-          <span class="grid size-9 place-items-center rounded-xl bg-emerald-500 text-white text-base">📷</span>
-          <div>
-            <h2 id="camera-title" class="text-sm font-black tracking-tight">Camera Barcode Scanner</h2>
-            <p class="text-[10px] text-emerald-400 font-bold">Auto-detecting EAN-13 & UPC</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <button id="camera-torch-btn" type="button" class="grid size-10 place-items-center rounded-xl bg-white/10 text-white transition active:scale-95">
-            🔦
-          </button>
-          <button id="camera-close-btn" type="button" class="grid size-10 place-items-center rounded-xl bg-white/10 text-xl font-bold text-white transition active:scale-95">
-            &times;
-          </button>
-        </div>
-      </div>
-
-      <!-- Live Video Viewfinder Container -->
-      <div class="relative flex flex-1 items-center justify-center overflow-hidden bg-black">
-        <video id="camera-scanner-video" playsinline autoplay muted class="size-full object-cover"></video>
-
-        <!-- Scanning Reticle & Aiming Laser Guide -->
-        <div class="pointer-events-none absolute inset-0 grid place-items-center p-6">
-          <div class="relative size-64 rounded-3xl border-2 border-emerald-400/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.55)]">
-            <!-- Reticle Corners -->
-            <div class="absolute -left-1 -top-1 size-6 border-l-4 border-t-4 border-emerald-400 rounded-tl-xl"></div>
-            <div class="absolute -right-1 -top-1 size-6 border-r-4 border-t-4 border-emerald-400 rounded-tr-xl"></div>
-            <div class="absolute -bottom-1 -left-1 size-6 border-b-4 border-l-4 border-emerald-400 rounded-bl-xl"></div>
-            <div class="absolute -bottom-1 -right-1 size-6 border-b-4 border-r-4 border-emerald-400 rounded-br-xl"></div>
-
-            <!-- Sweeping Animated Red Laser Line -->
-            <div class="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_8px_#ef4444] animate-[scan_2s_ease-in-out_infinite]"></div>
-          </div>
-        </div>
-
-        <div id="camera-detection-badge" class="pointer-events-none absolute bottom-6 rounded-full bg-emerald-500/90 px-4 py-1.5 text-xs font-black text-white backdrop-blur-md transition-all opacity-0">
-          ✓ Scanned
-        </div>
-      </div>
-
-      <!-- Footer Quick Test Simulator Bar -->
-      <div class="z-10 bg-slate-900/95 p-4 pb-safe border-t border-white/10 backdrop-blur-md">
-        <p class="text-center text-[10px] font-black uppercase tracking-wider text-slate-400">Aim camera at barcode or tap to simulate</p>
-        <div class="mt-2.5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-          <button data-quick-code="6001234567890" class="shrink-0 rounded-xl bg-white/10 px-3 py-2 text-xs font-bold text-white hover:bg-white/20 active:scale-95 transition">🍞 Bread</button>
-          <button data-quick-code="6001007320995" class="shrink-0 rounded-xl bg-white/10 px-3 py-2 text-xs font-bold text-white hover:bg-white/20 active:scale-95 transition">🥛 Milk</button>
-          <button data-quick-code="6001068594502" class="shrink-0 rounded-xl bg-white/10 px-3 py-2 text-xs font-bold text-white hover:bg-white/20 active:scale-95 transition">🥔 Chips</button>
-          <button data-quick-code="6009510805536" class="shrink-0 rounded-xl bg-white/10 px-3 py-2 text-xs font-bold text-white hover:bg-white/20 active:scale-95 transition">🍎 Apples</button>
-          <button data-quick-code="6001007001001" class="shrink-0 rounded-xl bg-white/10 px-3 py-2 text-xs font-bold text-white hover:bg-white/20 active:scale-95 transition">🍞 Mister Bread</button>
-        </div>
-      </div>
-    </div>`;
-
-  modalRoot.querySelector('#camera-close-btn')?.addEventListener('click', closeCameraScanner);
-
-  // Quick Code Simulation Buttons
-  modalRoot.querySelectorAll('[data-quick-code]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      onBarcodeScanned(btn.dataset.quickCode);
-    });
-  });
-
-  // Torch Toggle
-  let torchOn = false;
-  modalRoot.querySelector('#camera-torch-btn')?.addEventListener('click', async () => {
-    if (activeCameraStream) {
-      const track = activeCameraStream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-      if (capabilities.torch) {
-        torchOn = !torchOn;
-        await track.applyConstraints({ advanced: [{ torch: torchOn }] });
-        showToast(torchOn ? 'Torch turned ON' : 'Torch turned OFF');
-      } else {
-        showToast('Torch not supported on this camera');
+  await openContinuousPhoneScanner({
+    modalRoot,
+    state,
+    activeStore,
+    zar,
+    searchCatalogProducts: (q) => searchCatalogProducts(q, activeStore.id),
+    onBarcodeDetected: async (code) => {
+      const product = await fetchProductFromFirestore(code);
+      if (product === '__XTRA_CARD__') {
+        setTimeout(() => openShopriteXtraCardHelper(), 60);
+        return null;
       }
-    }
+      if (!product) {
+        setTimeout(() => openCrowdsourceModal(code), 60);
+        return null;
+      }
+      const added = addProductToTrolley(product, 1, state.retailerId, true);
+      if (state.route === 'trolley' || state.route === 'cartel') {
+        renderCartel();
+      } else if (state.route === 'market') {
+        renderMarket();
+      }
+      return added;
+    },
+    onQuickAddProduct: (gtin) => {
+      const added = addProductToTrolley(gtin, 1, state.retailerId, true);
+      if (state.route === 'trolley' || state.route === 'cartel') {
+        renderCartel();
+      } else if (state.route === 'market') {
+        renderMarket();
+      }
+      return added;
+    },
+    onChangeCartQty: (barcode, delta) => {
+      const row = changeCartItemQty(barcode, delta, state.retailerId);
+      if (state.route === 'trolley' || state.route === 'cartel') {
+        renderCartel();
+      } else if (state.route === 'market') {
+        renderMarket();
+      }
+      return row;
+    },
+    getRetailerCart: (retId) => getRetailerCart(retId || state.retailerId),
+    getPayableTotal: (retId) => getPayableTotal(retId || state.retailerId),
+    onOpenTillCheckout: () => openMasterBarcode(state.retailerId),
+    onGoToTrolley: () => routeTo('trolley'),
+    onOpenShelfTagOcr: (capturedBlob) => setTimeout(() => openCrowdsourceModal('', capturedBlob), 60),
+    onOpenScalePlu: () => setTimeout(() => openLooseScalePluHelper(), 60),
+    showToast
   });
-
-  // Start Camera Stream
-  const videoEl = modalRoot.querySelector('#camera-scanner-video');
-  try {
-    activeCameraStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      },
-      audio: false
-    });
-    if (videoEl) {
-      videoEl.srcObject = activeCameraStream;
-      await videoEl.play();
-      startBarcodeDetectionLoop(videoEl);
-    }
-  } catch (err) {
-    console.warn('Camera access error:', err);
-    showToast('Camera access unavailable. Using tap simulator.');
-  }
-}
-
-function closeCameraScanner() {
-  cameraScanLoopActive = false;
-  if (activeCameraStream) {
-    activeCameraStream.getTracks().forEach((track) => track.stop());
-    activeCameraStream = null;
-  }
-  closeModal();
-}
-
-async function startBarcodeDetectionLoop(videoEl) {
-  cameraScanLoopActive = true;
-
-  if ('BarcodeDetector' in window) {
-    try {
-      const barcodeDetector = new BarcodeDetector({
-        formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'qr_code']
-      });
-
-      const detectFrame = async () => {
-        if (!cameraScanLoopActive || !videoEl || videoEl.readyState < 2) {
-          if (cameraScanLoopActive) requestAnimationFrame(detectFrame);
-          return;
-        }
-
-        try {
-          const barcodes = await barcodeDetector.detect(videoEl);
-          if (barcodes.length > 0) {
-            const detectedValue = barcodes[0].rawValue;
-            const now = Date.now();
-            // Debounce same barcode for 1.5s
-            if (detectedValue !== lastDetectedBarcode || (now - lastDetectedTime) > 1500) {
-              lastDetectedBarcode = detectedValue;
-              lastDetectedTime = now;
-              onBarcodeScanned(detectedValue);
-            }
-          }
-        } catch (e) {
-          // Detection frame error
-        }
-
-        if (cameraScanLoopActive) {
-          requestAnimationFrame(detectFrame);
-        }
-      };
-
-      requestAnimationFrame(detectFrame);
-    } catch (err) {
-      console.warn('BarcodeDetector initialization error:', err);
-    }
-  }
-}
-
-function onBarcodeScanned(barcode) {
-  playBeepSound();
-  if (navigator.vibrate) {
-    navigator.vibrate([60, 40, 60]);
-  }
-
-  // Show detection badge animation
-  const badge = modalRoot.querySelector('#camera-detection-badge');
-  if (badge) {
-    badge.textContent = `✓ Scanned: ${barcode}`;
-    badge.classList.remove('opacity-0');
-    badge.classList.add('opacity-100');
-    setTimeout(() => badge.classList.replace('opacity-100', 'opacity-0'), 1200);
-  }
-
-  handleHardwareScan(barcode);
 }
 
 function closeModal() {
@@ -3566,8 +3308,15 @@ function closeModal() {
 
 function bindModalClose() {
   modalRoot.querySelectorAll('[data-close-modal]').forEach((btn) => {
+    if (!btn.getAttribute('aria-label')) btn.setAttribute('aria-label', 'Close dialog');
     btn.addEventListener('click', closeModal);
   });
+  const backdrop = modalRoot.firstElementChild;
+  if (backdrop && backdrop.tagName !== 'DIALOG') {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closeModal();
+    });
+  }
 }
 
 function showToast(message) {
@@ -3585,24 +3334,23 @@ async function handleHardwareScan(rawScan) {
   const cleanInput = String(rawScan).trim();
   if (!cleanInput) return;
 
-  // Check if this is a multi-line barcode stream (from Single QR Till stream)
+  // Check if this is a multi-line barcode stream
   const lines = cleanInput.split(/[\r\n]+/).map((s) => s.trim()).filter(Boolean);
   if (lines.length > 1) {
     state.scanBusy = true;
     let matchedCount = 0;
     for (const code of lines) {
       const product = await fetchProductFromFirestore(code);
-      if (product) {
+      if (product && product !== '__XTRA_CARD__') {
         addToCart(product, state.retailerId, { silent: true });
         matchedCount++;
       }
     }
     state.scanBusy = false;
-    if (matchedCount > 0) {
-      triggerFloatingTrolleyNotice({ name: `${matchedCount} scanned items`, emoji: '📷' }, state.retailerId, matchedCount);
-    }
+    automationCore.vibrateProductAdded();
+    playBeepSound();
     routeTo('trolley');
-    showToast(`✓ Scanned QR Stream: Added ${matchedCount} items to ${getRetailer().name} Trolley!`);
+    showToast(`📳 Scanned Stream: Added ${matchedCount} items to ${getRetailer().name} Trolley!`);
     return;
   }
 
@@ -3610,13 +3358,9 @@ async function handleHardwareScan(rawScan) {
   const retailer = Object.values(RETAILERS).find((item) => item.entryBarcode === cleanBarcode);
   if (retailer) {
     state.retailerId = retailer.id;
+    savePersistedState();
     routeTo('trolley');
-    showToast(`Welcome to ${retailer.name} - scanner linked`);
-    return;
-  }
-  if (!getRetailer()) {
-    showToast('Scan a retailer entry code first.');
-    routeTo('trolley');
+    showToast(`Welcome to ${retailer.name} — scanner linked`);
     return;
   }
   state.scanBusy = true;
@@ -3626,16 +3370,17 @@ async function handleHardwareScan(rawScan) {
   }
   try {
     const product = await fetchProductFromFirestore(cleanBarcode);
+    if (product === '__XTRA_CARD__') {
+      openShopriteXtraCardHelper();
+      return;
+    }
     if (!product) {
       openCrowdsourceModal(cleanBarcode);
       return;
     }
-    addToCart(product, state.retailerId);
-    if (state.overlay === 'camera') closeCameraScanner();
+    addProductToTrolley(product, 1, state.retailerId, true);
     if (state.route === 'trolley' || state.route === 'cartel') {
       renderCartel();
-      const status = document.querySelector('#scan-status');
-      if (status) status.textContent = `${product.name || product.title} added - ready for next scan`;
     } else if (state.route === 'market') {
       renderMarket();
     }
@@ -3655,6 +3400,14 @@ let isHardwareStream = false;
 let scanQueue = Promise.resolve();
 
 function hardwareScannerKeydown(event) {
+  // Escape light-dismisses any non-<dialog> overlay inside modalRoot
+  if (event.key === 'Escape' && modalRoot.firstElementChild && modalRoot.firstElementChild.tagName !== 'DIALOG') {
+    event.preventDefault();
+    closeModal();
+    return;
+  }
+  // Never intercept keys when Sequential Till Checkout is open (Volume Up / Arrows step barcodes)
+  if (state.overlay === 'till-checkout' || state.overlay === 'camera') return;
   if (event.defaultPrevented || event.isComposing || event.ctrlKey || event.altKey || event.metaKey) return;
   const now = performance.now();
   const gap = lastScannerKeyAt ? now - lastScannerKeyAt : Infinity;
@@ -3673,7 +3426,6 @@ function hardwareScannerKeydown(event) {
       lastScannerKeyAt = 0;
       isHardwareStream = false;
 
-      // Blur focused text box so keyboard dismisses and scanner doesn't trigger form submit
       if (isInputFocused && typeof document.activeElement.blur === 'function') {
         document.activeElement.blur();
       }
@@ -3690,25 +3442,20 @@ function hardwareScannerKeydown(event) {
   // Barcode characters: alphanumeric or dash
   if (event.key.length === 1 && /^[0-9A-Za-z\-]$/.test(event.key)) {
     if (gap <= SCANNER_SPEED_THRESHOLD_MS) {
-      // Stream detected at superhuman typing speed
       isHardwareStream = true;
       scanBuffer += event.key;
       lastScannerKeyAt = now;
 
-      // Prevent scanner keystrokes from leaking into active input fields
       if (isInputFocused) {
         event.preventDefault();
         event.stopPropagation();
       }
     } else {
-      // First character or human typing gap
       if (!isInputFocused) {
-        // No input focused: treat as potential start of a hardware scan
         scanBuffer = event.key;
         isHardwareStream = false;
         lastScannerKeyAt = now;
       } else {
-        // Human is intentionally typing into a text field
         scanBuffer = '';
         isHardwareStream = false;
         lastScannerKeyAt = 0;
@@ -3723,7 +3470,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   deferredInstallPrompt = e;
   const dlBtn = document.querySelector('#header-download-button');
   if (dlBtn) {
-    dlBtn.classList.add('ring-2', 'ring-violet-500', 'bg-violet-100', 'animate-pulse');
+    dlBtn.classList.add('ring-2', 'ring-[#e11d2e]', 'bg-rose-50', 'animate-pulse');
   }
 });
 
@@ -3745,10 +3492,10 @@ function openInstallModal() {
       <div class="w-full max-w-lg rounded-[2rem] bg-white p-6 shadow-2xl text-slate-900 border border-slate-100 max-h-[90dvh] overflow-y-auto">
         <div class="flex items-center justify-between border-b border-slate-100 pb-4">
           <div class="flex items-center gap-3">
-            <span class="grid size-12 place-items-center rounded-2xl bg-violet-600 text-white text-xl font-black shadow-lg shadow-violet-600/30">📥</span>
+            <span class="grid size-12 place-items-center rounded-2xl bg-[#e11d2e] text-white text-xl font-black shadow-lg shadow-red-600/30">📥</span>
             <div>
-              <h2 class="text-lg font-black tracking-tight">Download & Install Automater</h2>
-              <p class="text-xs text-slate-400">Native In-App Store Browsing & Scraper</p>
+              <h2 class="text-lg font-black tracking-tight">Install Automater Smart Trolley</h2>
+              <p class="text-xs text-slate-400">Zero-Queue Shoprite Scanner &amp; Till Mode</p>
             </div>
           </div>
           <button id="close-install-modal" type="button" class="grid size-9 place-items-center rounded-full bg-slate-100 text-sm font-black text-slate-500 hover:bg-slate-200">
@@ -3757,72 +3504,51 @@ function openInstallModal() {
         </div>
 
         <div class="mt-5 space-y-4">
-          <!-- Standalone Status Badge -->
           ${isStandalone ? `
             <div class="rounded-2xl bg-emerald-50 border border-emerald-200 p-3.5 flex items-center gap-3">
               <span class="text-2xl">✅</span>
               <div>
                 <strong class="block text-xs font-black text-emerald-800">Native Standalone Mode Active</strong>
-                <span class="text-[11px] text-emerald-600">Automater is running as an installed native application on this device.</span>
+                <span class="text-[11px] text-emerald-600">Automater is running as an installed application on this device.</span>
               </div>
             </div>
           ` : `
-            <!-- 1. Instant 1-Tap Install (PWA) -->
-            <div class="rounded-3xl border border-violet-200 bg-violet-50/60 p-4">
+            <div class="rounded-3xl border border-rose-200 bg-rose-50/60 p-4">
               <div class="flex items-center justify-between mb-2">
-                <span class="rounded-full bg-violet-600 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">Recommended</span>
-                <span class="text-[10px] font-bold text-violet-700">1-Tap Install</span>
+                <span class="rounded-full bg-[#e11d2e] px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">Recommended</span>
+                <span class="text-[10px] font-bold text-[#e11d2e]">Works 100% Offline in Store</span>
               </div>
-              <h3 class="text-sm font-black text-slate-900">Install to Home Screen & App Drawer</h3>
-              <p class="text-xs text-slate-500 mt-1 leading-5">Instantly launches Automater in full native immersion without browser URL bars, enabling live on-click scraping and offline Cartel checkout.</p>
+              <h3 class="text-sm font-black text-slate-900">Install to Home Screen</h3>
+              <p class="text-xs text-slate-500 mt-1 leading-5">Caches all 80 SA Shoprite locations, branch deals, camera barcode scanner, and 1D till barcodes for instant offline use inside thick-walled malls.</p>
               
-              <button id="trigger-pwa-install-btn" type="button" class="mt-3.5 w-full rounded-2xl bg-violet-600 py-3 text-xs font-black text-white shadow-lg shadow-violet-600/30 hover:bg-violet-700 active:scale-95 transition flex items-center justify-center gap-2">
+              <button id="trigger-pwa-install-btn" type="button" class="mt-3.5 w-full rounded-2xl bg-[#e11d2e] py-3 text-xs font-black text-white shadow-lg shadow-red-600/30 hover:bg-red-700 active:scale-95 transition flex items-center justify-center gap-2">
                 <span>📲</span><span>Install Automater App Now</span>
               </button>
 
               ${isIOS ? `
-                <div class="mt-3 rounded-xl bg-white/80 p-3 border border-violet-100 text-xs text-slate-600 space-y-1">
-                  <p class="font-black text-slate-900">📱 iOS Safari Installation Steps:</p>
-                  <p>1. Tap the <strong>Share</strong> button (box with upward arrow <span class="font-bold">􀈂</span>) at the bottom of Safari.</p>
-                  <p>2. Scroll down and tap <strong>Add to Home Screen ➕</strong>.</p>
-                  <p>3. Tap <strong>Add</strong> in top right. Automater will appear on your home screen!</p>
+                <div class="mt-3 rounded-xl bg-white/80 p-3 border border-rose-100 text-xs text-slate-600 space-y-1">
+                  <p class="font-black text-slate-900">📱 iOS Safari Steps:</p>
+                  <p>1. Tap <strong>Share</strong> at the bottom of Safari.</p>
+                  <p>2. Tap <strong>Add to Home Screen ➕</strong>.</p>
                 </div>
               ` : ''}
             </div>
           `}
 
-          <!-- 2. Native Capacitor Android APK / iOS Wrapper Info -->
-          <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4 space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-black text-slate-900">📦 Native Android (APK) & iOS (Xcode)</span>
-              <span class="rounded-full bg-slate-200 px-2 py-0.5 text-[9px] font-black text-slate-600">Capacitor v7</span>
-            </div>
-            <p class="text-xs text-slate-500 leading-5">Automater includes full <code>@capacitor/core</code> native bindings for building standalone Android APKs and iOS WKWebView packages with unrestricted <code>shoprite.co.za</code> webview root access.</p>
-            
-            <div class="rounded-2xl bg-slate-900 p-3 text-slate-200 font-mono text-[11px] space-y-1">
-              <p class="text-emerald-400 font-bold"># Build native mobile packages:</p>
-              <p>npx cap add android</p>
-              <p>npx cap add ios</p>
-              <p>npx cap copy</p>
-              <p>npx cap open android</p>
-            </div>
-          </div>
-
-          <!-- 3. Unlocked Native Features -->
           <div class="rounded-3xl border border-slate-100 bg-white p-4">
-            <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mb-2.5">Native App Capabilities</h4>
+            <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mb-2.5">Zero-Queue Hardware Capabilities</h4>
             <div class="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700">
               <div class="flex items-center gap-1.5 rounded-xl bg-slate-100/70 p-2">
-                <span>⚡</span><span>Live DOM Scraper</span>
+                <span>📍</span><span>80 SA Shoprites Offline</span>
               </div>
               <div class="flex items-center gap-1.5 rounded-xl bg-slate-100/70 p-2">
-                <span>📳</span><span>Haptic Vibrations</span>
+                <span>📳</span><span>Haptic Add Vibration</span>
               </div>
               <div class="flex items-center gap-1.5 rounded-xl bg-slate-100/70 p-2">
-                <span>📷</span><span>Hardware Barcode</span>
+                <span>📷</span><span>Optical EAN-13 Scanner</span>
               </div>
               <div class="flex items-center gap-1.5 rounded-xl bg-slate-100/70 p-2">
-                <span>🏁</span><span>Offline QR Till Stream</span>
+                <span>🔊+</span><span>Top Volume Till Stepper</span>
               </div>
             </div>
           </div>
@@ -3835,11 +3561,9 @@ function openInstallModal() {
     </div>
   `;
 
-  // Bind close buttons
   modalRoot.querySelector('#close-install-modal')?.addEventListener('click', closeModal);
   modalRoot.querySelector('#close-install-btn-bottom')?.addEventListener('click', closeModal);
 
-  // Bind PWA prompt trigger
   modalRoot.querySelector('#trigger-pwa-install-btn')?.addEventListener('click', async () => {
     if (deferredInstallPrompt) {
       deferredInstallPrompt.prompt();
@@ -3849,12 +3573,10 @@ function openInstallModal() {
         closeModal();
       }
       deferredInstallPrompt = null;
+    } else if (isIOS) {
+      showToast('Follow the Safari steps above to Add to Home Screen!');
     } else {
-      if (isIOS) {
-        showToast('Follow the 3 Safari steps above to Add to Home Screen!');
-      } else {
-        showToast('Tap the 3 dots (⋮) in your browser and select "Install app" or "Add to Home Screen"');
-      }
+      showToast('Tap browser menu (⋮) -> "Install app" or "Add to Home Screen"');
     }
   });
 }
@@ -3866,11 +3588,10 @@ window.addEventListener('message', (event) => {
     state.selectedCatalogBarcode = barcode;
     PRODUCTS.set(barcode, scraped);
     automationCore.selectProduct({ barcode, ...scraped });
-
-    addToCart(scraped, state.retailerId);
     playBeepSound();
     if (navigator.vibrate) navigator.vibrate(45);
-    if (state.route === 'market') renderMarket();
+    showToast(`✓ Captured: ${scraped.name} (${zar.format(scraped.price)})`);
+    renderMarket();
   }
 });
 
@@ -3878,14 +3599,64 @@ window.addEventListener('keydown', hardwareScannerKeydown, { capture: true });
 window.addEventListener('hashchange', () => { state.route = getRouteFromHash(); render(); });
 document.querySelectorAll('.nav-item').forEach((button) => button.addEventListener('click', () => routeTo(button.dataset.route)));
 document.querySelector('#header-search-button')?.addEventListener('click', () => toggleGlobalSearchDrawer());
+document.querySelector('#header-store-button')?.addEventListener('click', () => openStoreBranchModal(!state.storeConfirmed));
+document.querySelector('#header-download-button')?.addEventListener('click', openInstallModal);
 document.querySelector('#header-cart-button')?.addEventListener('click', () => routeTo('trolley'));
 document.querySelector('#header-camera-button')?.addEventListener('click', openLiveCameraScanner);
 window.handleHardwareScan = handleHardwareScan;
 window.openLiveCameraScanner = openLiveCameraScanner;
+window.openTillCheckout = openMasterBarcode;
+window.openStoreBranchModal = openStoreBranchModal;
+window.openInstallModal = openInstallModal;
+window.openCrowdsourceModal = openCrowdsourceModal;
 
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch((error) => console.warn('Service worker registration failed:', error)));
+async function hydrateCellphoneVaultAndPermanentPackshots() {
+  // 1. Request non-evictable cellphone storage so CSE packshots & scanned barcodes persist forever
+  await ensurePersistentCellphoneStorage();
+
+  // 2. Restore all user-scanned shelf-tag OCR / OpenFoodFacts products & past Digital Till Slips from IndexedDB
+  const [savedCustom, savedOrders] = await Promise.all([
+    loadAllLocalCustomProducts(),
+    loadAllLocalOrders()
+  ]);
+
+  let needsRender = false;
+  if (savedCustom.length > 0) {
+    for (const item of savedCustom) {
+      if (item && item.barcode) {
+        PRODUCTS.set(item.barcode, item);
+      }
+    }
+    needsRender = true;
+  }
+  if (savedOrders.length > 0) {
+    state.pastReceipts = savedOrders;
+    needsRender = true;
+  }
+  if (needsRender) {
+    render();
+  }
+
+  // 3. Register Service Worker & warm permanent CSE packshot cache in background during idle time
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      const warmPackshots = () => {
+        const sw = reg.active || navigator.serviceWorker.controller;
+        if (!sw) return;
+        const packshotUrls = Array.from(MASTER_PRODUCTS.values())
+          .map((p) => p.imageUrl)
+          .filter((u) => u && u.startsWith('/products/'));
+        sw.postMessage({ type: 'WARM_PACKSHOTS_FOREVER', urls: packshotUrls });
+      };
+      const scheduleIdle = window.requestIdleCallback || ((fn) => setTimeout(fn, 2500));
+      scheduleIdle(warmPackshots);
+    } catch (error) {
+      console.warn('Service worker registration skipped:', error);
+    }
+  }
 }
 
 initializeFirebaseConnectivity();
 render();
+hydrateCellphoneVaultAndPermanentPackshots();

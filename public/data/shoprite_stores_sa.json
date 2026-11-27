@@ -1,0 +1,2086 @@
+{
+  "updatedAt": "2026-11-14T11:33:36.875Z",
+  "totalStores": 80,
+  "stores": [
+    {
+      "id": "shoprite_jhb_0023",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Johannesburg Pritchard St",
+      "suburb": "Johannesburg CBD",
+      "city": "Johannesburg",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Cnr Pritchard & Eloff St, Johannesburg CBD",
+      "retailerStoreCode": "0023",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "CBD Bulk Staple Price Lock · Extra 15% off Maize, Rice & Oil",
+      "featuredGtins": [
+        "6001007002343",
+        "6001007000127",
+        "6001007002018",
+        "6001007001001"
+      ],
+      "geoPoint": {
+        "latitude": -26.2041,
+        "longitude": 28.0442
+      }
+    },
+    {
+      "id": "shoprite_jhb_carlton_0114",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Gandhi Square / Commissioner St",
+      "suburb": "Marshalltown",
+      "city": "Johannesburg",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "140 Commissioner St, Marshalltown, JHB",
+      "retailerStoreCode": "0114",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Commuter Express Xtra Savings · Bread, Milk & Lunch Combos",
+      "featuredGtins": [
+        "6001007002070",
+        "6001299000270",
+        "5449000000996",
+        "6001068594504"
+      ],
+      "geoPoint": {
+        "latitude": -26.2064,
+        "longitude": 28.0459
+      }
+    },
+    {
+      "id": "shoprite_soweto_maponya_0312",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Maponya Mall Soweto",
+      "suburb": "Klipspruit, Soweto",
+      "city": "Johannesburg",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Maponya Mall, Chris Hani Rd, Soweto",
+      "retailerStoreCode": "0312",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Soweto Mega Month-End Combo · Chicken, Pap & Cooking Oil Specials",
+      "featuredGtins": [
+        "6001008000140",
+        "6001007002343",
+        "6001007002018",
+        "6001087006781"
+      ],
+      "geoPoint": {
+        "latitude": -26.2571,
+        "longitude": 27.9022
+      }
+    },
+    {
+      "id": "shoprite_soweto_bara_0288",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Bara Mall Soweto",
+      "suburb": "Diepkloof, Soweto",
+      "city": "Johannesburg",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Old Potchefstroom Rd, Diepkloof, Soweto",
+      "retailerStoreCode": "0288",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Bara Taxi Rank Super Saver · Ritebrand Pantry & Bakery Deals",
+      "featuredGtins": [
+        "6001007002070",
+        "6001007002001",
+        "6001007002032",
+        "6001053000027"
+      ],
+      "geoPoint": {
+        "latitude": -26.2602,
+        "longitude": 27.9408
+      }
+    },
+    {
+      "id": "shoprite_soweto_jabulani_0341",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Jabulani Mall Soweto",
+      "suburb": "Jabulani, Soweto",
+      "city": "Johannesburg",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "2601 Bolani Rd, Jabulani, Soweto",
+      "retailerStoreCode": "0341",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Jabulani Family Trolley Boost · Fresh Produce & Dairy Markdowns",
+      "featuredGtins": [
+        "6001007002124",
+        "6001007002131",
+        "6001007002063",
+        "6001299000270"
+      ],
+      "geoPoint": {
+        "latitude": -26.2504,
+        "longitude": 27.8576
+      }
+    },
+    {
+      "id": "shoprite_soweto_dobsonville_0195",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Dobsonville Mall",
+      "suburb": "Dobsonville, Soweto",
+      "city": "Johannesburg",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Elias Motsoaledi Rd, Dobsonville, Soweto",
+      "retailerStoreCode": "0195",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Dobsonville Xtra Savings · Breakfast & Bakery Price Cuts",
+      "featuredGtins": [
+        "6001007001001",
+        "6001007006211",
+        "6001068001002",
+        "6001087009874"
+      ],
+      "geoPoint": {
+        "latitude": -26.2188,
+        "longitude": 27.8685
+      }
+    },
+    {
+      "id": "shoprite_alex_mall_0419",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Alex Mall Alexandra",
+      "suburb": "Alexandra",
+      "city": "Johannesburg",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "London Rd & N3, Alexandra, Sandton",
+      "retailerStoreCode": "0419",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Alex Mall Price Buster · Everyday Low Prices on 50+ Essentials",
+      "featuredGtins": [
+        "6001007002087",
+        "6001007002025",
+        "6001007000899",
+        "6001087002134"
+      ],
+      "geoPoint": {
+        "latitude": -26.1075,
+        "longitude": 28.1066
+      }
+    },
+    {
+      "id": "shoprite_randburg_0156",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Randburg Square",
+      "suburb": "Randburg",
+      "city": "Johannesburg",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Oak Ave & Sentrum Rd, Randburg",
+      "retailerStoreCode": "0156",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Randburg Square Weekly Specials · Fresh Fruit, Dairy & Cleaning",
+      "featuredGtins": [
+        "6009510805536",
+        "6001571002022",
+        "6001299000287",
+        "6001087005111"
+      ],
+      "geoPoint": {
+        "latitude": -26.0936,
+        "longitude": 28.0012
+      }
+    },
+    {
+      "id": "shoprite_roodepoort_0172",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Roodepoort Westgate / CBD",
+      "suburb": "Roodepoort",
+      "city": "Johannesburg",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Van Wyk St, Roodepoort Central",
+      "retailerStoreCode": "0172",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "West Rand Pantry Specials · Flour, Sugar & Baking Combos",
+      "featuredGtins": [
+        "6001007003210",
+        "6001007002032",
+        "6001007004323",
+        "6001056000109"
+      ],
+      "geoPoint": {
+        "latitude": -26.1625,
+        "longitude": 27.8725
+      }
+    },
+    {
+      "id": "shoprite_southgate_0224",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Southgate Mall",
+      "suburb": "Mondeor",
+      "city": "Johannesburg",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Cnr Columbine Ave & Rifle Range Rd, Mondeor",
+      "retailerStoreCode": "0224",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Southgate Family Value · Chicken Portions & Bulk Laundry Deals",
+      "featuredGtins": [
+        "6001008000140",
+        "6001087006781",
+        "6001007002148",
+        "6001299001444"
+      ],
+      "geoPoint": {
+        "latitude": -26.2656,
+        "longitude": 27.9789
+      }
+    },
+    {
+      "id": "shoprite_bedford_0261",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Germiston / Golden Walk",
+      "suburb": "Germiston",
+      "city": "Ekurhuleni",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Golden Walk Shopping Centre, Victoria St, Germiston",
+      "retailerStoreCode": "0261",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Golden Walk Super Specials · Canned Goods & Ritebrand Essentials",
+      "featuredGtins": [
+        "6001053000027",
+        "6001007000899",
+        "6001007002056",
+        "6001007002094"
+      ],
+      "geoPoint": {
+        "latitude": -26.2175,
+        "longitude": 28.1672
+      }
+    },
+    {
+      "id": "shoprite_midrand_boulders_0305",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Boulders Shopping Centre Midrand",
+      "suburb": "Halfway House, Midrand",
+      "city": "Johannesburg",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Old Pretoria Rd, Halfway House, Midrand",
+      "retailerStoreCode": "0305",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Midrand Boulders Xtra Savings · Quick Dinner & Dairy Specials",
+      "featuredGtins": [
+        "6001007000301",
+        "6001007005436",
+        "6001007007553",
+        "6001299000270"
+      ],
+      "geoPoint": {
+        "latitude": -26.0022,
+        "longitude": 28.1257
+      }
+    },
+    {
+      "id": "shoprite_tembisa_0450",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Mall of Tembisa",
+      "suburb": "Tembisa",
+      "city": "Ekurhuleni",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "1369 Aluminium Rd, Clayville / Tembisa",
+      "retailerStoreCode": "0450",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Mall of Tembisa Bulk Saver · Maize, Rice, Oil & Chicken Combos",
+      "featuredGtins": [
+        "6001007002343",
+        "6001007000127",
+        "6001007002018",
+        "6001008000140"
+      ],
+      "geoPoint": {
+        "latitude": -25.9964,
+        "longitude": 28.2268
+      }
+    },
+    {
+      "id": "shoprite_kempton_0184",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Kempton Park Central",
+      "suburb": "Kempton Park",
+      "city": "Ekurhuleni",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Central Ave & West St, Kempton Park",
+      "retailerStoreCode": "0184",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Ekurhuleni Price Drop · Household Cleaning & Personal Care",
+      "featuredGtins": [
+        "6001087002134",
+        "6001087004565",
+        "6001087007788",
+        "6001087008129"
+      ],
+      "geoPoint": {
+        "latitude": -26.103,
+        "longitude": 28.2315
+      }
+    },
+    {
+      "id": "shoprite_benoni_lakeside_0167",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Lakeside Mall Benoni",
+      "suburb": "Benoni Central",
+      "city": "Ekurhuleni",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Tom Jones St, Benoni",
+      "retailerStoreCode": "0167",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Lakeside Benoni Xtra Savings · Tea, Coffee & Biscuits Deals",
+      "featuredGtins": [
+        "6001068001002",
+        "6001056000109",
+        "6001007001407",
+        "6001007008871"
+      ],
+      "geoPoint": {
+        "latitude": -26.1887,
+        "longitude": 28.3189
+      }
+    },
+    {
+      "id": "shoprite_boksburg_0209",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite East Rand / Boksburg Station",
+      "suburb": "Boksburg",
+      "city": "Ekurhuleni",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Trichardts Rd, Boksburg",
+      "retailerStoreCode": "0209",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "East Rand Value Deals · Ritebrand Long Life Milk & Eggs",
+      "featuredGtins": [
+        "6001007002001",
+        "6001007002063",
+        "6009510806120",
+        "6001007001018"
+      ],
+      "geoPoint": {
+        "latitude": -26.1835,
+        "longitude": 28.2528
+      }
+    },
+    {
+      "id": "shoprite_pta_church_0031",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Pretoria Church Street CBD",
+      "suburb": "Pretoria Central",
+      "city": "Pretoria",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "264 Madiba / Church St, Pretoria CBD",
+      "retailerStoreCode": "0031",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Tshwane CBD Low Price Leader · Bakery, Milk & Pantry Markdowns",
+      "featuredGtins": [
+        "6001007001001",
+        "6001007002070",
+        "6001299000270",
+        "6001007002343"
+      ],
+      "geoPoint": {
+        "latitude": -25.7461,
+        "longitude": 28.1881
+      }
+    },
+    {
+      "id": "shoprite_pta_sammymarks_0138",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Sammy Marks Square Pretoria",
+      "suburb": "Pretoria Central",
+      "city": "Pretoria",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Sammy Marks Square, Helen Joseph St, Pretoria",
+      "retailerStoreCode": "0138",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Sammy Marks Express Specials · Drinks, Snacks & Fresh Fruit",
+      "featuredGtins": [
+        "5449000000996",
+        "6001068594504",
+        "6009510805536",
+        "6001299001444"
+      ],
+      "geoPoint": {
+        "latitude": -25.7465,
+        "longitude": 28.1944
+      }
+    },
+    {
+      "id": "shoprite_pta_sunnypark_0149",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Sunnypark Sunnyside",
+      "suburb": "Sunnyside",
+      "city": "Pretoria",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Cnr Steve Biko & Robert Sobukwe St, Sunnyside, Pretoria",
+      "retailerStoreCode": "0149",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Sunnyside Student & Family Saver · Pasta, Tuna, Beans & Bread",
+      "featuredGtins": [
+        "6001007000301",
+        "6001053001208",
+        "6001007000899",
+        "6001007002070"
+      ],
+      "geoPoint": {
+        "latitude": -25.7549,
+        "longitude": 28.2089
+      }
+    },
+    {
+      "id": "shoprite_centurion_0244",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Centurion Lifestyle / Mall",
+      "suburb": "Centurion",
+      "city": "Pretoria",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Heuwel Ave, Centurion Central",
+      "retailerStoreCode": "0244",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Centurion Xtra Savings · Fresh Produce & Dairy Bundle Deals",
+      "featuredGtins": [
+        "6001571002022",
+        "6009510805536",
+        "6001299000270",
+        "6001087009874"
+      ],
+      "geoPoint": {
+        "latitude": -25.8589,
+        "longitude": 28.1896
+      }
+    },
+    {
+      "id": "shoprite_mamelodi_0332",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Mamelodi Crossing",
+      "suburb": "Mamelodi",
+      "city": "Pretoria",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Waltloo Rd & Stormvoel Rd, Mamelodi",
+      "retailerStoreCode": "0332",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Mamelodi Month-End Combo · 2kg Chicken, Maize, Rice & Sugar",
+      "featuredGtins": [
+        "6001008000140",
+        "6001007002343",
+        "6001007000127",
+        "6001007002032"
+      ],
+      "geoPoint": {
+        "latitude": -25.7192,
+        "longitude": 28.3688
+      }
+    },
+    {
+      "id": "shoprite_soshanguve_0368",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Soshanguve Crossing",
+      "suburb": "Soshanguve",
+      "city": "Pretoria",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "Ruth First Rd & Aubrey Matlakala St, Soshanguve",
+      "retailerStoreCode": "0368",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Soshanguve Price Shield · Ritebrand Washing Powder & Staples",
+      "featuredGtins": [
+        "6001007002155",
+        "6001007002148",
+        "6001007002025",
+        "6001007002018"
+      ],
+      "geoPoint": {
+        "latitude": -25.5226,
+        "longitude": 28.1062
+      }
+    },
+    {
+      "id": "shoprite_vanderbijlpark_0179",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Vaal / Vanderbijlpark CBD",
+      "suburb": "Vanderbijlpark",
+      "city": "Vereeniging",
+      "provinceCode": "GP",
+      "provinceName": "Gauteng",
+      "address": "President Kruger St, Vanderbijlpark",
+      "retailerStoreCode": "0179",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "gp",
+      "dealBanner": "Vaal Triangle Specials · Big Savings on Groceries & Cleaning",
+      "featuredGtins": [
+        "6001087006781",
+        "6001087003346",
+        "6001007003210",
+        "6001053000027"
+      ],
+      "geoPoint": {
+        "latitude": -26.7094,
+        "longitude": 27.8492
+      }
+    },
+    {
+      "id": "shoprite_cpt_0088",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Cape Town Grand Parade / Golden Acre",
+      "suburb": "Cape Town City Centre",
+      "city": "Cape Town",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Grand Parade & Adderley St, Cape Town CBD",
+      "retailerStoreCode": "0088",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Mother City Xtra Savings · Cape Bakery, Fresh Dairy & Fruit Deals",
+      "featuredGtins": [
+        "6001007001001",
+        "6001299000270",
+        "6009510805536",
+        "6001053000027"
+      ],
+      "geoPoint": {
+        "latitude": -33.9248,
+        "longitude": 18.4241
+      }
+    },
+    {
+      "id": "shoprite_cpt_saltriver_0094",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Salt River / Woodstock",
+      "suburb": "Salt River",
+      "city": "Cape Town",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Victoria Rd, Salt River, Cape Town",
+      "retailerStoreCode": "0094",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Victoria Rd Value Specials · Everyday Pantry & Rooibos Deals",
+      "featuredGtins": [
+        "6001007002100",
+        "6001053000027",
+        "6001007000899",
+        "6001007002070"
+      ],
+      "geoPoint": {
+        "latitude": -33.928,
+        "longitude": 18.4589
+      }
+    },
+    {
+      "id": "shoprite_cpt_wynberg_0062",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Wynberg Main Road",
+      "suburb": "Wynberg",
+      "city": "Cape Town",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Main Rd, Wynberg, Cape Town",
+      "retailerStoreCode": "0062",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Southern Suburbs Saver · Fresh Produce, Milk & Bakery Combos",
+      "featuredGtins": [
+        "6001007002124",
+        "6001007002131",
+        "6009510806120",
+        "6001007001018"
+      ],
+      "geoPoint": {
+        "latitude": -34.0061,
+        "longitude": 18.4664
+      }
+    },
+    {
+      "id": "shoprite_cpt_claremont_0075",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Claremont Station / Main Rd",
+      "suburb": "Claremont",
+      "city": "Cape Town",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Main Rd & Station Rd, Claremont, Cape Town",
+      "retailerStoreCode": "0075",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Claremont Commuter Specials · Coffee, Snacks & Quick Groceries",
+      "featuredGtins": [
+        "6001068001002",
+        "6001068594504",
+        "5449000000996",
+        "6001571002022"
+      ],
+      "geoPoint": {
+        "latitude": -33.9814,
+        "longitude": 18.4648
+      }
+    },
+    {
+      "id": "shoprite_cpt_athlone_0058",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Athlone Klipfontein Rd",
+      "suburb": "Athlone",
+      "city": "Cape Town",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Klipfontein Rd, Athlone, Cape Town",
+      "retailerStoreCode": "0058",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Cape Flats Family Saver · Cooking Oil, Flour, Rice & Spices",
+      "featuredGtins": [
+        "6001007002018",
+        "6001007003210",
+        "6001007000127",
+        "6001007005436"
+      ],
+      "geoPoint": {
+        "latitude": -33.9647,
+        "longitude": 18.5042
+      }
+    },
+    {
+      "id": "shoprite_cpt_mitchellsplain_0118",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Promenade Mitchells Plain",
+      "suburb": "Mitchells Plain",
+      "city": "Cape Town",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "AZ Berman Dr, Liberty Promenade, Mitchells Plain",
+      "retailerStoreCode": "0118",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Promenade Mega Trolley Deals · 2kg Chicken, Potatoes & Onions",
+      "featuredGtins": [
+        "6001008000140",
+        "6001007002124",
+        "6001007002131",
+        "6001007002070"
+      ],
+      "geoPoint": {
+        "latitude": -34.0488,
+        "longitude": 18.6184
+      }
+    },
+    {
+      "id": "shoprite_cpt_khayelitsha_0201",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Khayelitsha Mall",
+      "suburb": "Khayelitsha",
+      "city": "Cape Town",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Walter Sisulu Rd, Khayelitsha, Cape Town",
+      "retailerStoreCode": "0201",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Khayelitsha Bulk Combo Specials · Maize, Sugar, Rice & UHT Milk",
+      "featuredGtins": [
+        "6001007002343",
+        "6001007002032",
+        "6001007002025",
+        "6001007002001"
+      ],
+      "geoPoint": {
+        "latitude": -34.0398,
+        "longitude": 18.6749
+      }
+    },
+    {
+      "id": "shoprite_cpt_gugulethu_0215",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Gugulethu Square",
+      "suburb": "Gugulethu",
+      "city": "Cape Town",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Steve Biko Dr (NY1), Gugulethu, Cape Town",
+      "retailerStoreCode": "0215",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Gugulethu Square Price Cut · Pilchards, Bread, Eggs & Laundry",
+      "featuredGtins": [
+        "6001053000027",
+        "6001007001001",
+        "6001007002063",
+        "6001007002155"
+      ],
+      "geoPoint": {
+        "latitude": -33.9819,
+        "longitude": 18.5678
+      }
+    },
+    {
+      "id": "shoprite_cpt_bellville_0012",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Bellville Middestad / Station",
+      "suburb": "Bellville",
+      "city": "Cape Town",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Voortrekker Rd & Charl Malan St, Bellville",
+      "retailerStoreCode": "0012",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Northern Suburbs Flagship · Home of Ritebrand Low Prices",
+      "featuredGtins": [
+        "6001007002001",
+        "6001007002018",
+        "6001007002148",
+        "6001007002100"
+      ],
+      "geoPoint": {
+        "latitude": -33.9036,
+        "longitude": 18.6295
+      }
+    },
+    {
+      "id": "shoprite_cpt_parow_0019",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Parow Centre",
+      "suburb": "Parow",
+      "city": "Cape Town",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Voortrekker Rd & De La Rey St, Parow",
+      "retailerStoreCode": "0019",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Parow Centre Weekly Deals · Dairy, Oats & Household Care",
+      "featuredGtins": [
+        "6009510806120",
+        "6001007006211",
+        "6001087002134",
+        "6001087005111"
+      ],
+      "geoPoint": {
+        "latitude": -33.9067,
+        "longitude": 18.5914
+      }
+    },
+    {
+      "id": "shoprite_cpt_tableview_0131",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Bayside / Table View",
+      "suburb": "Table View",
+      "city": "Cape Town",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Blaauwberg Rd & West Coast Rd, Table View",
+      "retailerStoreCode": "0131",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "West Coast Xtra Savings · Avocados, Gala Apples & Fresh Milk",
+      "featuredGtins": [
+        "6001571002022",
+        "6009510805536",
+        "6001299000270",
+        "6001007007553"
+      ],
+      "geoPoint": {
+        "latitude": -33.8247,
+        "longitude": 18.4906
+      }
+    },
+    {
+      "id": "shoprite_somersetwest_0081",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Somerset West Main Rd",
+      "suburb": "Somerset West",
+      "city": "Helderberg",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Main Rd, Somerset West",
+      "retailerStoreCode": "0081",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Helderberg Grocery Specials · Pantry & Cleaning Essentials",
+      "featuredGtins": [
+        "6001087006781",
+        "6001007000127",
+        "6001056000109",
+        "6001007004323"
+      ],
+      "geoPoint": {
+        "latitude": -34.0825,
+        "longitude": 18.8475
+      }
+    },
+    {
+      "id": "shoprite_stellenbosch_0099",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Stellenbosch Bird Street",
+      "suburb": "Stellenbosch Central",
+      "city": "Stellenbosch",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Bird St, Stellenbosch",
+      "retailerStoreCode": "0099",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Winelands Saver · Instant Coffee, Pasta, Bread & Snacks",
+      "featuredGtins": [
+        "6001068001002",
+        "6001007000301",
+        "6001007001001",
+        "6001068594504"
+      ],
+      "geoPoint": {
+        "latitude": -33.9355,
+        "longitude": 18.8602
+      }
+    },
+    {
+      "id": "shoprite_paarl_0044",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Paarl Lady Grey St",
+      "suburb": "Paarl Central",
+      "city": "Paarl",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Lady Grey St, Paarl",
+      "retailerStoreCode": "0044",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Boland Family Value · Flour, Sugar, Rooibos & Fresh Produce",
+      "featuredGtins": [
+        "6001007003210",
+        "6001007002032",
+        "6001007002100",
+        "6001007002124"
+      ],
+      "geoPoint": {
+        "latitude": -33.7312,
+        "longitude": 18.9675
+      }
+    },
+    {
+      "id": "shoprite_worcester_0069",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Worcester High St",
+      "suburb": "Worcester Central",
+      "city": "Worcester",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "High St, Worcester",
+      "retailerStoreCode": "0069",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Breede Valley Bulk Deals · Ritebrand Staples & Canned Fish",
+      "featuredGtins": [
+        "6001053000027",
+        "6001007002025",
+        "6001007002056",
+        "6001007002001"
+      ],
+      "geoPoint": {
+        "latitude": -33.6465,
+        "longitude": 19.4426
+      }
+    },
+    {
+      "id": "shoprite_george_0107",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite George Market St",
+      "suburb": "George Central",
+      "city": "George",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Hibernia St & Market St, George",
+      "retailerStoreCode": "0107",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Garden Route Xtra Savings · First Choice Milk, Bread & Chicken",
+      "featuredGtins": [
+        "6009510806120",
+        "6001007001001",
+        "6001008000140",
+        "6001087009874"
+      ],
+      "geoPoint": {
+        "latitude": -33.963,
+        "longitude": 22.4597
+      }
+    },
+    {
+      "id": "shoprite_mosselbay_0152",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Langeberg Mall Mossel Bay",
+      "suburb": "Voorbaai",
+      "city": "Mossel Bay",
+      "provinceCode": "WC",
+      "provinceName": "Western Cape",
+      "address": "Louis Fourie Rd, Mossel Bay",
+      "retailerStoreCode": "0152",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "wc",
+      "dealBanner": "Mossel Bay Coastal Deals · Beverages, Biscuits & Pantry",
+      "featuredGtins": [
+        "5449000000996",
+        "6001007001407",
+        "6001007005436",
+        "6001053001208"
+      ],
+      "geoPoint": {
+        "latitude": -34.1564,
+        "longitude": 22.1031
+      }
+    },
+    {
+      "id": "shoprite_dbn_0142",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Durban Central Pixley KaSeme",
+      "suburb": "Durban Central",
+      "city": "Durban",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "Dr Pixley KaSeme (West) St, Durban Central",
+      "retailerStoreCode": "0142",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "eThekwini Port Price Advantage · Lowest KZN Prices on Rice, Oil & Bread",
+      "featuredGtins": [
+        "6001007000127",
+        "6001007002018",
+        "6001007001001",
+        "6001299000270"
+      ],
+      "geoPoint": {
+        "latitude": -29.8587,
+        "longitude": 31.0218
+      }
+    },
+    {
+      "id": "shoprite_dbn_workshop_0161",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite The Workshop Durban",
+      "suburb": "Durban CBD",
+      "city": "Durban",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "99 Samora Machel St, Durban Central",
+      "retailerStoreCode": "0161",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "Workshop Express Deals · Cold Drinks, Bakery & Everyday Groceries",
+      "featuredGtins": [
+        "5449000000996",
+        "6001299001444",
+        "6001007002070",
+        "6001068594504"
+      ],
+      "geoPoint": {
+        "latitude": -29.8553,
+        "longitude": 31.0249
+      }
+    },
+    {
+      "id": "shoprite_dbn_berea_0177",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Berea Centre Durban",
+      "suburb": "Berea",
+      "city": "Durban",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "249 King Dinuzulu Rd, Berea, Durban",
+      "retailerStoreCode": "0177",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "Berea Centre Xtra Savings · Fresh Produce, Eggs & Pasta Combos",
+      "featuredGtins": [
+        "6001571002022",
+        "6001007002063",
+        "6001007000301",
+        "6001007007553"
+      ],
+      "geoPoint": {
+        "latitude": -29.8569,
+        "longitude": 31.0028
+      }
+    },
+    {
+      "id": "shoprite_pinetown_0188",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Pinetown Pine Crest / Hill St",
+      "suburb": "Pinetown",
+      "city": "Durban",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "Hill St & Kings Rd, Pinetown",
+      "retailerStoreCode": "0188",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "Pinetown Super Saver · Bulk Maize, Rice, Beans & Sunlight Deals",
+      "featuredGtins": [
+        "6001007002343",
+        "6001007000127",
+        "6001007000899",
+        "6001087002134"
+      ],
+      "geoPoint": {
+        "latitude": -29.8169,
+        "longitude": 30.8584
+      }
+    },
+    {
+      "id": "shoprite_umlazi_0290",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Umlazi Mega City",
+      "suburb": "Umlazi",
+      "city": "Durban",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "50 Griffiths Mxenge Hwy, Umlazi",
+      "retailerStoreCode": "0290",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "Umlazi Mega Month-End · 2kg Chicken, Oil, Rice & Sugar Specials",
+      "featuredGtins": [
+        "6001008000140",
+        "6001007002018",
+        "6001007000127",
+        "6001007002032"
+      ],
+      "geoPoint": {
+        "latitude": -29.9672,
+        "longitude": 30.8925
+      }
+    },
+    {
+      "id": "shoprite_kwamashu_0318",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Bridge City KwaMashu",
+      "suburb": "KwaMashu",
+      "city": "Durban",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "Nogwaja Rd, Bridge City, KwaMashu",
+      "retailerStoreCode": "0318",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "Bridge City Xtra Savings · Ritebrand Milk, Bread & Washing Powder",
+      "featuredGtins": [
+        "6001007002001",
+        "6001007002070",
+        "6001007002155",
+        "6001053000027"
+      ],
+      "geoPoint": {
+        "latitude": -29.7361,
+        "longitude": 30.9789
+      }
+    },
+    {
+      "id": "shoprite_chatsworth_0193",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Chatsworth Centre",
+      "suburb": "Chatsworth",
+      "city": "Durban",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "17 Joyhurst St, Chatsworth, Durban",
+      "retailerStoreCode": "0193",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "Chatsworth Cooking & Spice Specials · Oil, Rice, Onions & Potatoes",
+      "featuredGtins": [
+        "6001007002018",
+        "6001007000127",
+        "6001007002131",
+        "6001007002124"
+      ],
+      "geoPoint": {
+        "latitude": -29.9136,
+        "longitude": 30.8886
+      }
+    },
+    {
+      "id": "shoprite_phoenix_0211",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Phoenix Plaza",
+      "suburb": "Phoenix",
+      "city": "Durban",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "19 Parthenon St, Phoenix, Durban",
+      "retailerStoreCode": "0211",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "Phoenix Plaza Price Cuts · Flour, Tea, Mayo & Canned Goods",
+      "featuredGtins": [
+        "6001007003210",
+        "6001056000109",
+        "6001007007553",
+        "6001007000899"
+      ],
+      "geoPoint": {
+        "latitude": -29.7042,
+        "longitude": 31.0064
+      }
+    },
+    {
+      "id": "shoprite_verulam_0237",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Verulam Wick St",
+      "suburb": "Verulam",
+      "city": "Durban North",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "Wick St, Verulam",
+      "retailerStoreCode": "0237",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "North Coast Pantry Saver · Sugar, Rice & Ritebrand Household",
+      "featuredGtins": [
+        "6001007002032",
+        "6001007002025",
+        "6001007002049",
+        "6001007002148"
+      ],
+      "geoPoint": {
+        "latitude": -29.6433,
+        "longitude": 31.0508
+      }
+    },
+    {
+      "id": "shoprite_pmb_0155",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Pietermaritzburg Church St",
+      "suburb": "Pietermaritzburg CBD",
+      "city": "Pietermaritzburg",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "Church St, Pietermaritzburg Central",
+      "retailerStoreCode": "0155",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "Midlands Hub Xtra Savings · Bread, Clover Milk & Omo Specials",
+      "featuredGtins": [
+        "6001007001001",
+        "6001299000270",
+        "6001087006781",
+        "6001068001002"
+      ],
+      "geoPoint": {
+        "latitude": -29.5992,
+        "longitude": 30.3794
+      }
+    },
+    {
+      "id": "shoprite_pmb_edendale_0309",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Greater Edendale Mall PMB",
+      "suburb": "Edendale",
+      "city": "Pietermaritzburg",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "Moses Mabhida Rd, Edendale, PMB",
+      "retailerStoreCode": "0309",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "Edendale Family Hampers · Maize, Chicken, Cooking Oil & Beans",
+      "featuredGtins": [
+        "6001007002343",
+        "6001008000140",
+        "6001007002018",
+        "6001007000899"
+      ],
+      "geoPoint": {
+        "latitude": -29.6461,
+        "longitude": 30.3125
+      }
+    },
+    {
+      "id": "shoprite_richardsbay_0248",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Boardwalk Inkwazi Richards Bay",
+      "suburb": "Richards Bay Central",
+      "city": "Richards Bay",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "Krugerrand Grove, Richards Bay",
+      "retailerStoreCode": "0248",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "Zululand Xtra Savings · Bulk Groceries & Cold Beverages",
+      "featuredGtins": [
+        "5449000000996",
+        "6001299001444",
+        "6001007000127",
+        "6001087002134"
+      ],
+      "geoPoint": {
+        "latitude": -28.7547,
+        "longitude": 32.0497
+      }
+    },
+    {
+      "id": "shoprite_newcastle_0221",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Newcastle Scott St",
+      "suburb": "Newcastle CBD",
+      "city": "Newcastle",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "Scott St & Allen St, Newcastle",
+      "retailerStoreCode": "0221",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "Northern KZN Saver · Oats, Ricoffy, Bread & Margarine Deals",
+      "featuredGtins": [
+        "6001007006211",
+        "6001068001002",
+        "6001007001018",
+        "6001087009874"
+      ],
+      "geoPoint": {
+        "latitude": -27.758,
+        "longitude": 29.9318
+      }
+    },
+    {
+      "id": "shoprite_ladysmith_0230",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Ladysmith Oval",
+      "suburb": "Ladysmith Central",
+      "city": "Ladysmith",
+      "provinceCode": "KZN",
+      "provinceName": "KwaZulu-Natal",
+      "address": "Murchison St, Ladysmith",
+      "retailerStoreCode": "0230",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "kzn",
+      "dealBanner": "uThukela Price Shield · Ritebrand Pantry & Hygiene Markdowns",
+      "featuredGtins": [
+        "6001087004565",
+        "6001087007788",
+        "6001007002025",
+        "6001007002070"
+      ],
+      "geoPoint": {
+        "latitude": -28.5567,
+        "longitude": 29.7808
+      }
+    },
+    {
+      "id": "shoprite_pe_pier14_0125",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Pier 14 Gqeberha (Port Elizabeth)",
+      "suburb": "North End",
+      "city": "Gqeberha",
+      "provinceCode": "EC",
+      "provinceName": "Eastern Cape",
+      "address": "444 Govan Mbeki Ave, North End, Gqeberha",
+      "retailerStoreCode": "0125",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "ec",
+      "dealBanner": "Nelson Mandela Bay Specials · Flour, Sugar, Pilchards & Milk",
+      "featuredGtins": [
+        "6001007003210",
+        "6001007002032",
+        "6001053000027",
+        "6009510806120"
+      ],
+      "geoPoint": {
+        "latitude": -33.9461,
+        "longitude": 25.6033
+      }
+    },
+    {
+      "id": "shoprite_pe_kenako_0355",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Kenako Mall Kwazakhele",
+      "suburb": "Kwazakhele",
+      "city": "Gqeberha",
+      "provinceCode": "EC",
+      "provinceName": "Eastern Cape",
+      "address": "Spondo Rd, New Brighton / Kwazakhele, Gqeberha",
+      "retailerStoreCode": "0355",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "ec",
+      "dealBanner": "Kenako Bulk Combo · Maize Meal, Rice, Cooking Oil & Chicken",
+      "featuredGtins": [
+        "6001007002343",
+        "6001007002025",
+        "6001007002018",
+        "6001008000140"
+      ],
+      "geoPoint": {
+        "latitude": -33.8825,
+        "longitude": 25.5789
+      }
+    },
+    {
+      "id": "shoprite_el_gillwell_0134",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Gillwell Mall East London",
+      "suburb": "East London CBD",
+      "city": "East London",
+      "provinceCode": "EC",
+      "provinceName": "Eastern Cape",
+      "address": "Gillwell Rd & Fleet St, East London",
+      "retailerStoreCode": "0134",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "ec",
+      "dealBanner": "Buffalo City Xtra Savings · Bread, Dairy, Tea & Cleaning Deals",
+      "featuredGtins": [
+        "6001007001001",
+        "6001299000270",
+        "6001056000109",
+        "6001087002134"
+      ],
+      "geoPoint": {
+        "latitude": -33.0153,
+        "longitude": 27.9056
+      }
+    },
+    {
+      "id": "shoprite_mdantsane_0299",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Mdantsane City",
+      "suburb": "Mdantsane",
+      "city": "East London",
+      "provinceCode": "EC",
+      "provinceName": "Eastern Cape",
+      "address": "Qumza Hwy, Mdantsane",
+      "retailerStoreCode": "0299",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "ec",
+      "dealBanner": "Mdantsane City Mega Saver · Ritebrand Essentials & Staples",
+      "featuredGtins": [
+        "6001007002001",
+        "6001007002070",
+        "6001007002032",
+        "6001007002155"
+      ],
+      "geoPoint": {
+        "latitude": -32.9486,
+        "longitude": 27.7608
+      }
+    },
+    {
+      "id": "shoprite_mthatha_0166",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Circus Triangle Mthatha",
+      "suburb": "Mthatha Central",
+      "city": "Mthatha",
+      "provinceCode": "EC",
+      "provinceName": "Eastern Cape",
+      "address": "Sutherland St & Chatham St, Mthatha",
+      "retailerStoreCode": "0166",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "ec",
+      "dealBanner": "OR Tambo Bulk Pantry · Flour, Maize, Sugar, Oil & Soup Combos",
+      "featuredGtins": [
+        "6001007003210",
+        "6001007002343",
+        "6001007002032",
+        "6001007002018"
+      ],
+      "geoPoint": {
+        "latitude": -31.5898,
+        "longitude": 28.7844
+      }
+    },
+    {
+      "id": "shoprite_komani_0274",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Nonesi Mall Komani (Queenstown)",
+      "suburb": "Komani",
+      "city": "Komani",
+      "provinceCode": "EC",
+      "provinceName": "Eastern Cape",
+      "address": "Cathcart Rd, Komani",
+      "retailerStoreCode": "0274",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "ec",
+      "dealBanner": "Komani Xtra Savings · Everyday Family Basket Markdowns",
+      "featuredGtins": [
+        "6001007000899",
+        "6001053000027",
+        "6001068001002",
+        "6001007001018"
+      ],
+      "geoPoint": {
+        "latitude": -31.8975,
+        "longitude": 26.8753
+      }
+    },
+    {
+      "id": "shoprite_bfn_middestad_0089",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Middestad Bloemfontein CBD",
+      "suburb": "Bloemfontein Central",
+      "city": "Bloemfontein",
+      "provinceCode": "FS",
+      "provinceName": "Free State",
+      "address": "Charlotte Maxeke St & West Burger St, Bloemfontein",
+      "retailerStoreCode": "0089",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "fs",
+      "dealBanner": "Mangaung Heartland Deals · Maize Meal, Milk, Bread & Chicken",
+      "featuredGtins": [
+        "6001007002343",
+        "6001299000270",
+        "6001007001001",
+        "6001008000140"
+      ],
+      "geoPoint": {
+        "latitude": -29.1169,
+        "longitude": 26.2186
+      }
+    },
+    {
+      "id": "shoprite_bfn_mangaung_0265",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Twin City Mangaung",
+      "suburb": "Heidedal / Mangaung",
+      "city": "Bloemfontein",
+      "provinceCode": "FS",
+      "provinceName": "Free State",
+      "address": "Mosuoe St & Heatherdale Rd, Bloemfontein",
+      "retailerStoreCode": "0265",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "fs",
+      "dealBanner": "Twin City Month-End Saver · Ritebrand Oil, Sugar & Washing Powder",
+      "featuredGtins": [
+        "6001007002018",
+        "6001007002032",
+        "6001007002155",
+        "6001007002070"
+      ],
+      "geoPoint": {
+        "latitude": -29.1606,
+        "longitude": 26.2694
+      }
+    },
+    {
+      "id": "shoprite_botshabelo_0310",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Botshabelo Mall",
+      "suburb": "Botshabelo",
+      "city": "Botshabelo",
+      "provinceCode": "FS",
+      "provinceName": "Free State",
+      "address": "Main Rd, Botshabelo",
+      "retailerStoreCode": "0310",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "fs",
+      "dealBanner": "Botshabelo Super Specials · Bulk Maize, Beans, Pilchards & Tea",
+      "featuredGtins": [
+        "6001007002343",
+        "6001007000899",
+        "6001053000027",
+        "6001007002100"
+      ],
+      "geoPoint": {
+        "latitude": -29.2289,
+        "longitude": 26.7097
+      }
+    },
+    {
+      "id": "shoprite_welkom_0112",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Welkom Bok St",
+      "suburb": "Welkom Central",
+      "city": "Welkom",
+      "provinceCode": "FS",
+      "provinceName": "Free State",
+      "address": "Bok St & Stateway, Welkom",
+      "retailerStoreCode": "0112",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "fs",
+      "dealBanner": "Goldfields Value Deals · Ricoffy, Oats, Eggs & Household Care",
+      "featuredGtins": [
+        "6001068001002",
+        "6001007006211",
+        "6001007002063",
+        "6001087006781"
+      ],
+      "geoPoint": {
+        "latitude": -27.9778,
+        "longitude": 26.7353
+      }
+    },
+    {
+      "id": "shoprite_bethlehem_0145",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Bethlehem Kerk St",
+      "suburb": "Bethlehem Central",
+      "city": "Bethlehem",
+      "provinceCode": "FS",
+      "provinceName": "Free State",
+      "address": "Kerk St, Bethlehem",
+      "retailerStoreCode": "0145",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "fs",
+      "dealBanner": "Eastern Free State Specials · Flour, Pasta, Potatoes & Milk",
+      "featuredGtins": [
+        "6001007003210",
+        "6001007000301",
+        "6001007002124",
+        "6009510806120"
+      ],
+      "geoPoint": {
+        "latitude": -28.2311,
+        "longitude": 28.3072
+      }
+    },
+    {
+      "id": "shoprite_polokwane_0159",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Polokwane Landdros Mare St",
+      "suburb": "Polokwane CBD",
+      "city": "Polokwane",
+      "provinceCode": "LP",
+      "provinceName": "Limpopo",
+      "address": "Landdros Mare St & Thabo Mbeki St, Polokwane",
+      "retailerStoreCode": "0159",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "lp",
+      "dealBanner": "Polokwane Bulk Hub · Super Maize, Parboiled Rice & Cooking Oil",
+      "featuredGtins": [
+        "6001007002343",
+        "6001007000127",
+        "6001007002018",
+        "6001008000140"
+      ],
+      "geoPoint": {
+        "latitude": -23.9045,
+        "longitude": 29.4556
+      }
+    },
+    {
+      "id": "shoprite_mankweng_0348",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Paledi / Mankweng Turfloop",
+      "suburb": "Mankweng",
+      "city": "Polokwane",
+      "provinceCode": "LP",
+      "provinceName": "Limpopo",
+      "address": "R71 Tzaneen Rd, Mankweng",
+      "retailerStoreCode": "0348",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "lp",
+      "dealBanner": "Turfloop Student & Family Deals · Bread, Beans, Tuna & Coffee",
+      "featuredGtins": [
+        "6001007002070",
+        "6001007000899",
+        "6001053001208",
+        "6001068001002"
+      ],
+      "geoPoint": {
+        "latitude": -23.8856,
+        "longitude": 29.7269
+      }
+    },
+    {
+      "id": "shoprite_thohoyandou_0204",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Thohoyandou Mphephu Dr",
+      "suburb": "Thohoyandou CBD",
+      "city": "Thohoyandou",
+      "provinceCode": "LP",
+      "provinceName": "Limpopo",
+      "address": "Mphephu Dr, Thohoyandou",
+      "retailerStoreCode": "0204",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "lp",
+      "dealBanner": "Vhembe Mega Saver · Avocados, Fruit, Maize & Ritebrand Milk",
+      "featuredGtins": [
+        "6001571002022",
+        "6009510805536",
+        "6001007002343",
+        "6001007002001"
+      ],
+      "geoPoint": {
+        "latitude": -22.9744,
+        "longitude": 30.4578
+      }
+    },
+    {
+      "id": "shoprite_tzaneen_0218",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Tzaneen Danie Joubert St",
+      "suburb": "Tzaneen Central",
+      "city": "Tzaneen",
+      "provinceCode": "LP",
+      "provinceName": "Limpopo",
+      "address": "Danie Joubert St, Tzaneen",
+      "retailerStoreCode": "0218",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "lp",
+      "dealBanner": "Mopani Fresh & Pantry Deals · Tropika, Bread, Sugar & Soap",
+      "featuredGtins": [
+        "6001299001444",
+        "6001007001001",
+        "6001007002032",
+        "6001087004565"
+      ],
+      "geoPoint": {
+        "latitude": -23.8332,
+        "longitude": 30.1635
+      }
+    },
+    {
+      "id": "shoprite_burgersfort_0327",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Twin City Burgersfort",
+      "suburb": "Burgersfort",
+      "city": "Burgersfort",
+      "provinceCode": "LP",
+      "provinceName": "Limpopo",
+      "address": "Dirk Winterbach St, Burgersfort",
+      "retailerStoreCode": "0327",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "lp",
+      "dealBanner": "Sekhukhune Month-End Combos · Omo, Sunlight, Rice & Chicken",
+      "featuredGtins": [
+        "6001087006781",
+        "6001087002134",
+        "6001007000127",
+        "6001008000140"
+      ],
+      "geoPoint": {
+        "latitude": -24.6669,
+        "longitude": 30.3247
+      }
+    },
+    {
+      "id": "shoprite_mbombela_0170",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Nelspruit Plaza Mbombela",
+      "suburb": "Mbombela Central",
+      "city": "Mbombela",
+      "provinceCode": "MP",
+      "provinceName": "Mpumalanga",
+      "address": "Samora Machel Dr & Henshall St, Mbombela",
+      "retailerStoreCode": "0170",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "mp",
+      "dealBanner": "Lowveld Xtra Savings · Fresh Produce, Dairy, Maize & Cold Drinks",
+      "featuredGtins": [
+        "5449000000996",
+        "6001299000270",
+        "6001007002343",
+        "6001571002022"
+      ],
+      "geoPoint": {
+        "latitude": -25.4745,
+        "longitude": 30.9786
+      }
+    },
+    {
+      "id": "shoprite_emalahleni_0182",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite eMalahleni (Witbank) Mandela St",
+      "suburb": "eMalahleni CBD",
+      "city": "eMalahleni",
+      "provinceCode": "MP",
+      "provinceName": "Mpumalanga",
+      "address": "Mandela St, eMalahleni",
+      "retailerStoreCode": "0182",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "mp",
+      "dealBanner": "Highveld Family Value · Bread, Eggs, Peanut Butter & Coffee",
+      "featuredGtins": [
+        "6001007001001",
+        "6001007002063",
+        "6001007004323",
+        "6001068001002"
+      ],
+      "geoPoint": {
+        "latitude": -25.8728,
+        "longitude": 29.2331
+      }
+    },
+    {
+      "id": "shoprite_secunda_0229",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Secunda Mall / Horwood St",
+      "suburb": "Secunda Central",
+      "city": "Secunda",
+      "provinceCode": "MP",
+      "provinceName": "Mpumalanga",
+      "address": "Horwood St, Secunda",
+      "retailerStoreCode": "0229",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "mp",
+      "dealBanner": "Secunda Pantry & Cleaning Specials · Domestos, Handy Andy & Pasta",
+      "featuredGtins": [
+        "6001087005111",
+        "6001087003346",
+        "6001007000301",
+        "6001007005436"
+      ],
+      "geoPoint": {
+        "latitude": -26.5122,
+        "longitude": 29.2028
+      }
+    },
+    {
+      "id": "shoprite_acornhoek_0339",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Acornhoek Mall",
+      "suburb": "Acornhoek",
+      "city": "Bushbuckridge",
+      "provinceCode": "MP",
+      "provinceName": "Mpumalanga",
+      "address": "R40 Main Rd, Acornhoek",
+      "retailerStoreCode": "0339",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "mp",
+      "dealBanner": "Bushbuckridge Bulk Deals · Ritebrand Oil, Sugar, Rice & Toilet Paper",
+      "featuredGtins": [
+        "6001007002018",
+        "6001007002032",
+        "6001007002025",
+        "6001007002148"
+      ],
+      "geoPoint": {
+        "latitude": -24.5975,
+        "longitude": 31.0844
+      }
+    },
+    {
+      "id": "shoprite_rustenburg_0163",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Rustenburg Plaza",
+      "suburb": "Rustenburg Central",
+      "city": "Rustenburg",
+      "provinceCode": "NW",
+      "provinceName": "North West",
+      "address": "Oliver Tambo Dr, Rustenburg",
+      "retailerStoreCode": "0163",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "nw",
+      "dealBanner": "Platinum Belt Mega Specials · Chicken, Maize, Milk & Laundry",
+      "featuredGtins": [
+        "6001008000140",
+        "6001007002343",
+        "6001299000270",
+        "6001087006781"
+      ],
+      "geoPoint": {
+        "latitude": -25.6676,
+        "longitude": 27.2421
+      }
+    },
+    {
+      "id": "shoprite_mahikeng_0197",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Mega City Mahikeng",
+      "suburb": "Mmabatho / Mahikeng",
+      "city": "Mahikeng",
+      "provinceCode": "NW",
+      "provinceName": "North West",
+      "address": "Sekame Rd, Mmabatho, Mahikeng",
+      "retailerStoreCode": "0197",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "nw",
+      "dealBanner": "Mahikeng Month-End Saver · Ritebrand Milk, Bread, Beans & Pilchards",
+      "featuredGtins": [
+        "6001007002001",
+        "6001007002070",
+        "6001007000899",
+        "6001053000027"
+      ],
+      "geoPoint": {
+        "latitude": -25.8458,
+        "longitude": 25.6147
+      }
+    },
+    {
+      "id": "shoprite_klerksdorp_0148",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Klerksdorp Terminus",
+      "suburb": "Klerksdorp CBD",
+      "city": "Klerksdorp",
+      "provinceCode": "NW",
+      "provinceName": "North West",
+      "address": "OR Tambo St, Klerksdorp",
+      "retailerStoreCode": "0148",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "nw",
+      "dealBanner": "Matlosana Grocery Deals · Flour, Sugar, Rama & Five Roses",
+      "featuredGtins": [
+        "6001007003210",
+        "6001007002032",
+        "6001087009874",
+        "6001056000109"
+      ],
+      "geoPoint": {
+        "latitude": -26.8667,
+        "longitude": 26.6667
+      }
+    },
+    {
+      "id": "shoprite_brits_0233",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Brits Mall / Pienaar St",
+      "suburb": "Brits Central",
+      "city": "Brits",
+      "provinceCode": "NW",
+      "provinceName": "North West",
+      "address": "Pienaar St & Hendrik Verwoerd Ave, Brits",
+      "retailerStoreCode": "0233",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "nw",
+      "dealBanner": "Madibeng Farm & Pantry Specials · Potatoes, Onions, Oil & Rice",
+      "featuredGtins": [
+        "6001007002124",
+        "6001007002131",
+        "6001007002018",
+        "6001007000127"
+      ],
+      "geoPoint": {
+        "latitude": -25.6347,
+        "longitude": 27.7808
+      }
+    },
+    {
+      "id": "shoprite_kimberley_0091",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Kimberley Market Square",
+      "suburb": "Kimberley CBD",
+      "city": "Kimberley",
+      "provinceCode": "NC",
+      "provinceName": "Northern Cape",
+      "address": "Bultfontein Rd & Jones St, Kimberley",
+      "retailerStoreCode": "0091",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "nc",
+      "dealBanner": "Diamond City Xtra Savings · UHT Milk, Bread, Cold Drinks & Meat",
+      "featuredGtins": [
+        "6001007002001",
+        "6001007001001",
+        "5449000000996",
+        "6001008000140"
+      ],
+      "geoPoint": {
+        "latitude": -28.7383,
+        "longitude": 24.7639
+      }
+    },
+    {
+      "id": "shoprite_upington_0151",
+      "retailerId": "shoprite",
+      "retailer": "Shoprite",
+      "name": "Shoprite Kalahari / Schroeder St Upington",
+      "suburb": "Upington Central",
+      "city": "Upington",
+      "provinceCode": "NC",
+      "provinceName": "Northern Cape",
+      "address": "Schroeder St, Upington",
+      "retailerStoreCode": "0151",
+      "color": "#e11d2e",
+      "loyalty": "Xtra Savings",
+      "regionCode": "nc",
+      "dealBanner": "Green Kalahari Bulk Saver · Long Life Essentials, Sugar & Flour",
+      "featuredGtins": [
+        "6009510806120",
+        "6001007002032",
+        "6001007003210",
+        "6001007002148"
+      ],
+      "geoPoint": {
+        "latitude": -28.4478,
+        "longitude": 21.2561
+      }
+    }
+  ]
+}

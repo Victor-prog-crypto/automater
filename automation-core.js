@@ -54,10 +54,17 @@ export class BaseAdapter {
 
   triggerHaptic(type = 'light') {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      if (type === 'success') navigator.vibrate([40, 30, 40]);
+      if (type === 'product-added') navigator.vibrate([75, 40, 95]);
+      else if (type === 'till-next') navigator.vibrate(45);
+      else if (type === 'till-complete') navigator.vibrate([60, 40, 60, 40, 120]);
+      else if (type === 'success') navigator.vibrate([40, 30, 40]);
       else if (type === 'heavy') navigator.vibrate(60);
       else navigator.vibrate(25);
     }
+  }
+
+  setTillCheckoutActive(active) {
+    // Override in native adapters
   }
 
   injectScraperScript(retailerId) {
@@ -295,11 +302,25 @@ export class AndroidWebViewAdapter extends BaseAdapter {
   }
 
   triggerHaptic(type = 'light') {
+    if (typeof window !== 'undefined' && window.AndroidAutomaterInterface?.vibratePattern && type === 'product-added') {
+      window.AndroidAutomaterInterface.vibratePattern('75,40,95');
+      return;
+    }
+    if (typeof window !== 'undefined' && window.AndroidAutomaterInterface?.vibratePattern && type === 'till-complete') {
+      window.AndroidAutomaterInterface.vibratePattern('60,40,60,40,120');
+      return;
+    }
     if (typeof window !== 'undefined' && window.AndroidAutomaterInterface?.vibrate) {
-      const duration = type === 'success' ? 40 : type === 'heavy' ? 70 : 25;
+      const duration = type === 'success' || type === 'till-next' ? 45 : type === 'heavy' ? 70 : 25;
       window.AndroidAutomaterInterface.vibrate(duration);
     } else {
       super.triggerHaptic(type);
+    }
+  }
+
+  setTillCheckoutActive(active) {
+    if (typeof window !== 'undefined' && window.AndroidAutomaterInterface?.setTillCheckoutActive) {
+      window.AndroidAutomaterInterface.setTillCheckoutActive(Boolean(active));
     }
   }
 
@@ -413,6 +434,28 @@ export class AutomationCore {
       this.activeAdapter.notifyAddToCartel(product, retailerId);
     }
     this.emit(AUTOMATION_EVENTS.ADD_TO_CARTEL, { product, retailerId });
+  }
+
+  vibrateProductAdded() {
+    if (this.activeAdapter) {
+      this.activeAdapter.triggerHaptic('product-added');
+    } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate([75, 40, 95]);
+    }
+  }
+
+  vibrateTillStep(complete = false) {
+    if (this.activeAdapter) {
+      this.activeAdapter.triggerHaptic(complete ? 'till-complete' : 'till-next');
+    } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(complete ? [60, 40, 60, 40, 120] : 45);
+    }
+  }
+
+  setTillCheckoutActive(active) {
+    if (this.activeAdapter) {
+      this.activeAdapter.setTillCheckoutActive(active);
+    }
   }
 
   switchRetailer(retailerId) {
